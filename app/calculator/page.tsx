@@ -5,9 +5,16 @@ import { useRouter } from 'next/navigation';
 import { CalculatorFormData, FormErrors } from '@/types';
 import Step1Residences from '@/components/calculator/Step1Residences';
 import Step2Household from '@/components/calculator/Step2Household';
+import Step2_5CurrentInsurance from '@/components/calculator/Step2_5CurrentInsurance';
 import Step3Budget from '@/components/calculator/Step3Budget';
 
 const INITIAL_FORM_DATA: CalculatorFormData = {
+  // New array-based residences (minimum 2 required)
+  residences: [
+    { zip: '', state: '' }, // Primary
+    { zip: '', state: '' }, // Secondary
+  ],
+  // Legacy fields for backward compatibility
   primaryResidence: { zip: '', state: '' },
   secondaryResidence: { zip: '', state: '' },
   hasThirdHome: false,
@@ -17,6 +24,15 @@ const INITIAL_FORM_DATA: CalculatorFormData = {
   numChildren: 0,
   childAges: [],
   hasMedicareEligible: false,
+  hasCurrentInsurance: false,
+  currentInsurance: {
+    carrier: '',
+    planType: '',
+    monthlyCost: 0,
+    deductible: 0,
+    outOfPocketMax: 0,
+    coverageNotes: '',
+  },
   budget: '',
   currentStep: 1,
 };
@@ -50,7 +66,11 @@ export default function Calculator() {
 
   // Save to localStorage whenever form changes
   useEffect(() => {
-    if (formData.currentStep > 1 || formData.primaryResidence.zip || formData.numAdults > 0) {
+    const hasData = formData.currentStep > 1 ||
+                    formData.residences.some(r => r.zip || r.state) ||
+                    formData.numAdults > 0;
+
+    if (hasData) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         ...formData,
         timestamp: Date.now(),
@@ -97,30 +117,21 @@ export default function Calculator() {
   const validateStep1 = (): boolean => {
     const newErrors: FormErrors = {};
 
-    // Validate primary residence
-    if (!formData.primaryResidence.zip || formData.primaryResidence.zip.length !== 5) {
-      newErrors.primaryZip = 'Please enter a valid 5-digit ZIP code';
-    }
-    if (!formData.primaryResidence.state) {
-      newErrors.primaryState = 'Please select a state';
-    }
-
-    // Validate secondary residence
-    if (!formData.secondaryResidence.zip || formData.secondaryResidence.zip.length !== 5) {
-      newErrors.secondaryZip = 'Please enter a valid 5-digit ZIP code';
-    }
-    if (!formData.secondaryResidence.state) {
-      newErrors.secondaryState = 'Please select a state';
-    }
-
-    // Validate third residence if checked
-    if (formData.hasThirdHome) {
-      if (!formData.thirdResidence.zip || formData.thirdResidence.zip.length !== 5) {
-        newErrors.thirdZip = 'Please enter a valid 5-digit ZIP code';
+    // Validate all residences in the array
+    formData.residences.forEach((residence, index) => {
+      // Validate ZIP code
+      if (!residence.zip || residence.zip.length !== 5) {
+        newErrors[`residence${index}Zip`] = 'Please enter a valid 5-digit ZIP code';
       }
-      if (!formData.thirdResidence.state) {
-        newErrors.thirdState = 'Please select a state';
+      // Validate state
+      if (!residence.state) {
+        newErrors[`residence${index}State`] = 'Please select a state';
       }
+    });
+
+    // Ensure minimum of 2 residences
+    if (formData.residences.length < 2) {
+      newErrors.residences = 'You must have at least 2 residences';
     }
 
     setErrors(newErrors);
@@ -155,6 +166,26 @@ export default function Calculator() {
   const validateStep3 = (): boolean => {
     const newErrors: FormErrors = {};
 
+    // Only validate if user said they have current insurance
+    if (formData.hasCurrentInsurance) {
+      if (!formData.currentInsurance.carrier.trim()) {
+        newErrors.carrier = 'Please enter your insurance carrier';
+      }
+      if (!formData.currentInsurance.planType) {
+        newErrors.planType = 'Please select your plan type';
+      }
+      if (!formData.currentInsurance.monthlyCost || formData.currentInsurance.monthlyCost < 0) {
+        newErrors.monthlyCost = 'Please enter a valid monthly cost';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep4 = (): boolean => {
+    const newErrors: FormErrors = {};
+
     if (!formData.budget) {
       newErrors.budget = 'Please select a budget range';
     }
@@ -176,6 +207,9 @@ export default function Calculator() {
       case 3:
         isValid = validateStep3();
         break;
+      case 4:
+        isValid = validateStep4();
+        break;
     }
 
     if (isValid) {
@@ -195,7 +229,7 @@ export default function Calculator() {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep3()) {
+    if (!validateStep4()) {
       return;
     }
 
@@ -206,25 +240,36 @@ export default function Calculator() {
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     // Build URL parameters
-    const params = new URLSearchParams({
-      primaryZip: formData.primaryResidence.zip,
-      primaryState: formData.primaryResidence.state,
-      secondaryZip: formData.secondaryResidence.zip,
-      secondaryState: formData.secondaryResidence.state,
-      hasThirdHome: formData.hasThirdHome.toString(),
-      ...(formData.hasThirdHome && {
-        thirdZip: formData.thirdResidence.zip,
-        thirdState: formData.thirdResidence.state,
-      }),
-      numAdults: formData.numAdults.toString(),
-      adultAges: formData.adultAges.join(','),
-      numChildren: formData.numChildren.toString(),
-      ...(formData.numChildren > 0 && {
-        childAges: formData.childAges.join(','),
-      }),
-      hasMedicareEligible: formData.hasMedicareEligible.toString(),
-      budget: formData.budget,
-    });
+    const params = new URLSearchParams();
+
+    // Add residences as comma-separated zips and states
+    const residenceZips = formData.residences.map(r => r.zip).join(',');
+    const residenceStates = formData.residences.map(r => r.state).join(',');
+    params.append('residenceZips', residenceZips);
+    params.append('residenceStates', residenceStates);
+
+    // Add household info
+    params.append('numAdults', formData.numAdults.toString());
+    params.append('adultAges', formData.adultAges.join(','));
+    params.append('numChildren', formData.numChildren.toString());
+    if (formData.numChildren > 0) {
+      params.append('childAges', formData.childAges.join(','));
+    }
+    params.append('hasMedicareEligible', formData.hasMedicareEligible.toString());
+
+    // Add current insurance if provided
+    params.append('hasCurrentInsurance', formData.hasCurrentInsurance.toString());
+    if (formData.hasCurrentInsurance) {
+      params.append('currentCarrier', formData.currentInsurance.carrier);
+      params.append('currentPlanType', formData.currentInsurance.planType);
+      params.append('currentMonthlyCost', formData.currentInsurance.monthlyCost.toString());
+      params.append('currentDeductible', formData.currentInsurance.deductible.toString());
+      params.append('currentOutOfPocketMax', formData.currentInsurance.outOfPocketMax.toString());
+      params.append('currentCoverageNotes', formData.currentInsurance.coverageNotes);
+    }
+
+    // Add budget
+    params.append('budget', formData.budget);
 
     // Clear saved data on successful submission
     localStorage.removeItem(STORAGE_KEY);
@@ -232,7 +277,7 @@ export default function Calculator() {
     router.push(`/results?${params.toString()}`);
   };
 
-  const stepNames = ['Residences', 'Household', 'Budget'];
+  const stepNames = ['Residences', 'Household', 'Current Insurance', 'Budget'];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4">
@@ -240,7 +285,7 @@ export default function Calculator() {
         {/* Page Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary mb-2">Coverage Calculator</h1>
-          <p className="text-gray-600 text-lg">Answer 3 quick questions to find your ideal insurance</p>
+          <p className="text-gray-600 text-lg">Answer 4 quick questions to find your ideal insurance</p>
         </div>
 
         {/* Resume Prompt */}
@@ -272,7 +317,7 @@ export default function Calculator() {
         {/* Progress Indicator */}
         <div className="mb-8">
           <div className="flex items-center justify-center gap-0 mb-6">
-            {[1, 2, 3].map((step) => (
+            {[1, 2, 3, 4].map((step) => (
               <div key={step} className="flex items-center">
                 <div className="flex flex-col items-center">
                   <div
@@ -292,7 +337,7 @@ export default function Calculator() {
                     {stepNames[step - 1]}
                   </div>
                 </div>
-                {step < 3 && (
+                {step < 4 && (
                   <div
                     className={`w-20 h-1 mb-6 transition-all ${
                       formData.currentStep > step ? 'bg-success' : 'bg-gray-300'
@@ -303,7 +348,7 @@ export default function Calculator() {
             ))}
           </div>
           <p className="text-center text-gray-600 font-medium">
-            Step {formData.currentStep} of 3: {stepNames[formData.currentStep - 1]}
+            Step {formData.currentStep} of 4: {stepNames[formData.currentStep - 1]}
           </p>
 
           {/* Clear Button */}
@@ -323,10 +368,7 @@ export default function Calculator() {
         <div className="bg-white rounded-xl shadow-xl p-8">
           {formData.currentStep === 1 && (
             <Step1Residences
-              primaryResidence={formData.primaryResidence}
-              secondaryResidence={formData.secondaryResidence}
-              hasThirdHome={formData.hasThirdHome}
-              thirdResidence={formData.thirdResidence}
+              residences={formData.residences}
               errors={errors}
               onUpdate={updateField}
               onNext={handleNext}
@@ -348,6 +390,17 @@ export default function Calculator() {
           )}
 
           {formData.currentStep === 3 && (
+            <Step2_5CurrentInsurance
+              hasCurrentInsurance={formData.hasCurrentInsurance}
+              currentInsurance={formData.currentInsurance}
+              errors={errors}
+              onUpdate={updateField}
+              onNext={handleNext}
+              onBack={handleBack}
+            />
+          )}
+
+          {formData.currentStep === 4 && (
             <Step3Budget
               budget={formData.budget}
               errors={errors}

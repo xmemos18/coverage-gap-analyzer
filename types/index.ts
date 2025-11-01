@@ -21,12 +21,24 @@ export interface Residence {
   state: string;
 }
 
+export interface CurrentInsurance {
+  carrier: string;
+  planType: string; // e.g., "HMO", "PPO", "EPO", "Medicare Advantage", "Medigap", etc.
+  monthlyCost: number;
+  deductible: number;
+  outOfPocketMax: number;
+  coverageNotes: string; // Additional details about coverage
+}
+
 export interface CalculatorFormData {
-  // Step 1: Residences
-  primaryResidence: Residence;
-  secondaryResidence: Residence;
-  hasThirdHome: boolean;
-  thirdResidence: Residence;
+  // Step 1: Residences (array-based for infinite properties)
+  residences: Residence[];
+
+  // Legacy fields (kept for backward compatibility, will be removed later)
+  primaryResidence?: Residence;
+  secondaryResidence?: Residence;
+  hasThirdHome?: boolean;
+  thirdResidence?: Residence;
 
   // Step 2: Household
   numAdults: number;
@@ -34,6 +46,10 @@ export interface CalculatorFormData {
   numChildren: number;
   childAges: number[];
   hasMedicareEligible: boolean;
+
+  // Step 2.5: Current Insurance (optional)
+  hasCurrentInsurance: boolean;
+  currentInsurance: CurrentInsurance;
 
   // Step 3: Budget
   budget: string;
@@ -59,6 +75,14 @@ export interface AlternativeOption {
   cons: string[];
 }
 
+export interface Suggestion {
+  type: 'cost-savings' | 'coverage-improvement' | 'network-expansion' | 'plan-change';
+  title: string;
+  description: string;
+  potentialSavings?: number; // Monthly savings if applicable
+  priority: 'high' | 'medium' | 'low';
+}
+
 export interface InsuranceRecommendation {
   recommendedInsurance: string;
   householdBreakdown: string;
@@ -67,4 +91,15 @@ export interface InsuranceRecommendation {
   reasoning: string;
   actionItems: string[];
   alternativeOptions: AlternativeOption[];
+
+  // Current insurance comparison (if provided)
+  currentInsuranceSummary?: string;
+  costComparison?: {
+    current: number;
+    recommended: CostRange;
+    monthlySavings?: number;
+    annualSavings?: number;
+  };
+  suggestions?: Suggestion[];
+  improvementAreas?: string[];
 }
