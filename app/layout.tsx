@@ -1,0 +1,104 @@
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
+
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Coverage Gap Analyzer | Multi-State Health Insurance Tool",
+  description: "Find health insurance for multiple homes. Perfect for snowbirds, remote workers, families. Free 3-minute analysis.",
+  keywords: ["health insurance", "multi-state insurance", "snowbird insurance", "multiple homes", "remote worker insurance", "dual residence insurance"],
+  authors: [{ name: "Coverage Gap Analyzer" }],
+  creator: "Coverage Gap Analyzer",
+  publisher: "Coverage Gap Analyzer",
+  metadataBase: new URL('https://coveragegapanalyzer.com'),
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    title: "Coverage Gap Analyzer | Multi-State Health Insurance Tool",
+    description: "Find health insurance for multiple homes. Perfect for snowbirds, remote workers, families. Free 3-minute analysis.",
+    url: 'https://coveragegapanalyzer.com',
+    siteName: 'Coverage Gap Analyzer',
+    locale: 'en_US',
+    type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Coverage Gap Analyzer - Multi-State Health Insurance',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Coverage Gap Analyzer | Multi-State Health Insurance Tool",
+    description: "Find health insurance for multiple homes. Free 3-minute analysis.",
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    // Add Google Search Console verification when available
+    // google: 'your-verification-code',
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Coverage Gap Analyzer",
+    "description": "Find health insurance for multiple homes. Perfect for snowbirds, remote workers, and families with multiple residences.",
+    "url": "https://coveragegapanalyzer.com",
+    "applicationCategory": "HealthApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "Multi-state health insurance recommendations",
+      "Medicare and private insurance analysis",
+      "Cost comparison across plans",
+      "Personalized action items"
+    ],
+    "browserRequirements": "Requires JavaScript",
+    "softwareVersion": "1.0",
+    "operatingSystem": "Any"
+  };
+
+  return (
+    <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      </head>
+      <body className={inter.className}>
+        <Navigation />
+        <main className="min-h-screen">
+          {children}
+        </main>
+        <Footer />
+      </body>
+    </html>
+  );
+}
