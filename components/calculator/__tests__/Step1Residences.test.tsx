@@ -64,8 +64,9 @@ describe('Step1Residences Component', () => {
 
     fireEvent.change(primaryZipInput, { target: { value: '12345' } });
 
+    // Note: 12345 is a valid NY ZIP, so state should auto-populate
     expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '12345', state: '', isPrimary: true },
+      { zip: '12345', state: 'NY', isPrimary: true },
       { zip: '', state: '', isPrimary: false },
     ]);
   });
@@ -85,9 +86,9 @@ describe('Step1Residences Component', () => {
 
     fireEvent.change(primaryZipInput, { target: { value: '123-45' } });
 
-    // ZIP should be sanitized to remove dash
+    // ZIP should be sanitized to remove dash and state auto-populated
     expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '12345', state: '', isPrimary: true },
+      { zip: '12345', state: 'NY', isPrimary: true },
       { zip: '', state: '', isPrimary: false },
     ]);
   });
@@ -105,10 +106,54 @@ describe('Step1Residences Component', () => {
     const zipInputs = screen.getAllByLabelText(/ZIP code/i);
     fireEvent.change(zipInputs[0], { target: { value: '123456789' } });
 
-    // ZIP should be truncated to 5 digits
+    // ZIP should be truncated to 5 digits and state auto-populated
     expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '12345', state: '', isPrimary: true },
+      { zip: '12345', state: 'NY', isPrimary: true },
       { zip: '', state: '', isPrimary: false },
+    ]);
+  });
+
+  it('should auto-populate state when valid ZIP code is entered', () => {
+    render(
+      <Step1Residences
+        residences={defaultResidences}
+        errors={defaultErrors}
+        onUpdate={mockOnUpdate}
+        onNext={mockOnNext}
+      />
+    );
+
+    const zipInputs = screen.getAllByLabelText(/ZIP code/i);
+    const primaryZipInput = zipInputs[0];
+
+    // Enter a valid New York ZIP code
+    fireEvent.change(primaryZipInput, { target: { value: '10001' } });
+
+    expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
+      { zip: '10001', state: 'NY', isPrimary: true },
+      { zip: '', state: '', isPrimary: false },
+    ]);
+  });
+
+  it('should auto-populate state for California ZIP code', () => {
+    render(
+      <Step1Residences
+        residences={defaultResidences}
+        errors={defaultErrors}
+        onUpdate={mockOnUpdate}
+        onNext={mockOnNext}
+      />
+    );
+
+    const zipInputs = screen.getAllByLabelText(/ZIP code/i);
+    const secondaryZipInput = zipInputs[1];
+
+    // Enter a valid California ZIP code
+    fireEvent.change(secondaryZipInput, { target: { value: '90001' } });
+
+    expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
+      { zip: '', state: '', isPrimary: true },
+      { zip: '90001', state: 'CA', isPrimary: false },
     ]);
   });
 

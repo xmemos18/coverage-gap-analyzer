@@ -3,6 +3,7 @@
 import { Residence, FormErrors, UpdateFieldFunction } from '@/types';
 import { US_STATES } from '@/lib/states';
 import { validateZipCode } from '@/lib/validation';
+import { getStateFromZip } from '@/lib/zipToState';
 
 interface Step1Props {
   residences: Residence[];
@@ -27,6 +28,14 @@ export default function Step1Residences({
         ...updatedResidences[index],
         [field]: sanitized,
       };
+
+      // Auto-populate state if ZIP is valid (5 digits)
+      if (sanitized.length === 5) {
+        const detectedState = getStateFromZip(sanitized);
+        if (detectedState) {
+          updatedResidences[index].state = detectedState;
+        }
+      }
     } else {
       updatedResidences[index] = {
         ...updatedResidences[index],
