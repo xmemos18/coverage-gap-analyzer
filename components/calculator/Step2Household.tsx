@@ -46,16 +46,30 @@ export default function Step2Household({
 
   const updateAdultAge = (index: number, age: number) => {
     const newAges = [...adultAges];
+    newAges[index] = age;
+    onUpdate('adultAges', newAges);
+  };
+
+  const validateAdultAge = (index: number) => {
+    const newAges = [...adultAges];
+    const age = newAges[index];
     // Clamp age to valid range (18-100) and ensure integer
-    const validAge = Math.max(18, Math.min(100, Math.floor(age)));
+    const validAge = Math.max(18, Math.min(100, Math.floor(age) || 18));
     newAges[index] = validAge;
     onUpdate('adultAges', newAges);
   };
 
   const updateChildAge = (index: number, age: number) => {
     const newAges = [...childAges];
+    newAges[index] = age;
+    onUpdate('childAges', newAges);
+  };
+
+  const validateChildAge = (index: number) => {
+    const newAges = [...childAges];
+    const age = newAges[index];
     // Clamp age to valid range (0-17) and ensure integer
-    const validAge = Math.max(0, Math.min(17, Math.floor(age)));
+    const validAge = Math.max(0, Math.min(17, Math.floor(age) || 0));
     newAges[index] = validAge;
     onUpdate('childAges', newAges);
   };
@@ -116,6 +130,7 @@ export default function Step2Household({
                       max="100"
                       value={adultAges[index] || ''}
                       onChange={(e) => updateAdultAge(index, parseInt(e.target.value) || 0)}
+                      onBlur={() => validateAdultAge(index)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="e.g., 45"
                       aria-label={`Age of adult ${index + 1}`}
@@ -175,6 +190,7 @@ export default function Step2Household({
                       max="17"
                       value={childAges[index] || ''}
                       onChange={(e) => updateChildAge(index, parseInt(e.target.value) || 0)}
+                      onBlur={() => validateChildAge(index)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="e.g., 10"
                       aria-label={`Age of child ${index + 1}`}
