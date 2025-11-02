@@ -190,10 +190,11 @@ describe('Step1Residences Component', () => {
       />
     );
 
-    // Should only have 1 remove button (for Residence 3)
+    // Should have 2 remove buttons (for Secondary Residence and Residence 3)
     const removeButtons = screen.getAllByRole('button', { name: /remove/i });
-    expect(removeButtons).toHaveLength(1);
-    expect(removeButtons[0]).toHaveAccessibleName('Remove Residence 3');
+    expect(removeButtons).toHaveLength(2);
+    expect(removeButtons[0]).toHaveAccessibleName('Remove Secondary Residence');
+    expect(removeButtons[1]).toHaveAccessibleName('Remove Residence 3');
   });
 
   it('should remove residence when Remove button is clicked', () => {
@@ -221,17 +222,21 @@ describe('Step1Residences Component', () => {
     ]);
   });
 
-  it('should not remove residences if only 2 remain (required minimum)', () => {
+  it('should not remove residences if only 1 remains (required minimum)', () => {
+    const singleResidence: Residence[] = [
+      { zip: '10001', state: 'NY', isPrimary: true },
+    ];
+
     render(
       <Step1Residences
-        residences={defaultResidences}
+        residences={singleResidence}
         errors={defaultErrors}
         onUpdate={mockOnUpdate}
         onNext={mockOnNext}
       />
     );
 
-    // Should not have any remove buttons when only 2 residences
+    // Should not have any remove buttons when only 1 residence
     const removeButtons = screen.queryAllByRole('button', { name: /remove/i });
     expect(removeButtons).toHaveLength(0);
   });
@@ -286,7 +291,7 @@ describe('Step1Residences Component', () => {
       />
     );
 
-    const residenceDivs = container.querySelectorAll('[class*="bg-"]');
+    const residenceDivs = container.querySelectorAll('.p-6.rounded-lg.border-2');
 
     // Primary should have blue background
     expect(residenceDivs[0]).toHaveClass('bg-blue-50');

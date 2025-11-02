@@ -7,10 +7,10 @@ export default function Home() {
       <section className="bg-gradient-to-b from-blue-50 to-white py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-primary mb-6 leading-tight">
-            Own Homes in Multiple States? Find Health Insurance That Covers You Everywhere.
+            Find the Right Health Insurance Coverage for Your Lifestyle.
           </h1>
           <p className="text-xl sm:text-2xl text-gray-700 mb-10 max-w-3xl mx-auto">
-            Whether you&apos;re a snowbird, remote worker, or family with multiple homes—get the right coverage in 3 minutes.
+            Whether you have one home or many, we&apos;ll help you find the right coverage in 3 minutes.
           </p>
           <Link
             href="/calculator"
@@ -88,10 +88,10 @@ export default function Home() {
               </div>
               <div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                  Tell us about your homes
+                  Tell us where you live
                 </h3>
                 <p className="text-gray-600 text-lg">
-                  Enter the states where you own or rent property and how much time you spend in each location.
+                  Enter your location(s). Whether you have one home or multiple properties, we&apos;ll analyze your coverage needs.
                 </p>
               </div>
             </div>
@@ -121,7 +121,7 @@ export default function Home() {
                   Get recommendations
                 </h3>
                 <p className="text-gray-600 text-lg">
-                  Receive personalized insurance options that cover you in all your locations—no gaps.
+                  Receive personalized insurance options tailored to your household and location(s).
                 </p>
               </div>
             </div>
@@ -195,10 +195,10 @@ export default function Home() {
             {/* FAQ 4 */}
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
               <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Can I include 3 or more homes?
+                Can I use this if I only have one home?
               </h3>
               <p className="text-gray-700 text-lg">
-                Yes, the calculator supports up to 3 residences. If you have more than 3 homes, we recommend consulting with a licensed insurance broker for personalized assistance.
+                Absolutely! The calculator works for anyone, whether you have one home or up to 5 properties. We&apos;ll provide personalized insurance recommendations based on your specific situation.
               </p>
             </div>
 

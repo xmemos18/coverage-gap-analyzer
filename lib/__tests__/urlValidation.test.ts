@@ -57,10 +57,10 @@ describe('URL Validation', () => {
       expect(result.isValid).toBe(true);
     });
 
-    it('should fail with fewer than 2 residences', () => {
+    it('should fail with fewer than 1 residence', () => {
       const result = validateURLParameters({
-        residenceZips: ['33101'],
-        residenceStates: ['FL'],
+        residenceZips: [],
+        residenceStates: [],
         numAdults: 2,
         adultAges: [45, 43],
         numChildren: 0,
@@ -74,7 +74,7 @@ describe('URL Validation', () => {
       expect(result.errors).toContainEqual(
         expect.objectContaining({
           field: 'residences',
-          message: expect.stringContaining('At least 2 residences are required'),
+          message: expect.stringContaining('At least 1 residence'),
         })
       );
     });

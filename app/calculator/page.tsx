@@ -30,10 +30,9 @@ import {
 } from '@/lib/validationMessages';
 
 const INITIAL_FORM_DATA: CalculatorFormData = {
-  // New array-based residences (minimum 2 required)
+  // New array-based residences (minimum 1 required)
   residences: [
     { zip: '', state: '' }, // Primary
-    { zip: '', state: '' }, // Secondary
   ],
   // Legacy fields for backward compatibility
   primaryResidence: { zip: '', state: '' },
@@ -219,7 +218,7 @@ export default function Calculator() {
 
     // Ensure minimum residences
     if (formData.residences.length < VALIDATION.MIN_RESIDENCES) {
-      newErrors.residences = `You must have at least ${VALIDATION.MIN_RESIDENCES} residences to compare coverage`;
+      newErrors.residences = `You must have at least ${VALIDATION.MIN_RESIDENCES} residence${VALIDATION.MIN_RESIDENCES > 1 ? 's' : ''}`;
     }
 
     dispatch({ type: 'SET_ERRORS', errors: newErrors });

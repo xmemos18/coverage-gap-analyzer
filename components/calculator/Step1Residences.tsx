@@ -43,8 +43,8 @@ export default function Step1Residences({
   };
 
   const removeResidence = (index: number) => {
-    // Can only remove if more than 2 residences (primary and secondary are required)
-    if (residences.length > 2) {
+    // Can only remove if more than 1 residence (primary residence is required)
+    if (residences.length > 1) {
       const updatedResidences = residences.filter((_, i) => i !== index);
       onUpdate('residences', updatedResidences);
     }
@@ -61,7 +61,7 @@ export default function Step1Residences({
       <div className="mb-8">
         <h2 id="residences-heading" className="text-3xl font-bold text-gray-900 mb-2">Your Residences</h2>
         <p className="text-gray-600 text-lg" id="residences-description">
-          Tell us where you own or rent homes. You can add as many properties as you need.
+          Tell us where you live. If you have multiple homes, you can add as many properties as you need.
         </p>
       </div>
 
@@ -70,7 +70,7 @@ export default function Step1Residences({
         {residences.map((residence, index) => {
           const isPrimary = index === 0;
           const isSecondary = index === 1;
-          const isRequired = isPrimary || isSecondary;
+          const isRequired = isPrimary;
           const zipError = errors[`residence${index}Zip`];
           const stateError = errors[`residence${index}State`];
 
