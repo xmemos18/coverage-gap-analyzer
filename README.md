@@ -23,10 +23,14 @@ A comprehensive web application that helps people with multiple homes find healt
 - Generates actionable next steps
 
 ### Smart Features
-- **Auto-save/Resume**: Form data saved to localStorage (24-hour expiration)
+- **Auto-save/Resume**: Form data saved to localStorage with toast notifications
 - **Real-time Validation**: Green checkmarks for valid fields, error messages for invalid
 - **Loading States**: Professional spinner during analysis
 - **Alternative Options**: 2-3 alternative plans with pros/cons
+- **Toast Notifications**: User-friendly notifications for save/restore actions
+- **Keyboard Shortcuts Help**: Interactive modal with all available shortcuts
+- **FAQ Feedback**: Helpful/not helpful buttons for FAQ answers
+- **Scroll to Top**: Floating button for easy navigation
 
 ### User Experience
 - **Mobile-Optimized**: Sticky navigation, larger touch targets, mobile progress bar
@@ -165,11 +169,13 @@ npm run test:e2e:debug # Debug E2E tests step-by-step
 ```
 
 **Test Coverage:**
+- **273 unit/component tests** passing
 - Calculator logic: 5 test suites, 8 tests
 - Results page: 13 tests
 - Navigation: 8 tests
 - Accessibility: 12 tests
 - Mobile experience: 12 tests
+- New test suites: Logger (11 tests), Cost Utils (35 tests)
 
 **See [e2e/README.md](e2e/README.md) for complete E2E testing documentation**
 
@@ -298,9 +304,18 @@ The application implements comprehensive security measures following OWASP best 
 
 ### Performance
 - Static page generation for optimal speed
-- Code splitting and lazy loading
+- **Code splitting and lazy loading**: PlanComparisonTable, SavingsCalculator
+- **React.memo optimization**: CostBreakdown, NextStepsSection, AlternativeOptions
 - Optimized bundle sizes (~102KB shared JS)
+- **Results page**: Reduced from 34.3kB to 31.7kB (7.6% improvement)
 - Fast page loads (<1s)
+
+### Code Quality
+- **Centralized logging**: Structured logger with environment-aware behavior
+- **Custom hooks**: useInsuranceAnalysis, useCalculatorPersistence, useFormValidation, useToast
+- **Cost utilities**: Reusable cost calculation functions (17 functions, 35 tests)
+- **TypeScript strict mode**: Full type safety across codebase
+- **273 tests passing**: Comprehensive test coverage
 
 ## 📝 Environment Variables
 

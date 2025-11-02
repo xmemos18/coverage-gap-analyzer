@@ -8,6 +8,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import SkipLink from "@/components/SkipLink";
 import Analytics from "@/components/Analytics";
 import PasswordGate from "@/components/PasswordGate";
+import ClientProviders from "@/components/ClientProviders";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -100,14 +101,16 @@ export default function RootLayout({
       <body className={inter.className}>
         <Analytics />
         <PasswordGate>
-          <ErrorBoundary>
-            <SkipLink targetId="main-content" />
-            <Navigation />
-            <main id="main-content" className="min-h-screen" tabIndex={-1}>
-              {children}
-            </main>
-            <Footer />
-          </ErrorBoundary>
+          <ClientProviders>
+            <ErrorBoundary>
+              <SkipLink targetId="main-content" />
+              <Navigation />
+              <main id="main-content" className="min-h-screen" tabIndex={-1}>
+                {children}
+              </main>
+              <Footer />
+            </ErrorBoundary>
+          </ClientProviders>
         </PasswordGate>
       </body>
     </html>

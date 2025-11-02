@@ -4,6 +4,7 @@
  */
 
 import { VALIDATION } from './constants';
+import { validateZipCode } from './validation';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -23,21 +24,28 @@ export const validateZipCodeWithMessage = (zip: string): ValidationResult => {
     };
   }
 
-  const digitsOnly = zip.replace(/\D/g, '');
+  // Use the improved validation from validation.ts
+  const validationResult = validateZipCode(zip);
 
-  if (digitsOnly.length < VALIDATION.ZIP_CODE_LENGTH) {
+  if (!validationResult.isValid) {
+    const digitsOnly = validationResult.sanitized;
+
+    // Provide helpful hints based on the specific error
+    if (validationResult.error?.includes('exactly 5 digits')) {
+      return {
+        isValid: false,
+        error: `ZIP code must be ${VALIDATION.ZIP_CODE_LENGTH} digits`,
+        hint: digitsOnly.length > 0
+          ? `You entered ${digitsOnly.length} digit${digitsOnly.length === 1 ? '' : 's'}. Need ${VALIDATION.ZIP_CODE_LENGTH - digitsOnly.length} more.`
+          : 'Enter a 5-digit ZIP code',
+      };
+    }
+
+    // For invalid codes like 00000 or repeated digits
     return {
       isValid: false,
-      error: `ZIP code must be ${VALIDATION.ZIP_CODE_LENGTH} digits`,
-      hint: `You entered ${digitsOnly.length} digit${digitsOnly.length === 1 ? '' : 's'}. Need ${VALIDATION.ZIP_CODE_LENGTH - digitsOnly.length} more.`,
-    };
-  }
-
-  if (digitsOnly.length > VALIDATION.ZIP_CODE_LENGTH) {
-    return {
-      isValid: false,
-      error: `ZIP code is too long`,
-      hint: `ZIP codes are ${VALIDATION.ZIP_CODE_LENGTH} digits. Remove the extra digits.`,
+      error: validationResult.error || 'Invalid ZIP code',
+      hint: 'Please enter a valid US ZIP code (e.g., 10001, 90210)',
     };
   }
 

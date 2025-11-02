@@ -23,13 +23,34 @@ export function sanitizeTextInput(input: string): string {
 
 /**
  * Validate and sanitize ZIP code
- * Must be exactly 5 digits
+ * Must be exactly 5 digits and not be obviously invalid (like 00000)
  */
-export function validateZipCode(zip: string): { isValid: boolean; sanitized: string } {
+export function validateZipCode(zip: string): { isValid: boolean; sanitized: string; error?: string } {
   const sanitized = zip.replace(/\D/g, '').slice(0, VALIDATION.ZIP_CODE_LENGTH);
-  const isValid = sanitized.length === VALIDATION.ZIP_CODE_LENGTH;
 
-  return { isValid, sanitized };
+  // Check length
+  if (sanitized.length !== VALIDATION.ZIP_CODE_LENGTH) {
+    return { isValid: false, sanitized, error: 'ZIP code must be exactly 5 digits' };
+  }
+
+  // Reject obviously invalid ZIP codes
+  if (sanitized === '00000') {
+    return { isValid: false, sanitized, error: 'Invalid ZIP code' };
+  }
+
+  // Reject ZIP codes with all same digits (likely invalid)
+  if (/^(\d)\1{4}$/.test(sanitized) && sanitized !== '11111') {
+    // 11111 is a valid ZIP in Massachusetts
+    return { isValid: false, sanitized, error: 'Invalid ZIP code' };
+  }
+
+  // First digit should be 0-9 (all US ZIP codes start with these)
+  const firstDigit = parseInt(sanitized[0]);
+  if (firstDigit < 0 || firstDigit > 9) {
+    return { isValid: false, sanitized, error: 'Invalid ZIP code' };
+  }
+
+  return { isValid: true, sanitized };
 }
 
 /**
@@ -103,4 +124,63 @@ export function validateMonetaryAmount(amount: number): boolean {
          isFinite(amount) &&
          amount >= 0 &&
          amount <= 1000000; // Max $1M to prevent unrealistic values
+}
+
+/**
+ * Validate residence time distribution
+ * Ensures total months per year doesn't exceed 12
+ */
+export function validateResidenceTimeDistribution(residences: Array<{ monthsPerYear: number }>): {
+  isValid: boolean;
+  totalMonths: number;
+  error?: string;
+} {
+  const totalMonths = residences.reduce((sum, residence) => {
+    const months = residence.monthsPerYear || 0;
+    return sum + months;
+  }, 0);
+
+  if (totalMonths > 12) {
+    return {
+      isValid: false,
+      totalMonths,
+      error: `Total time across all residences is ${totalMonths} months, but cannot exceed 12 months per year`,
+    };
+  }
+
+  if (totalMonths < 0) {
+    return {
+      isValid: false,
+      totalMonths,
+      error: 'Time spent at residences cannot be negative',
+    };
+  }
+
+  return { isValid: true, totalMonths };
+}
+
+/**
+ * Validate income range is selected
+ */
+export function validateIncomeRange(incomeRange: string | undefined): {
+  isValid: boolean;
+  error?: string;
+} {
+  const validRanges = ['under-30k', '30k-60k', '60k-90k', '90k-120k', 'over-120k'];
+
+  if (!incomeRange) {
+    return {
+      isValid: false,
+      error: 'Please select an income range to calculate subsidy eligibility',
+    };
+  }
+
+  if (!validRanges.includes(incomeRange)) {
+    return {
+      isValid: false,
+      error: 'Invalid income range selected',
+    };
+  }
+
+  return { isValid: true };
 }

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useFAQFeedback } from '@/hooks/useFAQFeedback';
+import ScrollToTop from '@/components/ScrollToTop';
 
 interface FAQItem {
   question: string;
@@ -134,6 +136,7 @@ export default function FAQPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+  const { saveFeedback, getFeedback } = useFAQFeedback();
 
   const categories = ['All', ...Array.from(new Set(faqs.map(faq => faq.category)))];
 
@@ -196,9 +199,22 @@ export default function FAQPage() {
           ))}
         </div>
 
+        {/* Results count */}
+        {searchQuery && (
+          <div className="mb-4 text-gray-600">
+            Found {filteredFAQs.length} {filteredFAQs.length === 1 ? 'question' : 'questions'}
+          </div>
+        )}
+
         {/* FAQ Items */}
         <div className="space-y-4 mb-12">
-          {filteredFAQs.map((faq, index) => (
+          {filteredFAQs.length === 0 ? (
+            <div className="bg-white rounded-lg shadow-md border-2 border-gray-200 p-8 text-center">
+              <p className="text-xl text-gray-600 mb-4">No questions found matching your search.</p>
+              <p className="text-gray-500">Try different keywords or browse all categories.</p>
+            </div>
+          ) : (
+            filteredFAQs.map((faq, index) => (
             <div
               key={index}
               className="bg-white rounded-lg shadow-md border-2 border-gray-200 overflow-hidden"
@@ -218,11 +234,39 @@ export default function FAQPage() {
 
               {expandedItems.has(index) && (
                 <div className="px-6 py-4 bg-gray-50 border-t-2 border-gray-200">
-                  <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                  <p className="text-gray-700 leading-relaxed mb-4">{faq.answer}</p>
+
+                  {/* Feedback buttons */}
+                  <div className="flex items-center gap-4 pt-4 border-t border-gray-300">
+                    <span className="text-sm text-gray-600">Was this helpful?</span>
+                    <button
+                      onClick={() => saveFeedback(index, true)}
+                      className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                        getFeedback(index) === 'helpful'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-green-100'
+                      }`}
+                      aria-label="Mark as helpful"
+                    >
+                      👍 Yes
+                    </button>
+                    <button
+                      onClick={() => saveFeedback(index, false)}
+                      className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                        getFeedback(index) === 'not-helpful'
+                          ? 'bg-red-500 text-white'
+                          : 'bg-gray-200 text-gray-700 hover:bg-red-100'
+                      }`}
+                      aria-label="Mark as not helpful"
+                    >
+                      👎 No
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
-          ))}
+            ))
+          )}
         </div>
 
         {/* CTA */}
@@ -239,6 +283,9 @@ export default function FAQPage() {
           </Link>
         </div>
       </div>
+
+      {/* Scroll to top button */}
+      <ScrollToTop />
     </div>
   );
 }

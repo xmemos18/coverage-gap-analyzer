@@ -1,5 +1,6 @@
 import { InsuranceRecommendation, CurrentInsurance, Suggestion } from '@/types';
 import { THRESHOLDS, PLAN_TYPES, PRIORITY_LEVELS, SUGGESTION_TYPES } from '@/lib/constants';
+import { calculateAverageCost, calculateAnnualSavings, calculateMonthlySavings } from '@/lib/costUtils';
 
 /**
  * Add current insurance comparison and suggestions
@@ -13,9 +14,9 @@ export function addCurrentInsuranceComparison(
   const currentInsuranceSummary = `${currentInsurance.carrier} ${currentInsurance.planType} - $${currentInsurance.monthlyCost}/month (Deductible: $${currentInsurance.deductible}, Max OOP: $${currentInsurance.outOfPocketMax})`;
 
   // Calculate cost comparison
-  const recommendedAvg = (recommendation.estimatedMonthlyCost.low + recommendation.estimatedMonthlyCost.high) / 2;
-  const monthlySavings = currentInsurance.monthlyCost - recommendedAvg;
-  const annualSavings = monthlySavings * 12;
+  const recommendedAvg = calculateAverageCost(recommendation.estimatedMonthlyCost);
+  const monthlySavings = calculateMonthlySavings(currentInsurance.monthlyCost, recommendedAvg);
+  const annualSavings = calculateAnnualSavings(currentInsurance.monthlyCost, recommendedAvg);
 
   const costComparison = {
     current: currentInsurance.monthlyCost,

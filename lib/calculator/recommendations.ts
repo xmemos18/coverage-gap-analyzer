@@ -4,6 +4,7 @@ import { getMedicareAlternatives, getMixedHouseholdAlternatives, getNonMedicareA
 import { INSURANCE_COSTS, COVERAGE_SCORES } from '@/lib/constants';
 import { simplifyReasoning, generateWhatThisMeans } from '@/lib/plainEnglish';
 import { getMedigapShoppingSteps, getPartDShoppingSteps, getMarketplaceShoppingSteps, getEnrollmentDeadlines, formatActionStep } from '../concreteActions';
+import { adjustCostForStates } from '@/lib/stateSpecificData';
 
 /**
  * Health Profile Analysis Helper
@@ -96,10 +97,13 @@ export function getMedicareRecommendation(
     low: INSURANCE_COSTS.MEDICARE_PER_PERSON_LOW,
     high: INSURANCE_COSTS.MEDICARE_PER_PERSON_HIGH
   };
-  const totalCost: CostRange = {
+  const baseCost: CostRange = {
     low: costPerPerson.low * medicareEligibleCount,
     high: costPerPerson.high * medicareEligibleCount,
   };
+
+  // Apply state-specific cost adjustments
+  const totalCost = adjustCostForStates(baseCost, states);
 
   const statesList = states.length > 1 ? states.join(', ') : states[0];
   const primaryZip = formData.residences[0]?.zip || '';
@@ -193,7 +197,7 @@ export function getMixedHouseholdRecommendation(
 ): InsuranceRecommendation {
   const healthProfile = analyzeHealthProfile(formData);
 
-  const totalCost: CostRange = {
+  const baseCost: CostRange = {
     low: (medicareEligibleCount * INSURANCE_COSTS.MEDICARE_PER_PERSON_LOW) +
          (nonMedicareAdultCount * INSURANCE_COSTS.ADULT_PPO_LOW) +
          (childCount * INSURANCE_COSTS.CHILD_LOW),
@@ -201,6 +205,9 @@ export function getMixedHouseholdRecommendation(
           (nonMedicareAdultCount * INSURANCE_COSTS.ADULT_PPO_HIGH) +
           (childCount * INSURANCE_COSTS.CHILD_HIGH),
   };
+
+  // Apply state-specific cost adjustments
+  const totalCost = adjustCostForStates(baseCost, states);
 
   const statesList = states.length > 1 ? states.join(', ') : states[0];
 
@@ -363,6 +370,9 @@ export function getNonMedicareRecommendation(
     };
     reasoning = `Flexible plans for each adult give complete multi-state coverage.`;
   }
+
+  // Apply state-specific cost adjustments to final cost
+  totalCost = adjustCostForStates(totalCost, states);
 
   const primaryZip = formData.residences[0]?.zip || '';
   const primaryState = formData.residences[0]?.state || '';

@@ -2,8 +2,9 @@
 
 import { Residence, FormErrors, UpdateFieldFunction } from '@/types';
 import { US_STATES } from '@/lib/states';
-import { validateZipCode } from '@/lib/validation';
+import { validateZipCode, validateResidenceTimeDistribution } from '@/lib/validation';
 import { getStateFromZip } from '@/lib/zipToState';
+import { useMemo } from 'react';
 
 interface Step1Props {
   residences: Residence[];
@@ -81,6 +82,11 @@ export default function Step1Residences({
     if (index === 1) return 'Secondary Residence';
     return `Residence ${index + 1}`;
   };
+
+  // Calculate and validate time distribution
+  const timeDistribution = useMemo(() => {
+    return validateResidenceTimeDistribution(residences);
+  }, [residences]);
 
   return (
     <div role="form" aria-labelledby="residences-heading">
@@ -277,6 +283,86 @@ export default function Step1Residences({
             </div>
           );
         })}
+
+        {/* Time Distribution Visual Indicator */}
+        {residences.length > 1 && (
+          <div className={`p-6 rounded-lg border-2 ${
+            timeDistribution.isValid
+              ? 'bg-green-50 border-green-300'
+              : 'bg-red-50 border-red-300'
+          }`}>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Time Distribution Across Residences
+            </h3>
+
+            {/* Visual bar chart */}
+            <div className="mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  Total: {timeDistribution.totalMonths} of 12 months
+                </span>
+                {timeDistribution.isValid ? (
+                  <span className="text-green-600 text-sm">✓ Valid</span>
+                ) : (
+                  <span className="text-red-600 text-sm">✗ Exceeds 12 months</span>
+                )}
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+                <div
+                  className={`h-full transition-all duration-300 ${
+                    timeDistribution.isValid
+                      ? 'bg-green-500'
+                      : 'bg-red-500'
+                  }`}
+                  style={{ width: `${Math.min((timeDistribution.totalMonths / 12) * 100, 100)}%` }}
+                >
+                  <div className="text-xs text-white font-semibold text-center leading-6">
+                    {timeDistribution.totalMonths > 0 && `${timeDistribution.totalMonths} months`}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Individual residence breakdown */}
+            <div className="space-y-2">
+              {residences.map((residence, index) => {
+                const months = residence.monthsPerYear || 0;
+                if (months === 0) return null;
+
+                return (
+                  <div key={index} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-700">
+                      {getResidenceLabel(index)} ({residence.state || 'Unknown'})
+                    </span>
+                    <span className="font-semibold text-gray-900">
+                      {months === 2 && '1-3 months'}
+                      {months === 5 && '4-6 months'}
+                      {months === 8 && '7-9 months'}
+                      {months === 11 && '10-12 months'}
+                      {![2, 5, 8, 11].includes(months) && `${months} months`}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Error message */}
+            {!timeDistribution.isValid && timeDistribution.error && (
+              <div className="mt-4 p-3 bg-red-100 border border-red-300 rounded text-red-800 text-sm">
+                <strong>⚠️ Warning:</strong> {timeDistribution.error}
+              </div>
+            )}
+
+            {/* Help text */}
+            {timeDistribution.totalMonths < 12 && (
+              <p className="mt-4 text-xs text-gray-600">
+                💡 Tip: You have {12 - timeDistribution.totalMonths} months unaccounted for. Make sure to include all locations where you spend significant time.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Add Another Property Button */}
         <button

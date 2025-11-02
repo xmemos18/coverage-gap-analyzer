@@ -50,8 +50,8 @@ export function validateCalculatorFormData(data: unknown): data is CalculatorFor
   if (!Array.isArray(formData.adultAges)) return false;
   if (!Array.isArray(formData.childAges)) return false;
 
-  // Validate residences array (must have at least 2)
-  if (formData.residences.length < 2) return false;
+  // Validate residences array (must have at least 1)
+  if (formData.residences.length < 1) return false;
   if (!formData.residences.every(isValidResidence)) return false;
 
   // Check required number fields

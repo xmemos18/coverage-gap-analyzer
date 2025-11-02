@@ -53,8 +53,15 @@ export default function Step2Household({
   const validateAdultAge = (index: number) => {
     const newAges = [...adultAges];
     const age = newAges[index];
-    // Clamp age to valid range (18-100) and ensure integer
-    const validAge = Math.max(18, Math.min(100, Math.floor(age) || 18));
+
+    // Skip validation if age is not a valid number
+    // Let form validation catch empty/invalid inputs
+    if (age === undefined || age === null || isNaN(age) || age === 0) {
+      return;
+    }
+
+    // Clamp age to valid range (18-120) and ensure integer
+    const validAge = Math.max(18, Math.min(120, Math.floor(age)));
     newAges[index] = validAge;
     onUpdate('adultAges', newAges);
   };
@@ -68,8 +75,15 @@ export default function Step2Household({
   const validateChildAge = (index: number) => {
     const newAges = [...childAges];
     const age = newAges[index];
+
+    // Skip validation if age is not a valid number
+    // Let form validation catch empty/invalid inputs
+    if (age === undefined || age === null || isNaN(age)) {
+      return;
+    }
+
     // Clamp age to valid range (0-17) and ensure integer
-    const validAge = Math.max(0, Math.min(17, Math.floor(age) || 0));
+    const validAge = Math.max(0, Math.min(17, Math.floor(age)));
     newAges[index] = validAge;
     onUpdate('childAges', newAges);
   };
@@ -121,13 +135,13 @@ export default function Step2Household({
                 .map((_, index) => (
                   <div key={index}>
                     <label htmlFor={`adult-age-${index}`} className="block text-sm font-medium text-gray-700 mb-2">
-                      Adult {index + 1} Age (18-100)
+                      Adult {index + 1} Age (18-120)
                     </label>
                     <input
                       id={`adult-age-${index}`}
                       type="number"
                       min="18"
-                      max="100"
+                      max="120"
                       value={adultAges[index] || ''}
                       onChange={(e) => updateAdultAge(index, parseInt(e.target.value) || 0)}
                       onBlur={() => validateAdultAge(index)}

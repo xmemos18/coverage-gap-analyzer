@@ -1,4 +1,6 @@
+import { memo } from 'react';
 import { formatCost } from '@/lib/results-utils';
+import { monthlyCostRangeToAnnual } from '@/lib/costUtils';
 import InsuranceTerm from '@/components/InsuranceTerm';
 import { CostRange } from '@/types';
 
@@ -6,9 +8,8 @@ interface CostBreakdownProps {
   monthlyCost: CostRange;
 }
 
-export default function CostBreakdown({ monthlyCost }: CostBreakdownProps) {
-  const annualCostLow = monthlyCost.low * 12;
-  const annualCostHigh = monthlyCost.high * 12;
+function CostBreakdown({ monthlyCost }: CostBreakdownProps) {
+  const annualCost = monthlyCostRangeToAnnual(monthlyCost);
 
   return (
     <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
@@ -28,7 +29,7 @@ export default function CostBreakdown({ monthlyCost }: CostBreakdownProps) {
         <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-lg border-2 border-green-200">
           <div className="text-sm font-semibold text-gray-600 mb-2">Annual Cost</div>
           <div className="text-4xl font-bold text-success">
-            {formatCost(annualCostLow, annualCostHigh)}
+            {formatCost(annualCost.low, annualCost.high)}
           </div>
         </div>
       </div>
@@ -38,3 +39,5 @@ export default function CostBreakdown({ monthlyCost }: CostBreakdownProps) {
     </div>
   );
 }
+
+export default memo(CostBreakdown);

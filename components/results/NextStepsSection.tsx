@@ -1,8 +1,10 @@
+import { memo } from 'react';
+
 interface NextStepsSectionProps {
   actionItems: string[];
 }
 
-export default function NextStepsSection({ actionItems }: NextStepsSectionProps) {
+function NextStepsSection({ actionItems }: NextStepsSectionProps) {
   return (
     <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
       <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
@@ -29,3 +31,5 @@ export default function NextStepsSection({ actionItems }: NextStepsSectionProps)
     </div>
   );
 }
+
+export default memo(NextStepsSection);

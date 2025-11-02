@@ -5,6 +5,8 @@ import {
   validateChildAge,
   sanitizeNumericInput,
   validateMonetaryAmount,
+  validateResidenceTimeDistribution,
+  validateIncomeRange,
 } from '../validation';
 
 describe('Validation Utilities', () => {
@@ -57,6 +59,28 @@ describe('Validation Utilities', () => {
       const result = validateZipCode('123456789');
       expect(result.sanitized).toBe('12345');
     });
+
+    it('should reject obviously invalid ZIP 00000', () => {
+      const result = validateZipCode('00000');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Invalid ZIP code');
+    });
+
+    it('should reject ZIP codes with all same digits (except 11111)', () => {
+      const result22222 = validateZipCode('22222');
+      expect(result22222.isValid).toBe(false);
+      expect(result22222.error).toBe('Invalid ZIP code');
+
+      const result33333 = validateZipCode('33333');
+      expect(result33333.isValid).toBe(false);
+      expect(result33333.error).toBe('Invalid ZIP code');
+    });
+
+    it('should accept valid ZIP 11111 (Massachusetts)', () => {
+      const result = validateZipCode('11111');
+      expect(result.isValid).toBe(true);
+      expect(result.sanitized).toBe('11111');
+    });
   });
 
   describe('validateAdultAge', () => {
@@ -64,6 +88,7 @@ describe('Validation Utilities', () => {
       expect(validateAdultAge(18)).toBe(true);
       expect(validateAdultAge(50)).toBe(true);
       expect(validateAdultAge(100)).toBe(true);
+      expect(validateAdultAge(120)).toBe(true);
     });
 
     it('should reject ages below 18', () => {
@@ -137,6 +162,86 @@ describe('Validation Utilities', () => {
     it('should reject non-finite numbers', () => {
       expect(validateMonetaryAmount(Infinity)).toBe(false);
       expect(validateMonetaryAmount(NaN)).toBe(false);
+    });
+  });
+
+  describe('validateResidenceTimeDistribution', () => {
+    it('should accept valid time distribution (12 months total)', () => {
+      const residences = [
+        { monthsPerYear: 6 },
+        { monthsPerYear: 6 },
+      ];
+      const result = validateResidenceTimeDistribution(residences);
+      expect(result.isValid).toBe(true);
+      expect(result.totalMonths).toBe(12);
+    });
+
+    it('should accept time distribution less than 12 months', () => {
+      const residences = [
+        { monthsPerYear: 5 },
+        { monthsPerYear: 4 },
+      ];
+      const result = validateResidenceTimeDistribution(residences);
+      expect(result.isValid).toBe(true);
+      expect(result.totalMonths).toBe(9);
+    });
+
+    it('should reject time distribution exceeding 12 months', () => {
+      const residences = [
+        { monthsPerYear: 8 },
+        { monthsPerYear: 6 },
+      ];
+      const result = validateResidenceTimeDistribution(residences);
+      expect(result.isValid).toBe(false);
+      expect(result.totalMonths).toBe(14);
+      expect(result.error).toContain('cannot exceed 12 months');
+    });
+
+    it('should handle residences with 0 months', () => {
+      const residences = [
+        { monthsPerYear: 12 },
+        { monthsPerYear: 0 },
+      ];
+      const result = validateResidenceTimeDistribution(residences);
+      expect(result.isValid).toBe(true);
+      expect(result.totalMonths).toBe(12);
+    });
+
+    it('should reject negative months', () => {
+      const residences = [
+        { monthsPerYear: -1 },
+      ];
+      const result = validateResidenceTimeDistribution(residences);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('cannot be negative');
+    });
+  });
+
+  describe('validateIncomeRange', () => {
+    it('should accept valid income ranges', () => {
+      expect(validateIncomeRange('under-30k').isValid).toBe(true);
+      expect(validateIncomeRange('30k-60k').isValid).toBe(true);
+      expect(validateIncomeRange('60k-90k').isValid).toBe(true);
+      expect(validateIncomeRange('90k-120k').isValid).toBe(true);
+      expect(validateIncomeRange('over-120k').isValid).toBe(true);
+    });
+
+    it('should reject undefined income range', () => {
+      const result = validateIncomeRange(undefined);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('select an income range');
+    });
+
+    it('should reject invalid income range', () => {
+      const result = validateIncomeRange('invalid-range');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('Invalid income range');
+    });
+
+    it('should reject empty string', () => {
+      const result = validateIncomeRange('');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('select an income range');
     });
   });
 });

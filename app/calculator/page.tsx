@@ -18,7 +18,10 @@ import { useFocusOnError, useStepFocus, useLiveRegionAnnouncement, useFocusVisib
 import { useDebouncedCallback } from '@/hooks/useDebounce';
 import { VALIDATION, THRESHOLDS, STORAGE_KEYS, STEP_NAMES, CALCULATOR_STEPS } from '@/lib/constants';
 import SimpleModeToggle from '@/components/SimpleModeToggle';
+import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp';
 import { trackEvent, trackStepCompleted } from '@/lib/analytics';
+import { logger } from '@/lib/logger';
+import { useToast } from '@/hooks/useToast';
 import {
   validateZipCodeWithMessage,
   validateStateWithMessage,
@@ -32,15 +35,10 @@ import {
 } from '@/lib/validationMessages';
 
 const INITIAL_FORM_DATA: CalculatorFormData = {
-  // New array-based residences (minimum 1 required)
+  // Array-based residences (minimum 1 required)
   residences: [
     { zip: '', state: '', isPrimary: true, monthsPerYear: 0 }, // Primary
   ],
-  // Legacy fields for backward compatibility
-  primaryResidence: { zip: '', state: '', isPrimary: true, monthsPerYear: 0 },
-  secondaryResidence: { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
-  hasThirdHome: false,
-  thirdResidence: { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
   numAdults: 0,
   adultAges: [],
   numChildren: 0,
@@ -71,6 +69,7 @@ export default function Calculator() {
   const router = useRouter();
   const [state, dispatch] = useReducer(calculatorReducer, createInitialState(INITIAL_FORM_DATA));
   const hasTrackedStart = useRef(false);
+  const { showSuccess } = useToast();
 
   const { formData, errors, isLoading, showResumePrompt } = state;
 
@@ -125,22 +124,23 @@ export default function Calculator() {
       // Check if data is recent
       if (isDataRecent(result.data, THRESHOLDS.DATA_EXPIRY_HOURS)) {
         dispatch({ type: 'SET_RESUME_PROMPT', show: true });
+        showSuccess('Progress restored from previous session');
       } else {
         // Data is too old, clear it
         const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
         if (!clearResult.success) {
-          console.error('Failed to clear old data:', clearResult.error);
+          logger.error('Failed to clear old data', clearResult.error);
         }
       }
     } else if (result.error) {
       // Invalid or corrupted data - log and clear
-      console.error('Failed to load saved calculator data:', result.error);
+      logger.error('Failed to load saved calculator data', result.error);
       const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
       if (!clearResult.success) {
-        console.error('Failed to clear corrupted data:', clearResult.error);
+        logger.error('Failed to clear corrupted data', clearResult.error);
       }
     }
-  }, []);
+  }, [showSuccess]);
 
   // Debounced save to localStorage
   const saveToLocalStorage = useDebouncedCallback(() => {
@@ -152,7 +152,7 @@ export default function Calculator() {
       const result = saveCalculatorData(STORAGE_KEYS.CALCULATOR_DATA, formData, true);
       if (!result.success) {
         // Failed to save to localStorage (quota exceeded, private mode, etc.)
-        console.error('Failed to save calculator data:', result.error);
+        logger.error('Failed to save calculator data', result.error);
         // Continue without saving - form will still work, just won't persist
       }
     }
@@ -179,11 +179,11 @@ export default function Calculator() {
       });
     } else {
       // Failed to load or validate data
-      console.error('Failed to resume saved calculator data:', result.error);
+      logger.error('Failed to resume saved calculator data', result.error);
       // Clear corrupted data and reset form
       const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
       if (!clearResult.success) {
-        console.error('Failed to clear corrupted data:', clearResult.error);
+        logger.error('Failed to clear corrupted data', clearResult.error);
       }
       // Reset to initial state
       dispatch({ type: 'RESET_FORM', initialData: INITIAL_FORM_DATA });
@@ -195,7 +195,7 @@ export default function Calculator() {
   const clearSavedData = () => {
     const result = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
     if (!result.success) {
-      console.error('Failed to clear saved calculator data:', result.error);
+      logger.error('Failed to clear saved calculator data', result.error);
       // Continue - we'll still reset the form state
     }
     dispatch({ type: 'RESET_FORM', initialData: INITIAL_FORM_DATA });
@@ -433,13 +433,13 @@ export default function Calculator() {
       // Clear saved data on successful submission
       const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
       if (!clearResult.success) {
-        console.error('Failed to clear saved data:', clearResult.error);
+        logger.error('Failed to clear saved data', clearResult.error);
         // Continue anyway - this is not critical
       }
 
       router.push(`/results?${params.toString()}`);
     } catch (error) {
-      console.error('Error submitting calculator form:', error);
+      logger.error('Error submitting calculator form', error);
       dispatch({ type: 'SET_LOADING', isLoading: false });
       // Could set an error state here to show user feedback
       // For now, just stop the loading spinner so user can try again
@@ -680,6 +680,9 @@ export default function Calculator() {
         title="Analyzing Your Coverage..."
         message="Finding the best insurance options for your situation"
       />
+
+      {/* Keyboard Shortcuts Help */}
+      <KeyboardShortcutsHelp />
     </div>
   );
 }

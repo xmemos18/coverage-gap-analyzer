@@ -46,8 +46,9 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.recommendedInsurance).toBe('Basic Medicare + Extra Coverage');
       expect(result.householdBreakdown).toContain('1 Medicare-eligible adult');
-      expect(result.estimatedMonthlyCost.low).toBe(300);
-      expect(result.estimatedMonthlyCost.high).toBe(500);
+      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
+      expect(result.estimatedMonthlyCost.low).toBe(342); // 300 * 1.14
+      expect(result.estimatedMonthlyCost.high).toBe(570); // 500 * 1.14
       expect(result.coverageGapScore).toBe(90);
     });
 
@@ -62,8 +63,9 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.recommendedInsurance).toBe('Basic Medicare + Extra Coverage');
       expect(result.householdBreakdown).toContain('3 Medicare-eligible adults');
-      expect(result.estimatedMonthlyCost.low).toBe(900); // 3 * 300
-      expect(result.estimatedMonthlyCost.high).toBe(1500); // 3 * 500
+      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
+      expect(result.estimatedMonthlyCost.low).toBe(1026); // 900 * 1.14
+      expect(result.estimatedMonthlyCost.high).toBe(1710); // 1500 * 1.14
     });
 
     it('should include action items for Medicare enrollment', () => {
@@ -139,8 +141,9 @@ describe('Insurance Calculator Engine', () => {
       const result = analyzeInsurance(formData);
 
       // 1 Medicare (300-500) + 1 Adult (600-900) + 2 Children (600-800)
-      expect(result.estimatedMonthlyCost.low).toBe(1500); // 300 + 600 + 600
-      expect(result.estimatedMonthlyCost.high).toBe(2200); // 500 + 900 + 800
+      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
+      expect(result.estimatedMonthlyCost.low).toBe(1710); // 1500 * 1.14
+      expect(result.estimatedMonthlyCost.high).toBe(2508); // 2200 * 1.14
     });
 
     it('should include action items for both Medicare and PPO', () => {
@@ -178,8 +181,9 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.recommendedInsurance).toBe('Nationwide Flexible Plan');
       expect(result.householdBreakdown).toBe('1 adult');
-      expect(result.estimatedMonthlyCost.low).toBe(600);
-      expect(result.estimatedMonthlyCost.high).toBe(900);
+      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
+      expect(result.estimatedMonthlyCost.low).toBe(684); // 600 * 1.14
+      expect(result.estimatedMonthlyCost.high).toBe(1026); // 900 * 1.14
     });
 
     it('should recommend couples plan for 2 adults', () => {
@@ -191,8 +195,9 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.recommendedInsurance).toBe('Nationwide Flexible Plan for Couples');
       expect(result.householdBreakdown).toBe('2 adults');
-      expect(result.estimatedMonthlyCost.low).toBe(1200);
-      expect(result.estimatedMonthlyCost.high).toBe(1800);
+      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
+      expect(result.estimatedMonthlyCost.low).toBe(1368); // 1200 * 1.14
+      expect(result.estimatedMonthlyCost.high).toBe(2052); // 1800 * 1.14
     });
 
     it('should recommend family plan with children', () => {
@@ -205,9 +210,10 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.recommendedInsurance).toBe('Nationwide Flexible Family Plan');
       expect(result.householdBreakdown).toBe('2 adults, 2 children');
-      // Base cost for 2 adults + 2 kids
-      expect(result.estimatedMonthlyCost.low).toBe(1800);
-      expect(result.estimatedMonthlyCost.high).toBe(2500);
+      // Base cost for 2 adults + 2 kids, adjusted for state multiplier
+      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
+      expect(result.estimatedMonthlyCost.low).toBe(2052); // 1800 * 1.14
+      expect(result.estimatedMonthlyCost.high).toBe(2850); // 2500 * 1.14
     });
 
     it('should add cost for additional children beyond 2', () => {
@@ -220,8 +226,9 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.householdBreakdown).toBe('2 adults, 4 children');
       // Base (1800-2500) + 2 additional kids (600-800)
-      expect(result.estimatedMonthlyCost.low).toBe(2400); // 1800 + 600
-      expect(result.estimatedMonthlyCost.high).toBe(3300); // 2500 + 800
+      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
+      expect(result.estimatedMonthlyCost.low).toBe(2736); // 2400 * 1.14
+      expect(result.estimatedMonthlyCost.high).toBe(3762); // 3300 * 1.14
     });
 
     it('should adjust cost for single parent', () => {
@@ -234,8 +241,9 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.householdBreakdown).toBe('1 adult, 2 children');
       // Family base (1800-2500) - 1 adult (600-900)
-      expect(result.estimatedMonthlyCost.low).toBe(1200); // 1800 - 600
-      expect(result.estimatedMonthlyCost.high).toBe(1600); // 2500 - 900
+      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
+      expect(result.estimatedMonthlyCost.low).toBe(1368); // 1200 * 1.14
+      expect(result.estimatedMonthlyCost.high).toBe(1824); // 1600 * 1.14
     });
 
     it('should handle multiple adults without children', () => {
@@ -247,8 +255,9 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.recommendedInsurance).toBe('Nationwide Flexible Plan for 3 adults');
       expect(result.householdBreakdown).toBe('3 adults');
-      expect(result.estimatedMonthlyCost.low).toBe(1800); // 3 * 600
-      expect(result.estimatedMonthlyCost.high).toBe(2700); // 3 * 900
+      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
+      expect(result.estimatedMonthlyCost.low).toBe(2052); // 1800 * 1.14
+      expect(result.estimatedMonthlyCost.high).toBe(3078); // 2700 * 1.14
     });
 
     it('should include national PPO action items', () => {
