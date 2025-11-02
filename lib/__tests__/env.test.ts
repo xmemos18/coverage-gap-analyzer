@@ -17,7 +17,7 @@ describe('Environment Variables Configuration', () => {
 
   describe('Application Info', () => {
     it('should have default app name', () => {
-      expect(env.appName).toBe('Coverage Gap Analyzer');
+      expect(env.appName).toBe('Key Insurance Matters');
     });
 
     it('should have default app version', () => {

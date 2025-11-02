@@ -7,7 +7,7 @@ describe('Navigation Component', () => {
     render(<Navigation />);
 
     // Check logo is present
-    expect(screen.getByText('Coverage Gap Analyzer')).toBeInTheDocument();
+    expect(screen.getByText('Key Insurance Matters')).toBeInTheDocument();
 
     // Check desktop navigation links
     expect(screen.getByRole('link', { name: /about/i })).toBeInTheDocument();

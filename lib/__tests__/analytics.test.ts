@@ -22,7 +22,7 @@ jest.mock('../env', () => ({
     enableAnalytics: false,
     analyticsId: '',
     enableDebug: false,
-    appName: 'Coverage Gap Analyzer',
+    appName: 'Key Insurance Matters',
     appVersion: '1.0.0',
   },
 }));
@@ -89,7 +89,7 @@ describe('Analytics Integration', () => {
 
       expect(mockGtag).toHaveBeenCalledWith('event', 'calculator_started', {
         test: 'value',
-        app_name: 'Coverage Gap Analyzer',
+        app_name: 'Key Insurance Matters',
         app_version: '1.0.0',
       });
 
@@ -210,7 +210,7 @@ describe('Analytics Integration', () => {
       expect(mockGtag).toHaveBeenCalledWith('event', 'step_completed', {
         step_number: 1,
         step_name: 'Your Residences',
-        app_name: 'Coverage Gap Analyzer',
+        app_name: 'Key Insurance Matters',
         app_version: '1.0.0',
       });
     });
@@ -231,7 +231,7 @@ describe('Analytics Integration', () => {
         num_adults: 2,
         num_children: 1,
         has_medicare: true,
-        app_name: 'Coverage Gap Analyzer',
+        app_name: 'Key Insurance Matters',
         app_version: '1.0.0',
       });
     });
@@ -248,7 +248,7 @@ describe('Analytics Integration', () => {
       trackResultsAction('printed');
 
       expect(mockGtag).toHaveBeenCalledWith('event', 'results_printed', {
-        app_name: 'Coverage Gap Analyzer',
+        app_name: 'Key Insurance Matters',
         app_version: '1.0.0',
       });
     });
@@ -263,7 +263,7 @@ describe('Analytics Integration', () => {
       trackResultsAction('exported');
 
       expect(mockGtag).toHaveBeenCalledWith('event', 'results_exported', {
-        app_name: 'Coverage Gap Analyzer',
+        app_name: 'Key Insurance Matters',
         app_version: '1.0.0',
       });
     });
@@ -278,7 +278,7 @@ describe('Analytics Integration', () => {
       trackResultsAction('shared');
 
       expect(mockGtag).toHaveBeenCalledWith('event', 'results_shared', {
-        app_name: 'Coverage Gap Analyzer',
+        app_name: 'Key Insurance Matters',
         app_version: '1.0.0',
       });
     });
@@ -298,7 +298,7 @@ describe('Analytics Integration', () => {
         error_type: 'validation',
         error_message: 'Invalid ZIP code',
         error_context: 'step1',
-        app_name: 'Coverage Gap Analyzer',
+        app_name: 'Key Insurance Matters',
         app_version: '1.0.0',
       });
     });
@@ -316,7 +316,7 @@ describe('Analytics Integration', () => {
         error_type: 'network',
         error_message: 'unknown',
         error_context: 'unknown',
-        app_name: 'Coverage Gap Analyzer',
+        app_name: 'Key Insurance Matters',
         app_version: '1.0.0',
       });
     });

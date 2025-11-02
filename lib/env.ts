@@ -66,7 +66,7 @@ function getNumberEnvVar(key: string, defaultValue: number): number {
  */
 export const env = {
   // Application Info
-  appName: getEnvVar('NEXT_PUBLIC_APP_NAME', 'Coverage Gap Analyzer'),
+  appName: getEnvVar('NEXT_PUBLIC_APP_NAME', 'Key Insurance Matters'),
   appVersion: getEnvVar('NEXT_PUBLIC_APP_VERSION', '1.0.0'),
 
   // Environment

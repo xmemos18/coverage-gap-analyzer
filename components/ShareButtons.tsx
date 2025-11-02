@@ -34,7 +34,7 @@ export default function ShareButtons({ data, summary, filename }: ShareButtonsPr
   const handleEmailShare = () => {
     const subject = encodeURIComponent('My Health Insurance Analysis Results');
     const body = encodeURIComponent(
-      `I used the Coverage Gap Analyzer and here are my results:\n\n${summary}\n\nView full results: ${window.location.href}`
+      `I used Key Insurance Matters and here are my results:\n\n${summary}\n\nView full results: ${window.location.href}`
     );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
 

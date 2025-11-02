@@ -10,21 +10,21 @@ import Analytics from "@/components/Analytics";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Coverage Gap Analyzer | Multi-State Health Insurance Tool",
+  title: "Key Insurance Matters | Multi-State Health Insurance Tool",
   description: "Find health insurance for multiple homes. Perfect for snowbirds, remote workers, families. Free 3-minute analysis.",
   keywords: ["health insurance", "multi-state insurance", "snowbird insurance", "multiple homes", "remote worker insurance", "dual residence insurance"],
-  authors: [{ name: "Coverage Gap Analyzer" }],
-  creator: "Coverage Gap Analyzer",
-  publisher: "Coverage Gap Analyzer",
-  metadataBase: new URL('https://coveragegapanalyzer.com'),
+  authors: [{ name: "Key Insurance Matters" }],
+  creator: "Key Insurance Matters",
+  publisher: "Key Insurance Matters",
+  metadataBase: new URL('https://keyinsurancematters.com'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: "Coverage Gap Analyzer | Multi-State Health Insurance Tool",
+    title: "Key Insurance Matters | Multi-State Health Insurance Tool",
     description: "Find health insurance for multiple homes. Perfect for snowbirds, remote workers, families. Free 3-minute analysis.",
-    url: 'https://coveragegapanalyzer.com',
-    siteName: 'Coverage Gap Analyzer',
+    url: 'https://keyinsurancematters.com',
+    siteName: 'Key Insurance Matters',
     locale: 'en_US',
     type: 'website',
     images: [
@@ -32,13 +32,13 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Coverage Gap Analyzer - Multi-State Health Insurance',
+        alt: 'Key Insurance Matters - Multi-State Health Insurance',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Coverage Gap Analyzer | Multi-State Health Insurance Tool",
+    title: "Key Insurance Matters | Multi-State Health Insurance Tool",
     description: "Find health insurance for multiple homes. Free 3-minute analysis.",
     images: ['/og-image.png'],
   },
@@ -67,9 +67,9 @@ export default function RootLayout({
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Coverage Gap Analyzer",
+    "name": "Key Insurance Matters",
     "description": "Find health insurance for multiple homes. Perfect for snowbirds, remote workers, and families with multiple residences.",
-    "url": "https://coveragegapanalyzer.com",
+    "url": "https://keyinsurancematters.com",
     "applicationCategory": "HealthApplication",
     "offers": {
       "@type": "Offer",

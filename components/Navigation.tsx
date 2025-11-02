@@ -21,7 +21,7 @@ export default function Navigation() {
           {/* Logo */}
           <Link href="/" className="flex items-center" onClick={closeMobileMenu}>
             <span className="text-2xl font-bold text-primary">
-              Coverage Gap Analyzer
+              Key Insurance Matters
             </span>
           </Link>
 

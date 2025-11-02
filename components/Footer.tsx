@@ -28,7 +28,8 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="text-center text-gray-500 text-sm">
-          <p>&copy; 2025 Coverage Gap Analyzer. All rights reserved.</p>
+          <p>&copy; 2025 Key Insurance Matters. All rights reserved.</p>
+          <p className="mt-2">Powered by Netter Products</p>
         </div>
       </div>
     </footer>

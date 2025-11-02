@@ -150,7 +150,7 @@ function ResultsContent() {
         {/* Print-only header */}
         <div className="hidden print:block mb-8">
           <div className="border-b-2 border-gray-300 pb-4 mb-4">
-            <h1 className="text-2xl font-bold">Coverage Gap Analyzer Results</h1>
+            <h1 className="text-2xl font-bold">Key Insurance Matters Results</h1>
             <p className="text-sm text-gray-600">
               Generated on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
             </p>
