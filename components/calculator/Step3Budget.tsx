@@ -5,6 +5,7 @@ import ErrorMessage from '@/components/ErrorMessage';
 
 interface Step3Props {
   budget: string;
+  incomeRange: string;
   errors: FormErrors;
   onUpdate: UpdateFieldFunction;
   onSubmit: () => void;
@@ -20,8 +21,19 @@ const BUDGET_OPTIONS = [
   { value: 'not-sure', label: 'Not sure / show all options' },
 ];
 
+const INCOME_RANGE_OPTIONS = [
+  { value: 'under-30k', label: 'Under $30,000' },
+  { value: '30k-50k', label: '$30,000 - $50,000' },
+  { value: '50k-75k', label: '$50,000 - $75,000' },
+  { value: '75k-100k', label: '$75,000 - $100,000' },
+  { value: '100k-150k', label: '$100,000 - $150,000' },
+  { value: 'over-150k', label: 'Over $150,000' },
+  { value: 'prefer-not-say', label: 'Prefer not to say' },
+];
+
 export default function Step3Budget({
   budget,
+  incomeRange,
   errors,
   onUpdate,
   onSubmit,
@@ -30,48 +42,95 @@ export default function Step3Budget({
   return (
     <div role="form" aria-labelledby="budget-heading">
       <div className="mb-8">
-        <h2 id="budget-heading" className="text-3xl font-bold text-gray-900 mb-2">Your Budget</h2>
+        <h2 id="budget-heading" className="text-3xl font-bold text-gray-900 mb-2">Your Budget & Income</h2>
         <p className="text-gray-600 text-lg">
-          What&apos;s your monthly budget for health insurance?
+          Help us find the best coverage options for your situation.
         </p>
       </div>
 
-      <div className="space-y-3" role="radiogroup" aria-labelledby="budget-heading" aria-required="true">
-        {BUDGET_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => onUpdate('budget', option.value)}
-            className={`w-full px-6 py-4 rounded-lg font-semibold border-2 text-left transition-all ${
-              budget === option.value
-                ? 'bg-accent text-white border-accent'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
-            }`}
-            role="radio"
-            aria-checked={budget === option.value}
-            aria-label={`Monthly budget: ${option.label}`}
-          >
-            <div className="flex items-center">
-              <div
-                className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center ${
-                  budget === option.value
-                    ? 'border-white'
-                    : 'border-gray-400'
-                }`}
-                aria-hidden="true"
-              >
-                {budget === option.value && (
-                  <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                )}
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">Monthly Budget</h3>
+        <p className="text-gray-600 text-sm mb-4">
+          What&apos;s your monthly budget for health insurance?
+        </p>
+        <div className="space-y-3" role="radiogroup" aria-labelledby="budget-heading" aria-required="true">
+          {BUDGET_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => onUpdate('budget', option.value)}
+              className={`w-full px-6 py-4 rounded-lg font-semibold border-2 text-left transition-all ${
+                budget === option.value
+                  ? 'bg-accent text-white border-accent'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+              }`}
+              role="radio"
+              aria-checked={budget === option.value}
+              aria-label={`Monthly budget: ${option.label}`}
+            >
+              <div className="flex items-center">
+                <div
+                  className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center ${
+                    budget === option.value
+                      ? 'border-white'
+                      : 'border-gray-400'
+                  }`}
+                  aria-hidden="true"
+                >
+                  {budget === option.value && (
+                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                  )}
+                </div>
+                <span className="text-lg">{option.label}</span>
               </div>
-              <span className="text-lg">{option.label}</span>
-            </div>
-          </button>
-        ))}
+            </button>
+          ))}
+        </div>
+        {errors.budget && (
+          <ErrorMessage message={errors.budget} />
+        )}
       </div>
 
-      {errors.budget && (
-        <ErrorMessage message={errors.budget} />
-      )}
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4">Household Income</h3>
+        <p className="text-gray-600 text-sm mb-4">
+          This helps us determine if you qualify for financial assistance through subsidies or Medicaid.
+        </p>
+        <div className="space-y-3" role="radiogroup" aria-labelledby="income-heading" aria-required="false">
+          {INCOME_RANGE_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => onUpdate('incomeRange', option.value)}
+              className={`w-full px-6 py-4 rounded-lg font-semibold border-2 text-left transition-all ${
+                incomeRange === option.value
+                  ? 'bg-accent text-white border-accent'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+              }`}
+              role="radio"
+              aria-checked={incomeRange === option.value}
+              aria-label={`Annual household income: ${option.label}`}
+            >
+              <div className="flex items-center">
+                <div
+                  className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center ${
+                    incomeRange === option.value
+                      ? 'border-white'
+                      : 'border-gray-400'
+                  }`}
+                  aria-hidden="true"
+                >
+                  {incomeRange === option.value && (
+                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                  )}
+                </div>
+                <span className="text-lg">{option.label}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+        {errors.incomeRange && (
+          <ErrorMessage message={errors.incomeRange} />
+        )}
+      </div>
 
       {/* Navigation */}
       <nav className="flex gap-3 justify-between items-center mt-8 sticky-mobile-nav touch-manipulation" aria-label="Form navigation">

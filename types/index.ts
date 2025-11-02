@@ -19,6 +19,8 @@ export interface Step {
 export interface Residence {
   zip: string;
   state: string;
+  isPrimary: boolean;
+  monthsPerYear: number; // 1-12
 }
 
 export interface CurrentInsurance {
@@ -47,12 +49,23 @@ export interface CalculatorFormData {
   childAges: number[];
   hasMedicareEligible: boolean;
 
+  // Step 2.1: Employment & Coverage (NEW - Phase 1)
+  hasEmployerInsurance: boolean;
+  employerContribution: number;
+
+  // Step 2.3: Health Profile (NEW - Phase 1)
+  hasChronicConditions: boolean;
+  chronicConditions: string[];
+  prescriptionCount: string;
+  providerPreference: string;
+
   // Step 2.5: Current Insurance (optional)
   hasCurrentInsurance: boolean;
   currentInsurance: CurrentInsurance;
 
   // Step 3: Budget
   budget: string;
+  incomeRange: string; // NEW - Phase 1: For subsidy eligibility
 
   // Current step tracker
   currentStep: number;

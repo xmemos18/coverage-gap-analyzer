@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { CalculatorFormData, FormErrors } from '@/types';
 import Step1Residences from '@/components/calculator/Step1Residences';
 import Step2Household from '@/components/calculator/Step2Household';
+import Step2_3HealthProfile from '@/components/calculator/Step2_3HealthProfile';
 import Step2_5CurrentInsurance from '@/components/calculator/Step2_5CurrentInsurance';
 import Step3Budget from '@/components/calculator/Step3Budget';
 import MobileProgressBar from '@/components/MobileProgressBar';
@@ -32,18 +33,24 @@ import {
 const INITIAL_FORM_DATA: CalculatorFormData = {
   // New array-based residences (minimum 1 required)
   residences: [
-    { zip: '', state: '' }, // Primary
+    { zip: '', state: '', isPrimary: true, monthsPerYear: 0 }, // Primary
   ],
   // Legacy fields for backward compatibility
-  primaryResidence: { zip: '', state: '' },
-  secondaryResidence: { zip: '', state: '' },
+  primaryResidence: { zip: '', state: '', isPrimary: true, monthsPerYear: 0 },
+  secondaryResidence: { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
   hasThirdHome: false,
-  thirdResidence: { zip: '', state: '' },
+  thirdResidence: { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
   numAdults: 0,
   adultAges: [],
   numChildren: 0,
   childAges: [],
   hasMedicareEligible: false,
+  hasEmployerInsurance: false,
+  employerContribution: 0,
+  hasChronicConditions: false,
+  chronicConditions: [],
+  prescriptionCount: '',
+  providerPreference: '',
   hasCurrentInsurance: false,
   currentInsurance: {
     carrier: '',
@@ -54,6 +61,7 @@ const INITIAL_FORM_DATA: CalculatorFormData = {
     coverageNotes: '',
   },
   budget: '',
+  incomeRange: '',
   currentStep: CALCULATOR_STEPS.RESIDENCES,
 };
 
@@ -255,6 +263,12 @@ export default function Calculator() {
   };
 
   const validateStep3 = (): boolean => {
+    // Health profile is optional, no validation required
+    // User can skip all questions in this step
+    return true;
+  };
+
+  const validateStep4 = (): boolean => {
     const newErrors: FormErrors = {};
 
     // Only validate if user said they have current insurance
@@ -279,7 +293,7 @@ export default function Calculator() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateStep4 = (): boolean => {
+  const validateStep5 = (): boolean => {
     const newErrors: FormErrors = {};
 
     const budgetValidation = validateBudgetWithMessage(formData.budget);
@@ -307,6 +321,9 @@ export default function Calculator() {
       case 4:
         isValid = validateStep4();
         break;
+      case 5:
+        isValid = validateStep5();
+        break;
     }
 
     if (isValid) {
@@ -321,7 +338,7 @@ export default function Calculator() {
   };
 
   const handleSubmit = async () => {
-    if (!validateStep4()) {
+    if (!validateStep5()) {
       return;
     }
 
@@ -350,6 +367,24 @@ export default function Calculator() {
       }
       params.append('hasMedicareEligible', formData.hasMedicareEligible.toString());
 
+      // Add employment & coverage info
+      params.append('hasEmployerInsurance', formData.hasEmployerInsurance.toString());
+      if (formData.hasEmployerInsurance && formData.employerContribution > 0) {
+        params.append('employerContribution', formData.employerContribution.toString());
+      }
+
+      // Add health profile info
+      params.append('hasChronicConditions', formData.hasChronicConditions.toString());
+      if (formData.hasChronicConditions && formData.chronicConditions.length > 0) {
+        params.append('chronicConditions', formData.chronicConditions.join(','));
+      }
+      if (formData.prescriptionCount) {
+        params.append('prescriptionCount', formData.prescriptionCount);
+      }
+      if (formData.providerPreference) {
+        params.append('providerPreference', formData.providerPreference);
+      }
+
       // Add current insurance if provided
       params.append('hasCurrentInsurance', formData.hasCurrentInsurance.toString());
       if (formData.hasCurrentInsurance) {
@@ -361,8 +396,11 @@ export default function Calculator() {
         params.append('currentCoverageNotes', formData.currentInsurance.coverageNotes);
       }
 
-      // Add budget
+      // Add budget and income
       params.append('budget', formData.budget);
+      if (formData.incomeRange) {
+        params.append('incomeRange', formData.incomeRange);
+      }
 
       // Clear saved data on successful submission
       const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
@@ -548,6 +586,21 @@ export default function Calculator() {
                 numChildren={formData.numChildren}
                 childAges={formData.childAges}
                 hasMedicareEligible={formData.hasMedicareEligible}
+                hasEmployerInsurance={formData.hasEmployerInsurance}
+                employerContribution={formData.employerContribution}
+                errors={errors}
+                onUpdate={updateField}
+                onNext={handleNext}
+                onBack={handleBack}
+              />
+            )}
+
+            {formData.currentStep === CALCULATOR_STEPS.HEALTH_PROFILE && (
+              <Step2_3HealthProfile
+                hasChronicConditions={formData.hasChronicConditions}
+                chronicConditions={formData.chronicConditions}
+                prescriptionCount={formData.prescriptionCount}
+                providerPreference={formData.providerPreference}
                 errors={errors}
                 onUpdate={updateField}
                 onNext={handleNext}
@@ -569,6 +622,7 @@ export default function Calculator() {
             {formData.currentStep === CALCULATOR_STEPS.BUDGET && (
               <Step3Budget
                 budget={formData.budget}
+                incomeRange={formData.incomeRange}
                 errors={errors}
                 onUpdate={updateField}
                 onSubmit={handleSubmit}

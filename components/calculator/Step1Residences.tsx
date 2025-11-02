@@ -18,11 +18,11 @@ export default function Step1Residences({
   onUpdate,
   onNext,
 }: Step1Props) {
-  const updateResidence = (index: number, field: 'zip' | 'state', value: string) => {
+  const updateResidence = (index: number, field: 'zip' | 'state' | 'isPrimary' | 'monthsPerYear', value: string | boolean | number) => {
     const updatedResidences = [...residences];
 
     // Sanitize ZIP code input
-    if (field === 'zip') {
+    if (field === 'zip' && typeof value === 'string') {
       const { sanitized } = validateZipCode(value);
       updatedResidences[index] = {
         ...updatedResidences[index],
@@ -36,6 +36,16 @@ export default function Step1Residences({
           updatedResidences[index].state = detectedState;
         }
       }
+    } else if (field === 'isPrimary' && typeof value === 'boolean') {
+      // If setting this residence as primary, unset all others
+      if (value === true) {
+        updatedResidences.forEach((res, i) => {
+          updatedResidences[i] = {
+            ...res,
+            isPrimary: i === index,
+          };
+        });
+      }
     } else {
       updatedResidences[index] = {
         ...updatedResidences[index],
@@ -47,14 +57,21 @@ export default function Step1Residences({
   };
 
   const addResidence = () => {
-    const updatedResidences = [...residences, { zip: '', state: '' }];
+    const updatedResidences = [...residences, { zip: '', state: '', isPrimary: false, monthsPerYear: 0 }];
     onUpdate('residences', updatedResidences);
   };
 
   const removeResidence = (index: number) => {
     // Can only remove if more than 1 residence (primary residence is required)
     if (residences.length > 1) {
+      const wasRemovingPrimary = residences[index].isPrimary;
       const updatedResidences = residences.filter((_, i) => i !== index);
+
+      // If we removed the primary residence, set the first one as primary
+      if (wasRemovingPrimary && updatedResidences.length > 0) {
+        updatedResidences[0].isPrimary = true;
+      }
+
       onUpdate('residences', updatedResidences);
     }
   };
@@ -205,6 +222,56 @@ export default function Step1Residences({
                       {stateError}
                     </p>
                   )}
+                </div>
+              </div>
+
+              {/* Primary Residence Selection */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="mb-4">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="primary-residence"
+                      checked={residence.isPrimary}
+                      onChange={() => updateResidence(index, 'isPrimary', true)}
+                      className="w-5 h-5 text-accent focus:ring-accent"
+                      aria-label={`Set ${getResidenceLabel(index)} as primary residence`}
+                    />
+                    <span className="text-sm font-medium text-gray-700">
+                      This is my primary residence
+                      {residence.isPrimary && (
+                        <span className="ml-2 text-accent font-semibold">✓ Selected</span>
+                      )}
+                    </span>
+                  </label>
+                  {index === 0 && (
+                    <p className="text-xs text-gray-500 mt-1 ml-8">
+                      Your primary residence is where you spend most time and receive mail
+                    </p>
+                  )}
+                </div>
+
+                {/* Time Spent Per Year */}
+                <div>
+                  <label
+                    htmlFor={`residence-${index}-months`}
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    How much time do you spend here per year?
+                  </label>
+                  <select
+                    id={`residence-${index}-months`}
+                    value={residence.monthsPerYear || ''}
+                    onChange={(e) => updateResidence(index, 'monthsPerYear', parseInt(e.target.value) || 0)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    aria-label={`Time spent per year at ${getResidenceLabel(index)}`}
+                  >
+                    <option value="">Select timeframe</option>
+                    <option value="2">1-3 months</option>
+                    <option value="5">4-6 months</option>
+                    <option value="8">7-9 months</option>
+                    <option value="11">10-12 months</option>
+                  </select>
                 </div>
               </div>
             </div>

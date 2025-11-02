@@ -140,14 +140,16 @@ export const THRESHOLDS = {
 export const CALCULATOR_STEPS = {
   RESIDENCES: 1,
   HOUSEHOLD: 2,
-  CURRENT_INSURANCE: 3,
-  BUDGET: 4,
-  TOTAL_STEPS: 4,
+  HEALTH_PROFILE: 3,
+  CURRENT_INSURANCE: 4,
+  BUDGET: 5,
+  TOTAL_STEPS: 5,
 } as const;
 
 export const STEP_NAMES = [
   'Residences',
   'Household',
+  'Health Profile',
   'Current Insurance',
   'Budget',
 ] as const;

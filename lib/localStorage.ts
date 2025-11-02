@@ -13,7 +13,9 @@ function isValidResidence(value: unknown): value is Residence {
   const res = value as Record<string, unknown>;
   return (
     typeof res.zip === 'string' &&
-    typeof res.state === 'string'
+    typeof res.state === 'string' &&
+    typeof res.isPrimary === 'boolean' &&
+    typeof res.monthsPerYear === 'number'
   );
 }
 
@@ -59,10 +61,22 @@ export function validateCalculatorFormData(data: unknown): data is CalculatorFor
 
   // Check required boolean fields
   if (typeof formData.hasMedicareEligible !== 'boolean') return false;
+  if (typeof formData.hasEmployerInsurance !== 'boolean') return false;
+  if (typeof formData.hasChronicConditions !== 'boolean') return false;
   if (typeof formData.hasCurrentInsurance !== 'boolean') return false;
+
+  // Check employment & coverage fields
+  if (typeof formData.employerContribution !== 'number') return false;
+
+  // Check health profile fields
+  if (!Array.isArray(formData.chronicConditions)) return false;
+  if (!formData.chronicConditions.every((c) => typeof c === 'string')) return false;
+  if (typeof formData.prescriptionCount !== 'string') return false;
+  if (typeof formData.providerPreference !== 'string') return false;
 
   // Check required string fields
   if (typeof formData.budget !== 'string') return false;
+  if (typeof formData.incomeRange !== 'string') return false;
 
   // Validate currentInsurance object
   if (!isValidCurrentInsurance(formData.currentInsurance)) return false;

@@ -9,6 +9,8 @@ interface Step2Props {
   numChildren: number;
   childAges: number[];
   hasMedicareEligible: boolean;
+  hasEmployerInsurance: boolean;
+  employerContribution: number;
   errors: FormErrors;
   onUpdate: UpdateFieldFunction;
   onNext: () => void;
@@ -21,6 +23,8 @@ export default function Step2Household({
   numChildren,
   childAges,
   hasMedicareEligible,
+  hasEmployerInsurance,
+  employerContribution,
   errors,
   onUpdate,
   onNext,
@@ -223,6 +227,76 @@ export default function Step2Household({
               No
             </button>
           </div>
+        </div>
+
+        {/* Employment & Coverage - NEW Phase 1 */}
+        <div className="bg-blue-50 p-6 rounded-lg border border-blue-200" role="group" aria-labelledby="employment-heading">
+          <h3 id="employment-heading" className="text-lg font-semibold text-gray-900 mb-4">
+            Employment & Coverage
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            This helps us determine if employer coverage or marketplace plans are better for you
+          </p>
+
+          {/* Has Employer Insurance */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Does anyone in the household have access to employer health insurance?
+            </label>
+            <div className="flex gap-4">
+              <button
+                onClick={() => onUpdate('hasEmployerInsurance', true)}
+                className={`flex-1 px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
+                  hasEmployerInsurance
+                    ? 'bg-accent text-white border-accent'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                }`}
+                aria-label="Yes, have employer insurance"
+                aria-pressed={hasEmployerInsurance}
+              >
+                Yes
+              </button>
+              <button
+                onClick={() => onUpdate('hasEmployerInsurance', false)}
+                className={`flex-1 px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
+                  !hasEmployerInsurance
+                    ? 'bg-accent text-white border-accent'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                }`}
+                aria-label="No employer insurance"
+                aria-pressed={!hasEmployerInsurance}
+              >
+                No
+              </button>
+            </div>
+          </div>
+
+          {/* Employer Contribution - Show if has employer insurance */}
+          {hasEmployerInsurance && (
+            <div>
+              <label htmlFor="employer-contribution" className="block text-sm font-medium text-gray-700 mb-2">
+                What is the monthly employer contribution? (Optional)
+                <span className="text-gray-500 font-normal ml-2">How much does your employer pay?</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-3 text-gray-500">$</span>
+                <input
+                  id="employer-contribution"
+                  type="number"
+                  min="0"
+                  max="10000"
+                  value={employerContribution || ''}
+                  onChange={(e) => onUpdate('employerContribution', parseInt(e.target.value) || 0)}
+                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  placeholder="500"
+                  aria-label="Monthly employer contribution amount"
+                />
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                This helps us compare employer vs. marketplace plans
+              </p>
+            </div>
+          )}
         </div>
       </div>
 

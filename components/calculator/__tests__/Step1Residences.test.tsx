@@ -8,8 +8,8 @@ describe('Step1Residences Component', () => {
   const mockOnNext = jest.fn();
 
   const defaultResidences: Residence[] = [
-    { zip: '', state: '', isPrimary: true },
-    { zip: '', state: '', isPrimary: false },
+    { zip: '', state: '', isPrimary: true, monthsPerYear: 0 },
+    { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
   ];
 
   const defaultErrors: FormErrors = {};
@@ -66,8 +66,8 @@ describe('Step1Residences Component', () => {
 
     // Note: 12345 is a valid NY ZIP, so state should auto-populate
     expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '12345', state: 'NY', isPrimary: true },
-      { zip: '', state: '', isPrimary: false },
+      { zip: '12345', state: 'NY', isPrimary: true, monthsPerYear: 0 },
+      { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
     ]);
   });
 
@@ -88,8 +88,8 @@ describe('Step1Residences Component', () => {
 
     // ZIP should be sanitized to remove dash and state auto-populated
     expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '12345', state: 'NY', isPrimary: true },
-      { zip: '', state: '', isPrimary: false },
+      { zip: '12345', state: 'NY', isPrimary: true, monthsPerYear: 0 },
+      { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
     ]);
   });
 
@@ -108,8 +108,8 @@ describe('Step1Residences Component', () => {
 
     // ZIP should be truncated to 5 digits and state auto-populated
     expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '12345', state: 'NY', isPrimary: true },
-      { zip: '', state: '', isPrimary: false },
+      { zip: '12345', state: 'NY', isPrimary: true, monthsPerYear: 0 },
+      { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
     ]);
   });
 
@@ -130,8 +130,8 @@ describe('Step1Residences Component', () => {
     fireEvent.change(primaryZipInput, { target: { value: '10001' } });
 
     expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '10001', state: 'NY', isPrimary: true },
-      { zip: '', state: '', isPrimary: false },
+      { zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 0 },
+      { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
     ]);
   });
 
@@ -152,8 +152,8 @@ describe('Step1Residences Component', () => {
     fireEvent.change(secondaryZipInput, { target: { value: '90001' } });
 
     expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '', state: '', isPrimary: true },
-      { zip: '90001', state: 'CA', isPrimary: false },
+      { zip: '', state: '', isPrimary: true, monthsPerYear: 0 },
+      { zip: '90001', state: 'CA', isPrimary: false, monthsPerYear: 0 },
     ]);
   });
 
@@ -173,8 +173,8 @@ describe('Step1Residences Component', () => {
     fireEvent.change(primaryStateSelect, { target: { value: 'NY' } });
 
     expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '', state: 'NY', isPrimary: true },
-      { zip: '', state: '', isPrimary: false },
+      { zip: '', state: 'NY', isPrimary: true, monthsPerYear: 0 },
+      { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
     ]);
   });
 
@@ -192,17 +192,17 @@ describe('Step1Residences Component', () => {
     fireEvent.click(addButton);
 
     expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '', state: '', isPrimary: true },
-      { zip: '', state: '', isPrimary: false },
-      { zip: '', state: '' },
+      { zip: '', state: '', isPrimary: true, monthsPerYear: 0 },
+      { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
+      { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
     ]);
   });
 
   it('should display additional residence with correct label', () => {
     const residencesWithThree: Residence[] = [
-      { zip: '10001', state: 'NY', isPrimary: true },
-      { zip: '33101', state: 'FL', isPrimary: false },
-      { zip: '90001', state: 'CA', isPrimary: false },
+      { zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 0 },
+      { zip: '33101', state: 'FL', isPrimary: false, monthsPerYear: 0 },
+      { zip: '90001', state: 'CA', isPrimary: false, monthsPerYear: 0 },
     ];
 
     render(
@@ -221,9 +221,9 @@ describe('Step1Residences Component', () => {
 
   it('should show Remove button for non-required residences', () => {
     const residencesWithThree: Residence[] = [
-      { zip: '10001', state: 'NY', isPrimary: true },
-      { zip: '33101', state: 'FL', isPrimary: false },
-      { zip: '90001', state: 'CA', isPrimary: false },
+      { zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 0 },
+      { zip: '33101', state: 'FL', isPrimary: false, monthsPerYear: 0 },
+      { zip: '90001', state: 'CA', isPrimary: false, monthsPerYear: 0 },
     ];
 
     render(
@@ -244,9 +244,9 @@ describe('Step1Residences Component', () => {
 
   it('should remove residence when Remove button is clicked', () => {
     const residencesWithThree: Residence[] = [
-      { zip: '10001', state: 'NY', isPrimary: true },
-      { zip: '33101', state: 'FL', isPrimary: false },
-      { zip: '90001', state: 'CA', isPrimary: false },
+      { zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 0 },
+      { zip: '33101', state: 'FL', isPrimary: false, monthsPerYear: 0 },
+      { zip: '90001', state: 'CA', isPrimary: false, monthsPerYear: 0 },
     ];
 
     render(
@@ -262,14 +262,14 @@ describe('Step1Residences Component', () => {
     fireEvent.click(removeButton);
 
     expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '10001', state: 'NY', isPrimary: true },
-      { zip: '33101', state: 'FL', isPrimary: false },
+      { zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 0 },
+      { zip: '33101', state: 'FL', isPrimary: false, monthsPerYear: 0 },
     ]);
   });
 
   it('should not remove residences if only 1 remains (required minimum)', () => {
     const singleResidence: Residence[] = [
-      { zip: '10001', state: 'NY', isPrimary: true },
+      { zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 0 },
     ];
 
     render(
@@ -322,9 +322,9 @@ describe('Step1Residences Component', () => {
 
   it('should have different background colors for primary, secondary, and additional residences', () => {
     const residencesWithThree: Residence[] = [
-      { zip: '10001', state: 'NY', isPrimary: true },
-      { zip: '33101', state: 'FL', isPrimary: false },
-      { zip: '90001', state: 'CA', isPrimary: false },
+      { zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 0 },
+      { zip: '33101', state: 'FL', isPrimary: false, monthsPerYear: 0 },
+      { zip: '90001', state: 'CA', isPrimary: false, monthsPerYear: 0 },
     ];
 
     const { container } = render(

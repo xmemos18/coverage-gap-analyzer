@@ -33,6 +33,8 @@ function ResultsContent() {
   const residences = residenceZips.map((zip, index) => ({
     zip: zip || '',
     state: residenceStates[index] || '',
+    isPrimary: index === 0, // First residence is considered primary by default
+    monthsPerYear: 0, // Default value, can be enhanced later to read from URL params
   }));
 
   // Parse household parameters
@@ -43,7 +45,21 @@ function ResultsContent() {
   const childAgesStr = searchParams.get('childAges') || '';
   const childAges = childAgesStr ? childAgesStr.split(',').map(Number).filter(n => !isNaN(n)) : [];
   const hasMedicareEligible = searchParams.get('hasMedicareEligible') === 'true';
+
+  // Parse employment & coverage parameters
+  const hasEmployerInsurance = searchParams.get('hasEmployerInsurance') === 'true';
+  const employerContribution = parseInt(searchParams.get('employerContribution') || '0');
+
+  // Parse health profile parameters
+  const hasChronicConditions = searchParams.get('hasChronicConditions') === 'true';
+  const chronicConditionsStr = searchParams.get('chronicConditions') || '';
+  const chronicConditions = chronicConditionsStr ? chronicConditionsStr.split(',') : [];
+  const prescriptionCount = searchParams.get('prescriptionCount') || '';
+  const providerPreference = searchParams.get('providerPreference') || '';
+
+  // Parse budget & income parameters
   const budget = searchParams.get('budget') || '';
+  const incomeRange = searchParams.get('incomeRange') || '';
 
   // Parse current insurance parameters
   const hasCurrentInsurance = searchParams.get('hasCurrentInsurance') === 'true';
@@ -93,15 +109,21 @@ function ResultsContent() {
     // New array-based residences
     residences,
     // Legacy fields for backward compatibility
-    primaryResidence: residences[0] || { zip: '', state: '' },
-    secondaryResidence: residences[1] || { zip: '', state: '' },
+    primaryResidence: residences[0] || { zip: '', state: '', isPrimary: true, monthsPerYear: 0 },
+    secondaryResidence: residences[1] || { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
     hasThirdHome: residences.length > 2,
-    thirdResidence: residences[2] || { zip: '', state: '' },
+    thirdResidence: residences[2] || { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
     numAdults,
     adultAges,
     numChildren,
     childAges,
     hasMedicareEligible,
+    hasEmployerInsurance,
+    employerContribution,
+    hasChronicConditions,
+    chronicConditions,
+    prescriptionCount,
+    providerPreference,
     hasCurrentInsurance,
     currentInsurance: {
       carrier: currentCarrier,
@@ -112,8 +134,9 @@ function ResultsContent() {
       coverageNotes: currentCoverageNotes,
     },
     budget,
-    currentStep: 4,
-  }), [residences, numAdults, adultAges, numChildren, childAges, hasMedicareEligible, hasCurrentInsurance, currentCarrier, currentPlanType, currentMonthlyCost, currentDeductible, currentOutOfPocketMax, currentCoverageNotes, budget]);
+    incomeRange,
+    currentStep: 5,
+  }), [residences, numAdults, adultAges, numChildren, childAges, hasMedicareEligible, hasEmployerInsurance, employerContribution, hasChronicConditions, chronicConditions, prescriptionCount, providerPreference, hasCurrentInsurance, currentCarrier, currentPlanType, currentMonthlyCost, currentDeductible, currentOutOfPocketMax, currentCoverageNotes, budget, incomeRange]);
 
   // Get recommendations from the engine
   const recommendation = useMemo(() => {
