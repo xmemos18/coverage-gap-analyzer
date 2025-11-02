@@ -352,7 +352,7 @@ export default function Calculator() {
           </p>
 
           {/* Clear Button */}
-          {(formData.currentStep > 1 || formData.primaryResidence.zip) && (
+          {(formData.currentStep > 1 || formData.residences.some(r => r.zip || r.state)) && (
             <div className="text-center mt-4">
               <button
                 onClick={clearSavedData}
