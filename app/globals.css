@@ -6,4 +6,208 @@
   body {
     @apply bg-white text-gray-900;
   }
+
+  /* Focus management - only show focus outlines for keyboard navigation */
+  .mouse-user *:focus {
+    outline: none;
+  }
+
+  .keyboard-user *:focus {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+
+  /* Enhanced focus indicators for interactive elements */
+  .keyboard-user button:focus,
+  .keyboard-user a:focus,
+  .keyboard-user input:focus,
+  .keyboard-user select:focus,
+  .keyboard-user textarea:focus {
+    @apply ring-2 ring-accent ring-offset-2;
+  }
+
+  /* Skip link - hidden by default, visible on focus */
+  .sr-only:not(:focus):not(:active) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Mobile-specific improvements */
+  @media (max-width: 768px) {
+    /* Prevent text size adjustment on orientation change */
+    body {
+      -webkit-text-size-adjust: 100%;
+      -moz-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    /* Improve tap targets - minimum 44x44px */
+    button,
+    a,
+    input[type="checkbox"],
+    input[type="radio"],
+    select {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    /* Better touch scrolling */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Prevent horizontal scroll */
+    body {
+      overflow-x: hidden;
+    }
+  }
+
+  /* Smooth scrolling for mobile */
+  @media (max-width: 768px) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  /* Improve input focus on mobile */
+  @media (max-width: 768px) {
+    input:focus,
+    textarea:focus,
+    select:focus {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
+  }
+}
+
+@layer utilities {
+  /* Mobile-specific utility classes */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Better mobile button sizes */
+  .btn-mobile {
+    @apply px-6 py-4 text-base font-semibold;
+  }
+
+  @media (max-width: 768px) {
+    .btn-mobile {
+      @apply px-8 py-5 text-lg;
+    }
+  }
+
+  /* Mobile-friendly spacing */
+  .mobile-container {
+    @apply px-4 md:px-6 lg:px-8;
+  }
+
+  .mobile-section {
+    @apply py-6 md:py-8 lg:py-12;
+  }
+
+  /* Sticky bottom navigation for mobile */
+  .sticky-mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-40;
+  }
+
+  @media (min-width: 768px) {
+    .sticky-mobile-nav {
+      @apply static shadow-none border-0 p-0;
+    }
+  }
+
+  /* Hide on mobile */
+  .hide-mobile {
+    @apply hidden md:block;
+  }
+
+  /* Show only on mobile */
+  .show-mobile {
+    @apply block md:hidden;
+  }
+}
+
+/* Print styles */
+@media print {
+  /* Hide non-essential elements when printing */
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure content fits on page */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  /* Remove shadows and effects */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Better page breaks */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Avoid breaking inside cards */
+  .print-no-break {
+    page-break-inside: avoid;
+  }
+
+  /* Show links in print */
+  a[href]:after {
+    content: none; /* Don't show URLs by default */
+  }
+
+  /* Ensure text is readable */
+  .text-white,
+  .bg-accent,
+  .bg-primary,
+  .bg-success {
+    color: black !important;
+  }
+
+  /* Simplify layouts for print */
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  /* Remove fixed/sticky positioning */
+  .sticky,
+  .fixed {
+    position: static !important;
+  }
+
+  /* Optimize spacing */
+  .p-8, .p-10 {
+    padding: 1rem !important;
+  }
+
+  .mb-8 {
+    margin-bottom: 1rem !important;
+  }
+
+  /* Ensure buttons look like buttons */
+  button {
+    border: 1px solid #000 !important;
+    padding: 0.25rem 0.5rem !important;
+  }
 }

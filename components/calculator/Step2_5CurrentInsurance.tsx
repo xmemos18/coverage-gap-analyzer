@@ -1,12 +1,13 @@
 'use client';
 
-import { CurrentInsurance, FormErrors } from '@/types';
+import { CurrentInsurance, FormErrors, UpdateFieldFunction } from '@/types';
+import { sanitizeTextInput, sanitizeCoverageNotes, sanitizeNumericInput } from '@/lib/validation';
 
 interface Step2_5Props {
   hasCurrentInsurance: boolean;
   currentInsurance: CurrentInsurance;
   errors: FormErrors;
-  onUpdate: (field: string, value: unknown) => void;
+  onUpdate: UpdateFieldFunction;
   onNext: () => void;
   onBack: () => void;
 }
@@ -20,7 +21,22 @@ export default function Step2_5CurrentInsurance({
   onBack,
 }: Step2_5Props) {
   const updateInsuranceField = (field: keyof CurrentInsurance, value: string | number) => {
-    const updated = { ...currentInsurance, [field]: value };
+    let sanitizedValue: string | number = value;
+
+    // Sanitize based on field type
+    if (field === 'carrier') {
+      sanitizedValue = sanitizeTextInput(value as string);
+    } else if (field === 'coverageNotes') {
+      sanitizedValue = sanitizeCoverageNotes(value as string);
+    } else if (typeof value === 'number' || (typeof value === 'string' && value !== '')) {
+      // Numeric fields: monthlyCost, deductible, outOfPocketMax
+      if (field === 'monthlyCost' || field === 'deductible' || field === 'outOfPocketMax') {
+        const num = sanitizeNumericInput(value, 0, 1000000);
+        sanitizedValue = num !== null ? num : 0;
+      }
+    }
+
+    const updated = { ...currentInsurance, [field]: sanitizedValue };
     onUpdate('currentInsurance', updated);
   };
 
@@ -37,9 +53,9 @@ export default function Step2_5CurrentInsurance({
   ];
 
   return (
-    <div>
+    <div role="form" aria-labelledby="insurance-heading">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Current Insurance</h2>
+        <h2 id="insurance-heading" className="text-3xl font-bold text-gray-900 mb-2">Current Insurance</h2>
         <p className="text-gray-600 text-lg">
           Tell us about your current insurance so we can provide personalized suggestions.
         </p>
@@ -47,8 +63,8 @@ export default function Step2_5CurrentInsurance({
 
       <div className="space-y-8">
         {/* Do you have current insurance? */}
-        <div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        <div role="group" aria-labelledby="has-insurance-heading">
+          <h3 id="has-insurance-heading" className="text-xl font-semibold text-gray-900 mb-4">
             Do you currently have health insurance?
           </h3>
           <div className="flex gap-4">
@@ -59,6 +75,8 @@ export default function Step2_5CurrentInsurance({
                   ? 'bg-accent text-white border-accent'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
               }`}
+              aria-label="Yes, I have current health insurance"
+              aria-pressed={hasCurrentInsurance}
             >
               Yes
             </button>
@@ -69,6 +87,8 @@ export default function Step2_5CurrentInsurance({
                   ? 'bg-accent text-white border-accent'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
               }`}
+              aria-label="No, I don't have current health insurance"
+              aria-pressed={!hasCurrentInsurance}
             >
               No
             </button>
@@ -192,17 +212,17 @@ export default function Step2_5CurrentInsurance({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between items-center mt-8">
+      <div className="flex gap-3 justify-between items-center mt-8 sticky-mobile-nav touch-manipulation">
         <button
           onClick={onBack}
-          className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+          className="px-6 py-3 flex-1 md:flex-initial border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors touch-manipulation"
         >
           Back
         </button>
 
         <button
           onClick={onNext}
-          className="px-8 py-3 bg-accent text-white rounded-lg font-semibold text-lg hover:bg-accent-light shadow-lg transition-all"
+          className="px-8 py-3 flex-1 md:flex-initial bg-accent text-white rounded-lg font-semibold text-lg hover:bg-accent-light shadow-lg transition-all touch-manipulation"
         >
           Next
         </button>

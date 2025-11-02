@@ -1,6 +1,7 @@
 'use client';
 
-import { FormErrors } from '@/types';
+import { FormErrors, UpdateFieldFunction } from '@/types';
+import InsuranceTerm from '@/components/InsuranceTerm';
 
 interface Step2Props {
   numAdults: number;
@@ -9,7 +10,7 @@ interface Step2Props {
   childAges: number[];
   hasMedicareEligible: boolean;
   errors: FormErrors;
-  onUpdate: (field: string, value: unknown) => void;
+  onUpdate: UpdateFieldFunction;
   onNext: () => void;
   onBack: () => void;
 }
@@ -41,20 +42,24 @@ export default function Step2Household({
 
   const updateAdultAge = (index: number, age: number) => {
     const newAges = [...adultAges];
-    newAges[index] = age;
+    // Clamp age to valid range (18-100) and ensure integer
+    const validAge = Math.max(18, Math.min(100, Math.floor(age)));
+    newAges[index] = validAge;
     onUpdate('adultAges', newAges);
   };
 
   const updateChildAge = (index: number, age: number) => {
     const newAges = [...childAges];
-    newAges[index] = age;
+    // Clamp age to valid range (0-17) and ensure integer
+    const validAge = Math.max(0, Math.min(17, Math.floor(age)));
+    newAges[index] = validAge;
     onUpdate('childAges', newAges);
   };
 
   return (
-    <div>
+    <div role="form" aria-labelledby="household-heading">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Household</h2>
+        <h2 id="household-heading" className="text-3xl font-bold text-gray-900 mb-2">Your Household</h2>
         <p className="text-gray-600 text-lg">
           Tell us about who needs coverage.
         </p>
@@ -62,8 +67,8 @@ export default function Step2Household({
 
       <div className="space-y-8">
         {/* Number of Adults */}
-        <div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">How many adults?</h3>
+        <div role="group" aria-labelledby="adults-count-heading">
+          <h3 id="adults-count-heading" className="text-xl font-semibold text-gray-900 mb-4">How many adults?</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((count) => (
               <button
@@ -74,27 +79,34 @@ export default function Step2Household({
                     ? 'bg-accent text-white border-accent'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
                 }`}
+                aria-label={`${count === 4 ? '4 or more' : count} adult${count > 1 ? 's' : ''}`}
+                aria-pressed={numAdults === count}
               >
                 {count === 4 ? '4+' : count}
               </button>
             ))}
           </div>
-          {errors.numAdults && <p className="text-red-600 text-sm mt-2">{errors.numAdults}</p>}
+          {errors.numAdults && (
+            <p className="text-red-600 text-sm mt-2" role="alert" aria-live="polite">
+              {errors.numAdults}
+            </p>
+          )}
         </div>
 
         {/* Adult Ages */}
         {numAdults > 0 && (
-          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Age of each adult</h3>
+          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200" role="group" aria-labelledby="adult-ages-heading">
+            <h3 id="adult-ages-heading" className="text-lg font-semibold text-gray-900 mb-4">Age of each adult</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Array(numAdults)
                 .fill(0)
                 .map((_, index) => (
                   <div key={index}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor={`adult-age-${index}`} className="block text-sm font-medium text-gray-700 mb-2">
                       Adult {index + 1} Age (18-100)
                     </label>
                     <input
+                      id={`adult-age-${index}`}
                       type="number"
                       min="18"
                       max="100"
@@ -102,9 +114,15 @@ export default function Step2Household({
                       onChange={(e) => updateAdultAge(index, parseInt(e.target.value) || 0)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="e.g., 45"
+                      aria-label={`Age of adult ${index + 1}`}
+                      aria-required="true"
+                      aria-invalid={!!errors[`adultAge${index}`]}
+                      aria-describedby={errors[`adultAge${index}`] ? `adult-age-${index}-error` : undefined}
                     />
                     {errors[`adultAge${index}`] && (
-                      <p className="text-red-600 text-sm mt-1">{errors[`adultAge${index}`]}</p>
+                      <p id={`adult-age-${index}-error`} className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">
+                        {errors[`adultAge${index}`]}
+                      </p>
                     )}
                   </div>
                 ))}
@@ -113,8 +131,8 @@ export default function Step2Household({
         )}
 
         {/* Number of Children */}
-        <div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">How many children under 18?</h3>
+        <div role="group" aria-labelledby="children-count-heading">
+          <h3 id="children-count-heading" className="text-xl font-semibold text-gray-900 mb-4">How many children under 18?</h3>
           <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
             {[0, 1, 2, 3, 4].map((count) => (
               <button
@@ -125,6 +143,8 @@ export default function Step2Household({
                     ? 'bg-accent text-white border-accent'
                     : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
                 }`}
+                aria-label={count === 0 ? 'No children' : `${count === 4 ? '4 or more' : count} child${count > 1 ? 'ren' : ''}`}
+                aria-pressed={numChildren === count}
               >
                 {count === 4 ? '4+' : count}
               </button>
@@ -134,17 +154,18 @@ export default function Step2Household({
 
         {/* Child Ages */}
         {numChildren > 0 && (
-          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Age of each child</h3>
+          <div className="bg-gray-50 p-6 rounded-lg border border-gray-200" role="group" aria-labelledby="child-ages-heading">
+            <h3 id="child-ages-heading" className="text-lg font-semibold text-gray-900 mb-4">Age of each child</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Array(numChildren)
                 .fill(0)
                 .map((_, index) => (
                   <div key={index}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor={`child-age-${index}`} className="block text-sm font-medium text-gray-700 mb-2">
                       Child {index + 1} Age (0-17)
                     </label>
                     <input
+                      id={`child-age-${index}`}
                       type="number"
                       min="0"
                       max="17"
@@ -152,9 +173,15 @@ export default function Step2Household({
                       onChange={(e) => updateChildAge(index, parseInt(e.target.value) || 0)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="e.g., 10"
+                      aria-label={`Age of child ${index + 1}`}
+                      aria-required="true"
+                      aria-invalid={!!errors[`childAge${index}`]}
+                      aria-describedby={errors[`childAge${index}`] ? `child-age-${index}-error` : undefined}
                     />
                     {errors[`childAge${index}`] && (
-                      <p className="text-red-600 text-sm mt-1">{errors[`childAge${index}`]}</p>
+                      <p id={`child-age-${index}-error`} className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">
+                        {errors[`childAge${index}`]}
+                      </p>
                     )}
                   </div>
                 ))}
@@ -163,8 +190,13 @@ export default function Step2Household({
         )}
 
         {/* Medicare Eligibility */}
-        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Is anyone Medicare-eligible?</h3>
+        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200" role="group" aria-labelledby="medicare-heading">
+          <h3 id="medicare-heading" className="text-lg font-semibold text-gray-900 mb-4">
+            Is anyone <InsuranceTerm term="Medicare">Medicare-eligible</InsuranceTerm>?
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Usually 65 years or older, or younger with certain disabilities
+          </p>
           <div className="flex gap-4">
             <button
               onClick={() => onUpdate('hasMedicareEligible', true)}
@@ -173,6 +205,8 @@ export default function Step2Household({
                   ? 'bg-accent text-white border-accent'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
               }`}
+              aria-label="Yes, someone is Medicare-eligible"
+              aria-pressed={hasMedicareEligible}
             >
               Yes
             </button>
@@ -183,6 +217,8 @@ export default function Step2Household({
                   ? 'bg-accent text-white border-accent'
                   : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
               }`}
+              aria-label="No, nobody is Medicare-eligible"
+              aria-pressed={!hasMedicareEligible}
             >
               No
             </button>
@@ -191,21 +227,23 @@ export default function Step2Household({
       </div>
 
       {/* Navigation */}
-      <div className="flex justify-between items-center mt-8">
+      <nav className="flex gap-3 justify-between items-center mt-8 sticky-mobile-nav touch-manipulation" aria-label="Form navigation">
         <button
           onClick={onBack}
-          className="px-6 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors"
+          className="px-6 py-3 flex-1 md:flex-initial border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors touch-manipulation"
+          aria-label="Go back to residences"
         >
           Back
         </button>
 
         <button
           onClick={onNext}
-          className="px-8 py-3 bg-accent text-white rounded-lg font-semibold text-lg hover:bg-accent-light shadow-lg transition-all"
+          className="px-8 py-3 flex-1 md:flex-initial bg-accent text-white rounded-lg font-semibold text-lg hover:bg-accent-light shadow-lg transition-all touch-manipulation"
+          aria-label="Continue to current insurance information"
         >
           Next
         </button>
-      </div>
+      </nav>
     </div>
   );
 }

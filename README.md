@@ -29,8 +29,12 @@ A comprehensive web application that helps people with multiple homes find healt
 - **Alternative Options**: 2-3 alternative plans with pros/cons
 
 ### User Experience
-- Mobile-responsive design
-- Progress indicator with step names
+- **Mobile-Optimized**: Sticky navigation, larger touch targets, mobile progress bar
+- **Interactive Tooltips**: 30+ insurance terms with plain-language explanations
+- **Keyboard Navigation**: Shortcuts (Alt+N, Alt+B, etc.) for power users
+- **Auto-Save**: Resume where you left off (24-hour expiration)
+- **Print/Export**: Print to PDF, export JSON, email results, copy link
+- Progress indicator showing current step
 - FAQ section on homepage
 - Professional layout with excellent color contrast
 
@@ -144,6 +148,41 @@ npm run lint         # Run ESLint
 - Adults: 2 (ages 70, 45), Children: 1 (age 10)
 - Expected: Medicare for senior + PPO for others
 
+## 🔒 Security
+
+The application implements comprehensive security measures following OWASP best practices.
+
+### Security Headers
+
+**16 security headers** configured in `next.config.ts`:
+- ✅ Content Security Policy (CSP)
+- ✅ Strict-Transport-Security (HSTS)
+- ✅ X-Frame-Options (clickjacking protection)
+- ✅ X-Content-Type-Options (MIME sniffing protection)
+- ✅ Cross-Origin policies (COEP, COOP, CORP)
+- ✅ Permissions-Policy (feature restrictions)
+- ✅ And more...
+
+**Expected Scores:**
+- Mozilla Observatory: A+
+- SecurityHeaders.com: A+
+
+### Input Validation
+
+- ZIP code validation (5 digits)
+- Age validation (0-120 years)
+- Text sanitization (HTML tag stripping)
+- Numeric validation (positive numbers only)
+
+### Additional Protection
+
+- React Error Boundary for graceful error handling
+- localStorage with 24-hour expiration
+- No sensitive data storage
+- Full TypeScript type safety
+
+**📚 See [docs/SECURITY.md](docs/SECURITY.md) for complete security documentation**
+
 ## 🔍 SEO & Performance
 
 ### SEO Features
@@ -162,13 +201,74 @@ npm run lint         # Run ESLint
 
 ## 📝 Environment Variables
 
-Currently, the app runs without environment variables. For production deployment, you may want to add:
+The application uses environment variables for configuration. A template is provided in `.env.example`.
 
-```bash
-# .env.local
-NEXT_PUBLIC_SITE_URL=https://your-domain.com
-NEXT_PUBLIC_GA_ID=your-google-analytics-id
+### Setup
+
+1. **Copy the template file**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. **Configure your values in `.env.local`**
+   ```bash
+   # Application Info
+   NEXT_PUBLIC_APP_NAME=Coverage Gap Analyzer
+   NEXT_PUBLIC_APP_VERSION=1.0.0
+
+   # Feature Flags
+   NEXT_PUBLIC_ENABLE_ANALYTICS=false
+   NEXT_PUBLIC_ENABLE_DEBUG=true
+
+   # Analytics (if enabled)
+   NEXT_PUBLIC_ANALYTICS_ID=
+
+   # Application Limits
+   NEXT_PUBLIC_MAX_RESIDENCES=5
+   NEXT_PUBLIC_MAX_ADULTS=10
+   NEXT_PUBLIC_MAX_CHILDREN=10
+
+   # Session Configuration
+   NEXT_PUBLIC_SESSION_TIMEOUT_HOURS=24
+   ```
+
+### Available Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NEXT_PUBLIC_APP_NAME` | Coverage Gap Analyzer | Application name |
+| `NEXT_PUBLIC_APP_VERSION` | 1.0.0 | Application version |
+| `NEXT_PUBLIC_ENABLE_ANALYTICS` | false | Enable analytics tracking |
+| `NEXT_PUBLIC_ENABLE_DEBUG` | false | Enable debug mode |
+| `NEXT_PUBLIC_ANALYTICS_ID` | - | Analytics ID (GA4, Plausible, etc.) |
+| `NEXT_PUBLIC_MAX_RESIDENCES` | 5 | Maximum residences allowed |
+| `NEXT_PUBLIC_MAX_ADULTS` | 10 | Maximum adults allowed |
+| `NEXT_PUBLIC_MAX_CHILDREN` | 10 | Maximum children allowed |
+| `NEXT_PUBLIC_SESSION_TIMEOUT_HOURS` | 24 | Session data expiration |
+
+### Type-Safe Access
+
+Import the `env` object for type-safe access to environment variables:
+
+```typescript
+import env from '@/lib/env';
+
+// Access configuration
+const maxResidences = env.maxResidences;
+const isDebugMode = env.enableDebug;
+
+// Environment detection
+if (env.isDevelopment) {
+  console.log('Running in development mode');
+}
 ```
+
+### Notes
+
+- All `NEXT_PUBLIC_*` variables are exposed to the browser
+- Non-prefixed variables are server-side only
+- Values are validated on startup in production
+- See `.env.example` for full documentation
 
 ## 🚢 Deployment
 

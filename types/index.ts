@@ -62,6 +62,12 @@ export interface FormErrors {
   [key: string]: string;
 }
 
+// Type-safe update function for calculator form
+export type UpdateFieldFunction = <K extends keyof CalculatorFormData>(
+  field: K,
+  value: CalculatorFormData[K]
+) => void;
+
 // Recommendation Engine Types
 export interface CostRange {
   low: number;

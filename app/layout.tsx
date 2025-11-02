@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import SkipLink from "@/components/SkipLink";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -93,11 +95,14 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <Navigation />
-        <main className="min-h-screen">
-          {children}
-        </main>
-        <Footer />
+        <ErrorBoundary>
+          <SkipLink targetId="main-content" />
+          <Navigation />
+          <main id="main-content" className="min-h-screen" tabIndex={-1}>
+            {children}
+          </main>
+          <Footer />
+        </ErrorBoundary>
       </body>
     </html>
   );

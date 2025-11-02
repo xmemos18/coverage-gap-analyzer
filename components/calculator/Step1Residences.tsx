@@ -1,12 +1,13 @@
 'use client';
 
-import { Residence, FormErrors } from '@/types';
+import { Residence, FormErrors, UpdateFieldFunction } from '@/types';
 import { US_STATES } from '@/lib/states';
+import { validateZipCode } from '@/lib/validation';
 
 interface Step1Props {
   residences: Residence[];
   errors: FormErrors;
-  onUpdate: (field: string, value: unknown) => void;
+  onUpdate: UpdateFieldFunction;
   onNext: () => void;
 }
 
@@ -18,10 +19,21 @@ export default function Step1Residences({
 }: Step1Props) {
   const updateResidence = (index: number, field: 'zip' | 'state', value: string) => {
     const updatedResidences = [...residences];
-    updatedResidences[index] = {
-      ...updatedResidences[index],
-      [field]: value,
-    };
+
+    // Sanitize ZIP code input
+    if (field === 'zip') {
+      const { sanitized } = validateZipCode(value);
+      updatedResidences[index] = {
+        ...updatedResidences[index],
+        [field]: sanitized,
+      };
+    } else {
+      updatedResidences[index] = {
+        ...updatedResidences[index],
+        [field]: value,
+      };
+    }
+
     onUpdate('residences', updatedResidences);
   };
 
@@ -45,10 +57,10 @@ export default function Step1Residences({
   };
 
   return (
-    <div>
+    <div role="form" aria-labelledby="residences-heading">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Your Residences</h2>
-        <p className="text-gray-600 text-lg">
+        <h2 id="residences-heading" className="text-3xl font-bold text-gray-900 mb-2">Your Residences</h2>
+        <p className="text-gray-600 text-lg" id="residences-description">
           Tell us where you own or rent homes. You can add as many properties as you need.
         </p>
       </div>
@@ -84,6 +96,7 @@ export default function Step1Residences({
                   <button
                     onClick={() => removeResidence(index)}
                     className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors text-sm"
+                    aria-label={`Remove ${getResidenceLabel(index)}`}
                   >
                     Remove
                   </button>
@@ -93,18 +106,23 @@ export default function Step1Residences({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* ZIP Code */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <label
+                    htmlFor={`residence-${index}-zip`}
+                    className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
+                  >
                     ZIP Code
                     {residence.zip.length === 5 && !zipError && (
-                      <span className="text-success text-sm">✓</span>
+                      <span className="text-success text-sm" aria-label="Valid ZIP code">✓</span>
                     )}
                   </label>
                   <div className="relative">
                     <input
+                      id={`residence-${index}-zip`}
                       type="text"
+                      inputMode="numeric"
                       maxLength={5}
                       value={residence.zip}
-                      onChange={(e) => updateResidence(index, 'zip', e.target.value.replace(/\D/g, ''))}
+                      onChange={(e) => updateResidence(index, 'zip', e.target.value)}
                       className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${
                         zipError
                           ? 'border-red-500'
@@ -113,23 +131,40 @@ export default function Step1Residences({
                           : 'border-gray-300'
                       }`}
                       placeholder="12345"
+                      aria-label={`ZIP code for ${getResidenceLabel(index)}`}
+                      aria-required="true"
+                      aria-invalid={!!zipError}
+                      aria-describedby={zipError ? `residence-${index}-zip-error` : undefined}
                     />
                     {residence.zip.length === 5 && !zipError && (
-                      <span className="absolute right-3 top-2.5 text-success">✓</span>
+                      <span className="absolute right-3 top-2.5 text-success" aria-hidden="true">✓</span>
                     )}
                   </div>
-                  {zipError && <p className="text-red-600 text-sm mt-1">{zipError}</p>}
+                  {zipError && (
+                    <p
+                      id={`residence-${index}-zip-error`}
+                      className="text-red-600 text-sm mt-1"
+                      role="alert"
+                      aria-live="polite"
+                    >
+                      {zipError}
+                    </p>
+                  )}
                 </div>
 
                 {/* State */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                  <label
+                    htmlFor={`residence-${index}-state`}
+                    className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
+                  >
                     State
                     {residence.state && !stateError && (
-                      <span className="text-success text-sm">✓</span>
+                      <span className="text-success text-sm" aria-label="Valid state selected">✓</span>
                     )}
                   </label>
                   <select
+                    id={`residence-${index}-state`}
                     value={residence.state}
                     onChange={(e) => updateResidence(index, 'state', e.target.value)}
                     className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${
@@ -139,6 +174,10 @@ export default function Step1Residences({
                         ? 'border-success'
                         : 'border-gray-300'
                     }`}
+                    aria-label={`State for ${getResidenceLabel(index)}`}
+                    aria-required="true"
+                    aria-invalid={!!stateError}
+                    aria-describedby={stateError ? `residence-${index}-state-error` : undefined}
                   >
                     <option value="">Select a state</option>
                     {US_STATES.map((state) => (
@@ -147,7 +186,16 @@ export default function Step1Residences({
                       </option>
                     ))}
                   </select>
-                  {stateError && <p className="text-red-600 text-sm mt-1">{stateError}</p>}
+                  {stateError && (
+                    <p
+                      id={`residence-${index}-state-error`}
+                      className="text-red-600 text-sm mt-1"
+                      role="alert"
+                      aria-live="polite"
+                    >
+                      {stateError}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -158,17 +206,19 @@ export default function Step1Residences({
         <button
           onClick={addResidence}
           className="w-full px-6 py-4 border-2 border-dashed border-accent text-accent rounded-lg font-semibold text-lg hover:bg-accent hover:text-white transition-all flex items-center justify-center gap-2"
+          aria-label="Add another property to your residences"
         >
-          <span className="text-2xl">+</span>
+          <span className="text-2xl" aria-hidden="true">+</span>
           Add Another Property
         </button>
       </div>
 
       {/* Navigation */}
-      <div className="mt-8 flex justify-end">
+      <div className="mt-8 flex justify-end sticky-mobile-nav touch-manipulation">
         <button
           onClick={onNext}
-          className="px-8 py-3 bg-accent text-white rounded-lg font-semibold text-lg hover:bg-accent-light shadow-lg transition-all"
+          className="px-8 py-3 w-full md:w-auto bg-accent text-white rounded-lg font-semibold text-lg hover:bg-accent-light shadow-lg transition-all touch-manipulation"
+          aria-label="Continue to household information"
         >
           Next
         </button>
