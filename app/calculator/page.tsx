@@ -17,6 +17,7 @@ import { useKeyboardShortcuts } from '@/hooks/useKeyboardNavigation';
 import { useFocusOnError, useStepFocus, useLiveRegionAnnouncement, useFocusVisible } from '@/hooks/useFocusManagement';
 import { useDebouncedCallback } from '@/hooks/useDebounce';
 import { VALIDATION, THRESHOLDS, STORAGE_KEYS, STEP_NAMES, CALCULATOR_STEPS } from '@/lib/constants';
+import SimpleModeToggle from '@/components/SimpleModeToggle';
 import { trackEvent, trackStepCompleted } from '@/lib/analytics';
 import {
   validateZipCodeWithMessage,
@@ -63,6 +64,7 @@ const INITIAL_FORM_DATA: CalculatorFormData = {
   budget: '',
   incomeRange: '',
   currentStep: CALCULATOR_STEPS.RESIDENCES,
+  simpleMode: false, // Default to advanced mode
 };
 
 export default function Calculator() {
@@ -205,6 +207,29 @@ export default function Calculator() {
   ) => {
     dispatch({ type: 'SET_FIELD', field, value });
   };
+
+  const handleModeToggle = (newMode: boolean) => {
+    // Set reasonable defaults for simple mode
+    if (newMode) {
+      // Simple mode: Set defaults for skipped fields
+      dispatch({ type: 'SET_FIELD', field: 'hasEmployerInsurance', value: false });
+      dispatch({ type: 'SET_FIELD', field: 'employerContribution', value: 0 });
+      dispatch({ type: 'SET_FIELD', field: 'hasChronicConditions', value: false });
+      dispatch({ type: 'SET_FIELD', field: 'chronicConditions', value: [] });
+      dispatch({ type: 'SET_FIELD', field: 'prescriptionCount', value: '' });
+      dispatch({ type: 'SET_FIELD', field: 'providerPreference', value: '' });
+      dispatch({ type: 'SET_FIELD', field: 'hasCurrentInsurance', value: false });
+    }
+
+    dispatch({ type: 'SET_FIELD', field: 'simpleMode', value: newMode });
+
+    // Track mode change
+    trackEvent('mode_toggled', { mode: newMode ? 'simple' : 'advanced' });
+  };
+
+  const hasFormData = formData.currentStep > CALCULATOR_STEPS.RESIDENCES ||
+                      formData.residences.some(r => r.zip || r.state) ||
+                      formData.numAdults > 0;
 
   const validateStep1 = (): boolean => {
     const newErrors: FormErrors = {};
@@ -402,6 +427,9 @@ export default function Calculator() {
         params.append('incomeRange', formData.incomeRange);
       }
 
+      // Add UI mode
+      params.append('simpleMode', formData.simpleMode.toString());
+
       // Clear saved data on successful submission
       const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
       if (!clearResult.success) {
@@ -435,8 +463,21 @@ export default function Calculator() {
         {/* Page Header */}
         <div className="text-center mb-8 mt-4 md:mt-0">
           <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">Coverage Calculator</h1>
-          <p className="text-gray-600 text-base md:text-lg">Answer 4 quick questions to find your ideal insurance</p>
+          <p className="text-gray-600 text-base md:text-lg">
+            {formData.simpleMode
+              ? "Answer 3 quick questions to find your ideal insurance"
+              : "Answer detailed questions for personalized recommendations"}
+          </p>
         </div>
+
+        {/* Simple Mode Toggle */}
+        {!showResumePrompt && (
+          <SimpleModeToggle
+            simpleMode={formData.simpleMode}
+            onToggle={handleModeToggle}
+            hasFormData={hasFormData}
+          />
+        )}
 
         {/* Resume Prompt */}
         {showResumePrompt && (

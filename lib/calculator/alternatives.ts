@@ -21,6 +21,7 @@ export function getMedicareAlternatives(
         low: INSURANCE_COSTS.MEDICARE_ADVANTAGE_LOW,
         high: INSURANCE_COSTS.MEDICARE_ADVANTAGE_HIGH * memberCount
       },
+      coverageScore: states.length > 1 ? 6 : 8,
       pros: [
         'Lower monthly premiums (sometimes $0)',
         'Often includes dental, vision, and prescription coverage',
@@ -39,6 +40,7 @@ export function getMedicareAlternatives(
         low: INSURANCE_COSTS.MEDIGAP_PLAN_N_LOW * memberCount,
         high: INSURANCE_COSTS.MEDIGAP_PLAN_N_HIGH * memberCount
       },
+      coverageScore: COVERAGE_SCORES.MEDICARE_SCORE - 0.5,
       pros: [
         'Slightly lower premiums than Plan G',
         'Works nationwide with any Medicare provider',
@@ -84,6 +86,7 @@ export function getMixedHouseholdAlternatives(
               (adultCount * INSURANCE_COSTS.ADULT_PPO_HIGH) +
               (childCount * INSURANCE_COSTS.CHILD_HIGH),
       },
+      coverageScore: states.length > 1 ? 6 : 8,
       pros: [
         'Lower costs for Medicare-eligible members',
         'Single PPO plan covers all non-Medicare members',
@@ -105,6 +108,7 @@ export function getMixedHouseholdAlternatives(
       high: (adultCount * INSURANCE_COSTS.ACA_ADULT_HIGH) +
             (childCount * INSURANCE_COSTS.ACA_CHILD_HIGH),
     },
+    coverageScore: 7,
     pros: [
       'Income-based subsidies may significantly reduce costs',
       'Guaranteed coverage regardless of health conditions',
@@ -142,6 +146,7 @@ export function getNonMedicareAlternatives(
         low: totalMembers * INSURANCE_COSTS.REGIONAL_PPO_PER_PERSON_LOW,
         high: totalMembers * INSURANCE_COSTS.REGIONAL_PPO_PER_PERSON_HIGH,
       },
+      coverageScore: 8,
       pros: [
         `Lower premiums than national plans`,
         `Good network coverage in ${statesList}`,
@@ -167,6 +172,7 @@ export function getNonMedicareAlternatives(
       high: (adultCount * INSURANCE_COSTS.ACA_ADULT_HIGH) +
             (childCount * INSURANCE_COSTS.ACA_CHILD_HIGH),
     },
+    coverageScore: 7,
     pros: [
       `Income-based subsidies can reduce costs by ${SUBSIDY_REDUCTION.LOW}-${SUBSIDY_REDUCTION.HIGH}%`,
       'Guaranteed coverage regardless of pre-existing conditions',
@@ -188,6 +194,7 @@ export function getNonMedicareAlternatives(
       high: (adultCount * INSURANCE_COSTS.HDHP_ADULT_HIGH) +
             (childCount * INSURANCE_COSTS.HDHP_CHILD_HIGH),
     },
+    coverageScore: 7,
     pros: [
       'Significantly lower monthly premiums',
       'HSA contributions are tax-deductible',

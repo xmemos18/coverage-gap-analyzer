@@ -34,6 +34,12 @@ export default function Navigation() {
               About
             </Link>
             <Link
+              href="/faq"
+              className="text-gray-700 hover:text-primary transition-colors font-medium"
+            >
+              FAQ
+            </Link>
+            <Link
               href="/contact"
               className="text-gray-700 hover:text-primary transition-colors font-medium"
             >
@@ -79,6 +85,13 @@ export default function Navigation() {
               className="block px-4 py-3 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors font-medium"
             >
               About
+            </Link>
+            <Link
+              href="/faq"
+              onClick={closeMobileMenu}
+              className="block px-4 py-3 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors font-medium"
+            >
+              FAQ
             </Link>
             <Link
               href="/contact"

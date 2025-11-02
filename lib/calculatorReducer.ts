@@ -93,24 +93,46 @@ export function calculatorReducer(state: CalculatorState, action: CalculatorActi
         showResumePrompt: action.show,
       };
 
-    case 'NEXT_STEP':
+    case 'NEXT_STEP': {
+      let nextStep = state.formData.currentStep + 1;
+
+      // Skip steps 3 and 4 (Health Profile and Current Insurance) in simple mode
+      if (state.formData.simpleMode) {
+        // From step 2 (Household), jump to step 5 (Budget)
+        if (state.formData.currentStep === 2) {
+          nextStep = 5; // Jump directly to Budget
+        }
+      }
+
       return {
         ...state,
         formData: {
           ...state.formData,
-          currentStep: state.formData.currentStep + 1,
+          currentStep: nextStep,
         },
       };
+    }
 
-    case 'PREV_STEP':
+    case 'PREV_STEP': {
+      let prevStep = state.formData.currentStep - 1;
+
+      // Skip steps 3 and 4 (Health Profile and Current Insurance) in simple mode
+      if (state.formData.simpleMode) {
+        // From step 5 (Budget), jump back to step 2 (Household)
+        if (state.formData.currentStep === 5) {
+          prevStep = 2; // Jump directly to Household
+        }
+      }
+
       return {
         ...state,
         formData: {
           ...state.formData,
-          currentStep: state.formData.currentStep - 1,
+          currentStep: prevStep,
         },
         errors: {}, // Clear errors when going back
       };
+    }
 
     case 'RESET_FORM':
       return {

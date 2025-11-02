@@ -1,0 +1,262 @@
+/* Print-specific styles for insurance results */
+@media print {
+  /* Global print settings */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  body {
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+
+  /* Hide navigation and interactive elements */
+  nav,
+  header:not(.print-header),
+  footer:not(.print-footer),
+  button:not(.print-show),
+  .print-hide,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Page breaks */
+  .print-no-break,
+  .print-keep-together {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .print-page-break {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  h2, h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  /* Optimize shadows and borders for print */
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl {
+    box-shadow: none !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Background colors */
+  .bg-blue-50,
+  .bg-green-50,
+  .bg-yellow-50,
+  .bg-red-50,
+  .bg-purple-50,
+  .bg-gray-50 {
+    background-color: #f9fafb !important;
+  }
+
+  .bg-primary {
+    background-color: #3b82f6 !important;
+    color: white !important;
+  }
+
+  /* Ensure good contrast */
+  .text-primary {
+    color: #1e40af !important;
+  }
+
+  .text-accent {
+    color: #7c3aed !important;
+  }
+
+  /* Links */
+  a {
+    color: #1e40af !important;
+    text-decoration: underline !important;
+  }
+
+  a[href^="http"]:after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #6b7280;
+  }
+
+  /* Tables */
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tfoot {
+    display: table-footer-group;
+  }
+
+  /* Compact spacing for print */
+  .print-compact {
+    margin-bottom: 1rem !important;
+    padding: 0.75rem !important;
+  }
+
+  /* Charts and visualizations */
+  canvas,
+  svg {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  /* Hide interactive calculator elements */
+  input[type="range"],
+  select,
+  .interactive {
+    border: 1px solid #d1d5db !important;
+    background: white !important;
+  }
+
+  /* Show calculated values */
+  .print-show-value:after {
+    content: attr(data-print-value);
+    font-weight: 600;
+    margin-left: 0.5rem;
+  }
+
+  /* Optimize margins */
+  @page {
+    margin: 0.75in;
+    size: letter portrait;
+  }
+
+  /* Print header */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e5e7eb;
+  }
+
+  /* Print footer */
+  .print-footer {
+    display: block !important;
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+    font-size: 9pt;
+    color: #6b7280;
+  }
+
+  /* Ensure important info prints well */
+  .print-important {
+    border: 2px solid #3b82f6 !important;
+    padding: 1rem !important;
+    margin: 1rem 0 !important;
+    page-break-inside: avoid;
+  }
+
+  /* Action items */
+  .action-item {
+    margin-bottom: 0.5rem;
+    page-break-inside: avoid;
+  }
+
+  /* Cost breakdowns */
+  .cost-breakdown {
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+
+  /* Comparison tables */
+  .comparison-table {
+    font-size: 10pt;
+    width: 100%;
+  }
+
+  .comparison-table th {
+    background-color: #f3f4f6 !important;
+    font-weight: 600;
+    padding: 0.5rem;
+  }
+
+  .comparison-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  /* Warnings and alerts */
+  .alert,
+  .warning {
+    border: 1px solid #f59e0b !important;
+    background-color: #fffbeb !important;
+    padding: 0.75rem !important;
+    margin: 0.5rem 0 !important;
+  }
+
+  /* Prevent widow/orphan lines */
+  p, li {
+    orphans: 3;
+    widows: 3;
+  }
+
+  /* Gradient backgrounds to solid for print */
+  .bg-gradient-to-r,
+  .bg-gradient-to-b,
+  .bg-gradient-to-br {
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Icons - ensure visibility */
+  .text-3xl,
+  .text-4xl {
+    font-size: 1.5rem !important;
+  }
+
+  /* Reduce padding on print */
+  .p-6 {
+    padding: 0.75rem !important;
+  }
+
+  .p-8 {
+    padding: 1rem !important;
+  }
+
+  .mb-8 {
+    margin-bottom: 1rem !important;
+  }
+
+  /* Hide tooltips and popovers */
+  [role="tooltip"],
+  .tooltip,
+  .popover {
+    display: none !important;
+  }
+
+  /* Ensure text is black for readability */
+  .text-gray-600,
+  .text-gray-700,
+  .text-gray-800 {
+    color: #374151 !important;
+  }
+
+  .text-gray-900 {
+    color: #111827 !important;
+  }
+
+  /* Print-specific QR code or URL display */
+  .print-url {
+    display: block !important;
+    font-size: 9pt;
+    color: #6b7280;
+    word-break: break-all;
+  }
+}

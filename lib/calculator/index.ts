@@ -1,7 +1,10 @@
-import { CalculatorFormData, InsuranceRecommendation } from '@/types';
+import { CalculatorFormData, InsuranceRecommendation, SubsidyAnalysis, EmployerPlanAnalysis } from '@/types';
 import { calculateCoverageScore } from './coverage-scoring';
 import { getMedicareRecommendation, getMixedHouseholdRecommendation, getNonMedicareRecommendation } from './recommendations';
 import { addCurrentInsuranceComparison } from './comparison';
+import { calculateSubsidy } from './subsidyCalculator';
+import { compareEmployerToMarketplace } from './employerComparison';
+import { INSURANCE_COSTS } from '@/lib/constants';
 
 /**
  * Recommendation Engine for Multi-State Health Insurance
@@ -33,6 +36,51 @@ export function analyzeInsurance(formData: CalculatorFormData): InsuranceRecomme
   // Calculate state coverage score (handles multiple states)
   const coverageScore = calculateCoverageScore(uniqueStates);
 
+  // Calculate subsidy eligibility for non-Medicare households
+  let subsidyAnalysis: SubsidyAnalysis | undefined;
+  let employerPlanAnalysis: EmployerPlanAnalysis | undefined;
+
+  // Only calculate subsidies for non-Medicare households with income data
+  if (!allAdultsMedicareEligible && formData.incomeRange) {
+    const subsidyResult = calculateSubsidy(
+      formData.incomeRange,
+      totalAdults,
+      totalChildren,
+      uniqueStates
+    );
+
+    // Calculate after-subsidy cost based on recommendation
+    const afterSubsidyCost = {
+      low: Math.max(0, INSURANCE_COSTS.ACA_ADULT_LOW * totalAdults + INSURANCE_COSTS.ACA_CHILD_LOW * totalChildren - subsidyResult.estimatedMonthlySubsidy),
+      high: Math.max(0, INSURANCE_COSTS.ACA_ADULT_HIGH * totalAdults + INSURANCE_COSTS.ACA_CHILD_HIGH * totalChildren - subsidyResult.estimatedMonthlySubsidy),
+    };
+
+    subsidyAnalysis = {
+      medicaidEligible: subsidyResult.medicaidEligible,
+      subsidyEligible: subsidyResult.subsidyEligible,
+      estimatedMonthlySubsidy: subsidyResult.estimatedMonthlySubsidy,
+      estimatedAfterSubsidyCost: afterSubsidyCost,
+      fplPercentage: subsidyResult.fplPercentage,
+      explanation: subsidyResult.explanation,
+      subsidyActionItems: subsidyResult.actionItems,
+    };
+
+    // Compare employer insurance if available
+    if (formData.hasEmployerInsurance) {
+      const employerComparisonResult = compareEmployerToMarketplace(
+        formData.hasEmployerInsurance,
+        formData.employerContribution || 0,
+        formData.incomeRange,
+        totalHousehold,
+        afterSubsidyCost
+      );
+
+      if (employerComparisonResult) {
+        employerPlanAnalysis = employerComparisonResult;
+      }
+    }
+  }
+
   // Route to appropriate recommendation logic
   let recommendation: InsuranceRecommendation;
 
@@ -58,6 +106,42 @@ export function analyzeInsurance(formData: CalculatorFormData): InsuranceRecomme
       budget,
       uniqueStates
     );
+  }
+
+  // Add subsidy analysis if calculated
+  if (subsidyAnalysis) {
+    recommendation.subsidyAnalysis = subsidyAnalysis;
+
+    // If Medicaid eligible, override the recommendation
+    if (subsidyAnalysis.medicaidEligible) {
+      recommendation.recommendedInsurance = 'Medicaid (Free or Low-Cost Coverage)';
+      recommendation.reasoning = subsidyAnalysis.explanation;
+      recommendation.actionItems = [
+        ...subsidyAnalysis.subsidyActionItems,
+        ...recommendation.actionItems,
+      ];
+      recommendation.estimatedMonthlyCost = { low: 0, high: 50 }; // Medicaid typically free or minimal cost
+    }
+  }
+
+  // Add employer comparison if calculated
+  if (employerPlanAnalysis) {
+    recommendation.employerPlanAnalysis = employerPlanAnalysis;
+
+    // If employer plan is recommended, update action items
+    if (employerPlanAnalysis.recommendation.toLowerCase().includes('keep')) {
+      recommendation.actionItems = [
+        employerPlanAnalysis.recommendation,
+        ...employerPlanAnalysis.actionItems,
+        ...recommendation.actionItems,
+      ];
+    } else {
+      // Add employer comparison insights to action items
+      recommendation.actionItems = [
+        ...recommendation.actionItems,
+        ...employerPlanAnalysis.actionItems,
+      ];
+    }
   }
 
   // Add current insurance comparison if provided

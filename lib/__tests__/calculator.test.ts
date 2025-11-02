@@ -5,13 +5,21 @@ describe('Insurance Calculator Engine', () => {
   // Helper function to create base form data
   const createBaseFormData = (overrides: Partial<CalculatorFormData> = {}): CalculatorFormData => ({
     residences: [
-      { state: 'NY', zip: '10001', isPrimary: true },
-      { state: 'FL', zip: '33101', isPrimary: false },
+      { state: 'NY', zip: '10001', isPrimary: true, monthsPerYear: 6 },
+      { state: 'FL', zip: '33101', isPrimary: false, monthsPerYear: 6 },
     ],
     adultAges: [45],
+    numAdults: 1,
     childAges: [],
+    numChildren: 0,
     hasMedicareEligible: false,
     budget: '1000-2000',
+    hasEmployerInsurance: false,
+    employerContribution: 0,
+    hasChronicConditions: false,
+    chronicConditions: [],
+    prescriptionCount: '',
+    providerPreference: '',
     hasCurrentInsurance: false,
     currentInsurance: {
       carrier: '',
@@ -19,7 +27,11 @@ describe('Insurance Calculator Engine', () => {
       monthlyCost: 0,
       deductible: 0,
       outOfPocketMax: 0,
+      coverageNotes: '',
     },
+    incomeRange: '',
+    currentStep: 5,
+    simpleMode: false,
     ...overrides,
   });
 
@@ -32,7 +44,7 @@ describe('Insurance Calculator Engine', () => {
 
       const result = analyzeInsurance(formData);
 
-      expect(result.recommendedInsurance).toBe('Original Medicare + Medigap');
+      expect(result.recommendedInsurance).toBe('Basic Medicare + Extra Coverage');
       expect(result.householdBreakdown).toContain('1 Medicare-eligible adult');
       expect(result.estimatedMonthlyCost.low).toBe(300);
       expect(result.estimatedMonthlyCost.high).toBe(500);
@@ -42,12 +54,13 @@ describe('Insurance Calculator Engine', () => {
     it('should calculate costs correctly for multiple Medicare-eligible adults', () => {
       const formData = createBaseFormData({
         adultAges: [70, 68, 72],
+        numAdults: 3,
         hasMedicareEligible: true,
       });
 
       const result = analyzeInsurance(formData);
 
-      expect(result.recommendedInsurance).toBe('Original Medicare + Medigap');
+      expect(result.recommendedInsurance).toBe('Basic Medicare + Extra Coverage');
       expect(result.householdBreakdown).toContain('3 Medicare-eligible adults');
       expect(result.estimatedMonthlyCost.low).toBe(900); // 3 * 300
       expect(result.estimatedMonthlyCost.high).toBe(1500); // 3 * 500
@@ -61,9 +74,9 @@ describe('Insurance Calculator Engine', () => {
 
       const result = analyzeInsurance(formData);
 
-      expect(result.actionItems).toContain('Enroll in Original Medicare Parts A & B');
-      expect(result.actionItems.some(item => item.includes('Medigap Plan G or N'))).toBe(true);
-      expect(result.actionItems.some(item => item.includes('Part D prescription'))).toBe(true);
+      expect(result.actionItems.some(item => item.includes('Medigap'))).toBe(true);
+      expect(result.actionItems.some(item => item.includes('Plan G') || item.includes('Plan N'))).toBe(true);
+      expect(result.actionItems.some(item => item.includes('Part D') || item.includes('prescription'))).toBe(true);
     });
 
     it('should provide multi-state reasoning for 3+ states', () => {
@@ -110,8 +123,8 @@ describe('Insurance Calculator Engine', () => {
 
       const result = analyzeInsurance(formData);
 
-      expect(result.recommendedInsurance).toContain('Medicare + Medigap');
-      expect(result.recommendedInsurance).toContain('National PPO');
+      expect(result.recommendedInsurance).toContain('Medicare + Extra Coverage');
+      expect(result.recommendedInsurance).toContain('Nationwide Flexible Plan');
       expect(result.householdBreakdown).toContain('1 Medicare-eligible');
       expect(result.householdBreakdown).toContain('1 under-65 adult');
     });
@@ -163,7 +176,7 @@ describe('Insurance Calculator Engine', () => {
 
       const result = analyzeInsurance(formData);
 
-      expect(result.recommendedInsurance).toBe('National PPO Individual Plan');
+      expect(result.recommendedInsurance).toBe('Nationwide Flexible Plan');
       expect(result.householdBreakdown).toBe('1 adult');
       expect(result.estimatedMonthlyCost.low).toBe(600);
       expect(result.estimatedMonthlyCost.high).toBe(900);
@@ -176,7 +189,7 @@ describe('Insurance Calculator Engine', () => {
 
       const result = analyzeInsurance(formData);
 
-      expect(result.recommendedInsurance).toBe('National PPO Couples Plan');
+      expect(result.recommendedInsurance).toBe('Nationwide Flexible Plan for Couples');
       expect(result.householdBreakdown).toBe('2 adults');
       expect(result.estimatedMonthlyCost.low).toBe(1200);
       expect(result.estimatedMonthlyCost.high).toBe(1800);
@@ -190,7 +203,7 @@ describe('Insurance Calculator Engine', () => {
 
       const result = analyzeInsurance(formData);
 
-      expect(result.recommendedInsurance).toBe('National PPO Family Plan');
+      expect(result.recommendedInsurance).toBe('Nationwide Flexible Family Plan');
       expect(result.householdBreakdown).toBe('2 adults, 2 children');
       // Base cost for 2 adults + 2 kids
       expect(result.estimatedMonthlyCost.low).toBe(1800);
@@ -232,7 +245,7 @@ describe('Insurance Calculator Engine', () => {
 
       const result = analyzeInsurance(formData);
 
-      expect(result.recommendedInsurance).toBe('National PPO Plan for 3 adults');
+      expect(result.recommendedInsurance).toBe('Nationwide Flexible Plan for 3 adults');
       expect(result.householdBreakdown).toBe('3 adults');
       expect(result.estimatedMonthlyCost.low).toBe(1800); // 3 * 600
       expect(result.estimatedMonthlyCost.high).toBe(2700); // 3 * 900
@@ -245,8 +258,9 @@ describe('Insurance Calculator Engine', () => {
 
       const result = analyzeInsurance(formData);
 
-      expect(result.actionItems.some(item => item.includes('UnitedHealthcare'))).toBe(true);
-      expect(result.actionItems.some(item => item.includes('Cigna'))).toBe(true);
+      // Updated to match new marketplace-focused action items
+      expect(result.actionItems.some(item => item.includes('Marketplace'))).toBe(true);
+      expect(result.actionItems.some(item => item.includes('Bronze') || item.includes('Silver') || item.includes('Gold'))).toBe(true);
     });
 
     it('should include HDHP with HSA as alternative', () => {
@@ -570,7 +584,7 @@ describe('Insurance Calculator Engine', () => {
 
       const result = analyzeInsurance(formData);
 
-      expect(result.recommendedInsurance).toBe('Original Medicare + Medigap');
+      expect(result.recommendedInsurance).toBe('Basic Medicare + Extra Coverage');
     });
 
     it('should handle newborn children (age 0)', () => {
@@ -582,7 +596,7 @@ describe('Insurance Calculator Engine', () => {
       const result = analyzeInsurance(formData);
 
       expect(result.householdBreakdown).toContain('1 child');
-      expect(result.recommendedInsurance).toBe('National PPO Family Plan');
+      expect(result.recommendedInsurance).toBe('Nationwide Flexible Family Plan');
     });
 
     it('should handle 17-year-old children', () => {

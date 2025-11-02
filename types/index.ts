@@ -69,6 +69,9 @@ export interface CalculatorFormData {
 
   // Current step tracker
   currentStep: number;
+
+  // UI Mode (Phase 3)
+  simpleMode: boolean; // Simple mode skips optional questions
 }
 
 export interface FormErrors {
@@ -90,6 +93,7 @@ export interface CostRange {
 export interface AlternativeOption {
   name: string;
   monthlyCost: CostRange;
+  coverageScore: number;
   pros: string[];
   cons: string[];
 }
@@ -102,6 +106,26 @@ export interface Suggestion {
   priority: 'high' | 'medium' | 'low';
 }
 
+export interface SubsidyAnalysis {
+  medicaidEligible: boolean;
+  subsidyEligible: boolean;
+  estimatedMonthlySubsidy: number;
+  estimatedAfterSubsidyCost: CostRange;
+  fplPercentage: number;
+  explanation: string;
+  subsidyActionItems: string[];
+}
+
+export interface EmployerPlanAnalysis {
+  isAffordable: boolean;
+  employerPlanCostAfterContribution: number;
+  marketplaceCostAfterSubsidy: CostRange;
+  recommendation: string;
+  monthlySavings: number | null;
+  explanation: string;
+  actionItems: string[];
+}
+
 export interface InsuranceRecommendation {
   recommendedInsurance: string;
   householdBreakdown: string;
@@ -110,6 +134,12 @@ export interface InsuranceRecommendation {
   reasoning: string;
   actionItems: string[];
   alternativeOptions: AlternativeOption[];
+
+  // Subsidy analysis (Phase 2)
+  subsidyAnalysis?: SubsidyAnalysis;
+
+  // Employer comparison (Phase 2)
+  employerPlanAnalysis?: EmployerPlanAnalysis;
 
   // Current insurance comparison (if provided)
   currentInsuranceSummary?: string;

@@ -17,7 +17,8 @@ export type AnalyticsEvent =
   | 'results_exported'
   | 'results_shared'
   | 'error_occurred'
-  | 'resume_data_used';
+  | 'resume_data_used'
+  | 'mode_toggled';
 
 // Event properties
 interface AnalyticsProperties {

@@ -9,8 +9,11 @@ import CurrentInsuranceComparison from '@/components/results/CurrentInsuranceCom
 import PersonalizedSuggestions from '@/components/results/PersonalizedSuggestions';
 import ReasoningSection from '@/components/results/ReasoningSection';
 import CostBreakdown from '@/components/results/CostBreakdown';
+import VisualCostBreakdown from '@/components/results/VisualCostBreakdown';
 import NextStepsSection from '@/components/results/NextStepsSection';
 import AlternativeOptions from '@/components/results/AlternativeOptions';
+import PlanComparisonTable from '@/components/results/PlanComparisonTable';
+import SavingsCalculator from '@/components/results/SavingsCalculator';
 import DisclaimerSection from '@/components/results/DisclaimerSection';
 import ShareButtons from '@/components/ShareButtons';
 import ResultsSkeleton from '@/components/results/ResultsSkeleton';
@@ -60,6 +63,9 @@ function ResultsContent() {
   // Parse budget & income parameters
   const budget = searchParams.get('budget') || '';
   const incomeRange = searchParams.get('incomeRange') || '';
+
+  // Parse UI mode
+  const simpleMode = searchParams.get('simpleMode') === 'true';
 
   // Parse current insurance parameters
   const hasCurrentInsurance = searchParams.get('hasCurrentInsurance') === 'true';
@@ -136,7 +142,8 @@ function ResultsContent() {
     budget,
     incomeRange,
     currentStep: 5,
-  }), [residences, numAdults, adultAges, numChildren, childAges, hasMedicareEligible, hasEmployerInsurance, employerContribution, hasChronicConditions, chronicConditions, prescriptionCount, providerPreference, hasCurrentInsurance, currentCarrier, currentPlanType, currentMonthlyCost, currentDeductible, currentOutOfPocketMax, currentCoverageNotes, budget, incomeRange]);
+    simpleMode,
+  }), [residences, numAdults, adultAges, numChildren, childAges, hasMedicareEligible, hasEmployerInsurance, employerContribution, hasChronicConditions, chronicConditions, prescriptionCount, providerPreference, hasCurrentInsurance, currentCarrier, currentPlanType, currentMonthlyCost, currentDeductible, currentOutOfPocketMax, currentCoverageNotes, budget, incomeRange, simpleMode]);
 
   // Get recommendations from the engine
   const recommendation = useMemo(() => {
@@ -191,6 +198,16 @@ function ResultsContent() {
           <p className="text-xl text-gray-600">
             Based on your multi-state lifestyle
           </p>
+
+          {/* Mode Badge */}
+          {simpleMode && (
+            <div className="mt-4 inline-flex items-center px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg">
+              <span className="text-sm font-semibold text-accent mr-2">🎯</span>
+              <span className="text-sm font-semibold text-gray-700">
+                Simple Mode Results
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Main Recommendation Summary */}
@@ -204,15 +221,24 @@ function ResultsContent() {
         </div>
 
         {/* Share & Export Buttons */}
-        <ShareButtons
-          data={{
-            recommendation,
-            formData,
-            generatedDate: new Date().toISOString()
-          }}
-          summary={`${recommendation.recommendedInsurance} - Estimated Cost: $${recommendation.estimatedMonthlyCost.low}-${recommendation.estimatedMonthlyCost.high}/month`}
-          filename="insurance-analysis"
-        />
+        <div className="flex flex-wrap gap-4 justify-center print:hidden">
+          <ShareButtons
+            data={{
+              recommendation,
+              formData,
+              generatedDate: new Date().toISOString()
+            }}
+            summary={`${recommendation.recommendedInsurance} - Estimated Cost: $${recommendation.estimatedMonthlyCost.low}-${recommendation.estimatedMonthlyCost.high}/month`}
+            filename="insurance-analysis"
+          />
+          <button
+            onClick={() => window.print()}
+            className="px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center gap-2"
+          >
+            <span>🖨️</span>
+            Print Results
+          </button>
+        </div>
 
         {/* Current Insurance Comparison (if provided) */}
         {recommendation.currentInsuranceSummary && recommendation.costComparison && (
@@ -234,11 +260,41 @@ function ResultsContent() {
         {/* Cost Breakdown */}
         <CostBreakdown monthlyCost={recommendation.estimatedMonthlyCost} />
 
+        {/* Visual Cost Breakdown */}
+        <div className="mb-8">
+          <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <span className="text-3xl">📊</span>
+            Visual Cost Analysis
+          </h3>
+          <VisualCostBreakdown
+            recommendedCost={recommendation.estimatedMonthlyCost}
+            budget={budget}
+            currentCost={hasCurrentInsurance ? currentMonthlyCost : undefined}
+            subsidyAmount={recommendation.subsidyAnalysis?.estimatedMonthlySubsidy}
+            costAfterSubsidy={recommendation.subsidyAnalysis?.estimatedAfterSubsidyCost}
+          />
+        </div>
+
+        {/* Savings Calculator */}
+        <SavingsCalculator
+          recommendedCost={recommendation.estimatedMonthlyCost}
+          currentCost={hasCurrentInsurance ? currentMonthlyCost : undefined}
+          subsidyAmount={recommendation.subsidyAnalysis?.estimatedMonthlySubsidy}
+        />
+
         {/* Your Next Steps */}
         <NextStepsSection actionItems={recommendation.actionItems} />
 
         {/* Other Options to Consider */}
         <AlternativeOptions options={recommendation.alternativeOptions} />
+
+        {/* Plan Comparison Table */}
+        {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
+          <PlanComparisonTable
+            recommended={recommendation}
+            alternatives={recommendation.alternativeOptions}
+          />
+        )}
 
         {/* Disclaimer & CTAs */}
         <DisclaimerSection />

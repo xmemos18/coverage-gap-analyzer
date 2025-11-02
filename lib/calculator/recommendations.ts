@@ -2,6 +2,80 @@ import { CalculatorFormData, InsuranceRecommendation, CostRange } from '@/types'
 import { checkBudgetCompatibility } from './budget';
 import { getMedicareAlternatives, getMixedHouseholdAlternatives, getNonMedicareAlternatives } from './alternatives';
 import { INSURANCE_COSTS, COVERAGE_SCORES } from '@/lib/constants';
+import { simplifyReasoning, generateWhatThisMeans } from '@/lib/plainEnglish';
+import { getMedigapShoppingSteps, getPartDShoppingSteps, getMarketplaceShoppingSteps, getEnrollmentDeadlines, formatActionStep } from '../concreteActions';
+
+/**
+ * Health Profile Analysis Helper
+ * Determines utilization level based on health profile
+ */
+interface HealthProfile {
+  isHighUtilization: boolean;
+  hasProviderPreference: boolean;
+  hasChronicConditions: boolean;
+  prescriptionCount: string;
+}
+
+function analyzeHealthProfile(formData: CalculatorFormData): HealthProfile {
+  const hasChronicConditions = formData.hasChronicConditions && formData.chronicConditions.length > 0;
+  const hasHighRxCount = formData.prescriptionCount === '4-or-more';
+  const hasProviderPreference = formData.providerPreference === 'specific-doctors';
+
+  return {
+    isHighUtilization: hasChronicConditions || hasHighRxCount,
+    hasProviderPreference,
+    hasChronicConditions,
+    prescriptionCount: formData.prescriptionCount || 'none',
+  };
+}
+
+/**
+ * Add health-specific action items based on health profile
+ */
+function getHealthSpecificActions(healthProfile: HealthProfile): string[] {
+  const actions: string[] = [];
+
+  if (healthProfile.isHighUtilization) {
+    actions.push('Check if your medications are covered by the plan formulary');
+    actions.push('Verify your current doctors and specialists are in-network');
+    actions.push('Compare total cost of care (premiums + deductible + copays), not just monthly premiums');
+  }
+
+  if (healthProfile.hasChronicConditions) {
+    actions.push('Look for plans with low specialist copays and no referral requirements');
+    actions.push('Verify coverage for disease management programs and preventive care');
+  }
+
+  if (healthProfile.hasProviderPreference) {
+    actions.push('Call your preferred doctors to confirm they accept the insurance plan');
+    actions.push('Check provider directory online before enrolling');
+  }
+
+  if (!healthProfile.isHighUtilization && healthProfile.prescriptionCount === 'none') {
+    actions.push('Consider HDHP + HSA for tax savings and lower premiums');
+  }
+
+  return actions;
+}
+
+/**
+ * Add health-based reasoning to recommendation
+ */
+function getHealthBasedReasoning(healthProfile: HealthProfile): string {
+  if (healthProfile.isHighUtilization) {
+    return ' Given your health needs, prioritize plans with lower deductibles and good specialist access over the lowest premiums.';
+  }
+
+  if (healthProfile.hasProviderPreference) {
+    return ' Since you have preferred doctors, verify they are in-network before choosing any plan.';
+  }
+
+  if (!healthProfile.isHighUtilization && healthProfile.prescriptionCount === 'none') {
+    return ' Since you\'re generally healthy, you may benefit from a high-deductible plan with HSA for significant premium savings.';
+  }
+
+  return '';
+}
 
 /**
  * SCENARIO 1: Medicare-Eligible Households (all adults 65+)
@@ -16,6 +90,8 @@ export function getMedicareRecommendation(
   budget: string,
   states: string[]
 ): InsuranceRecommendation {
+  const healthProfile = analyzeHealthProfile(formData);
+
   const costPerPerson = {
     low: INSURANCE_COSTS.MEDICARE_PER_PERSON_LOW,
     high: INSURANCE_COSTS.MEDICARE_PER_PERSON_HIGH
@@ -26,14 +102,44 @@ export function getMedicareRecommendation(
   };
 
   const statesList = states.length > 1 ? states.join(', ') : states[0];
+  const primaryZip = formData.residences[0]?.zip || '';
+  const deadlines = getEnrollmentDeadlines();
+
+  // Generate concrete action steps
+  const medigapSteps = getMedigapShoppingSteps(primaryZip);
+  const partDSteps = getPartDShoppingSteps(primaryZip);
 
   const actionItems = [
-    'Enroll in Original Medicare Parts A & B',
-    'Shop for Medigap Plan G or N for comprehensive coverage',
-    'Compare costs at medicare.gov',
-    `Verify doctors accept Medicare in all your states: ${statesList}`,
-    'Consider Part D prescription drug coverage',
+    `⏰ ${deadlines.urgency}`,
+    '',
+    formatActionStep(medigapSteps),
+    '',
   ];
+
+  // Add Part D with emphasis for high medication users
+  if (healthProfile.isHighUtilization || healthProfile.prescriptionCount !== 'none') {
+    actionItems.push('💊 IMPORTANT: Part D Prescription Coverage');
+    actionItems.push(formatActionStep(partDSteps));
+    actionItems.push('');
+  } else {
+    actionItems.push('💊 Optional: Consider Part D if you take any prescriptions');
+    actionItems.push('→ Visit medicare.gov/plan-compare to explore drug plans');
+    actionItems.push('');
+  }
+
+  // Add doctor verification
+  actionItems.push(`🏥 Verify Your Doctors`);
+  actionItems.push(`→ Call each doctor's office and ask: "Do you accept Medicare?"`);
+  actionItems.push(`→ Almost all doctors accept Medicare, but it's good to confirm`);
+  actionItems.push(`→ Verify coverage in all your states: ${statesList}`);
+  actionItems.push('');
+
+  // Add health-specific action items
+  const healthActions = getHealthSpecificActions(healthProfile);
+  if (healthActions.length > 0) {
+    actionItems.push('📋 Additional Steps Based on Your Health:');
+    actionItems.push(...healthActions);
+  }
 
   const alternativeOptions = getMedicareAlternatives(
     formData,
@@ -47,16 +153,25 @@ export function getMedicareRecommendation(
     actionItems.push(budgetNote);
   }
 
-  const reasoning = states.length > 2
-    ? `Medicare provides nationwide coverage with no network restrictions across all ${states.length} of your states. Medigap Plan G or N fills the gaps in Original Medicare and works seamlessly everywhere. Perfect for multi-state residents.`
-    : 'Medicare provides nationwide coverage with no network restrictions. Medigap Plan G or N fills the gaps in Original Medicare and works in any state. Perfect for snowbirds and multi-state residents.';
+  let reasoning = states.length > 2
+    ? `Medicare works everywhere with any doctor across all ${states.length} of your states. Extra Coverage (Medigap Plan G or N) covers what Medicare doesn't and works everywhere. Great for people with homes in multiple states.`
+    : 'Medicare works everywhere with any doctor. Extra Coverage (Medigap Plan G or N) covers what Medicare doesn\'t and works in any state. Great if you split your time between states.';
+
+  // Add health-based reasoning
+  const healthReasoning = getHealthBasedReasoning(healthProfile);
+  if (healthReasoning) {
+    reasoning += ' ' + simplifyReasoning(healthReasoning);
+  }
+
+  // Add "What this means" section
+  const whatThisMeans = generateWhatThisMeans('Original Medicare + Medigap', states, formData.simpleMode);
 
   return {
-    recommendedInsurance: 'Original Medicare + Medigap',
+    recommendedInsurance: 'Basic Medicare + Extra Coverage',
     householdBreakdown: `${medicareEligibleCount} Medicare-eligible ${medicareEligibleCount === 1 ? 'adult' : 'adults'}`,
     estimatedMonthlyCost: totalCost,
     coverageGapScore: COVERAGE_SCORES.MEDICARE_SCORE,
-    reasoning,
+    reasoning: reasoning + '\n\n' + whatThisMeans,
     actionItems,
     alternativeOptions,
   };
@@ -76,6 +191,8 @@ export function getMixedHouseholdRecommendation(
   budget: string,
   states: string[]
 ): InsuranceRecommendation {
+  const healthProfile = analyzeHealthProfile(formData);
+
   const totalCost: CostRange = {
     low: (medicareEligibleCount * INSURANCE_COSTS.MEDICARE_PER_PERSON_LOW) +
          (nonMedicareAdultCount * INSURANCE_COSTS.ADULT_PPO_LOW) +
@@ -89,8 +206,14 @@ export function getMixedHouseholdRecommendation(
 
   const actionItems = [
     `Medicare + Medigap for ${medicareEligibleCount} member(s) age 65+`,
-    `National PPO (UnitedHealthcare or Cigna) for ${nonMedicareAdultCount} under-65 adult(s)`,
   ];
+
+  // PPO recommendation with health-based guidance
+  if (healthProfile.isHighUtilization) {
+    actionItems.push(`National PPO (UnitedHealthcare or Cigna) for ${nonMedicareAdultCount} under-65 adult(s) - PPO offers better specialist access`);
+  } else {
+    actionItems.push(`National PPO (UnitedHealthcare or Cigna) for ${nonMedicareAdultCount} under-65 adult(s)`);
+  }
 
   if (childCount > 0) {
     actionItems.push(`Add ${childCount} ${childCount === 1 ? 'child' : 'children'} to the PPO family plan`);
@@ -100,6 +223,10 @@ export function getMixedHouseholdRecommendation(
     'Consider family plan vs individual plans - compare total costs',
     `Verify PPO network coverage in all your states: ${statesList}`
   );
+
+  // Add health-specific action items
+  const healthActions = getHealthSpecificActions(healthProfile);
+  actionItems.push(...healthActions);
 
   const budgetNote = checkBudgetCompatibility(budget, totalCost);
   if (budgetNote) {
@@ -114,16 +241,30 @@ export function getMixedHouseholdRecommendation(
     states
   );
 
-  const reasoning = states.length > 2
-    ? `Medicare with Medigap for seniors provides nationwide coverage. National PPO for younger members ensures access to care across all ${states.length} of your states.`
-    : 'Medicare with Medigap for seniors provides nationwide coverage. National PPO for younger members ensures access to care in both states.';
+  let reasoning = states.length > 2
+    ? `Medicare with Extra Coverage for seniors works everywhere. Nationwide Flexible Plan for younger members gives access to doctors in all ${states.length} of your states.`
+    : 'Medicare with Extra Coverage for seniors works everywhere. Nationwide Flexible Plan for younger members works in both states.';
+
+  // Add health-based reasoning
+  const healthReasoning = getHealthBasedReasoning(healthProfile);
+  if (healthReasoning) {
+    reasoning += ' ' + simplifyReasoning(healthReasoning);
+  }
+
+  // Add "What this means" section
+  const whatThisMeans = `What this means:
+• Seniors get Medicare + Extra Coverage (works anywhere)
+• Working-age adults/children get Nationwide Flexible Plan
+• Everyone covered in all your states
+• No referrals needed for anyone
+• Predictable costs for the whole family`;
 
   return {
-    recommendedInsurance: 'Medicare + Medigap for seniors, National PPO for working-age members',
+    recommendedInsurance: 'Medicare + Extra Coverage for seniors, Nationwide Flexible Plan for others',
     householdBreakdown: `${medicareEligibleCount} Medicare-eligible, ${nonMedicareAdultCount} under-65 adult(s), ${childCount} ${childCount === 1 ? 'child' : 'children'}`,
     estimatedMonthlyCost: totalCost,
     coverageGapScore: COVERAGE_SCORES.MIXED_HOUSEHOLD_SCORE,
-    reasoning,
+    reasoning: reasoning + '\n\n' + whatThisMeans,
     actionItems,
     alternativeOptions,
   };
@@ -143,6 +284,7 @@ export function getNonMedicareRecommendation(
   budget: string,
   states: string[]
 ): InsuranceRecommendation {
+  const healthProfile = analyzeHealthProfile(formData);
   const statesList = states.length > 1 ? states.join(', ') : states[0];
   const stateCount = states.length;
 
@@ -153,31 +295,37 @@ export function getNonMedicareRecommendation(
 
   // Single person
   if (totalHousehold === 1) {
-    recommendedPlan = 'National PPO Individual Plan';
+    recommendedPlan = healthProfile.isHighUtilization
+      ? 'Nationwide Flexible Plan (Lower Deductible)'
+      : 'Nationwide Flexible Plan';
     householdBreakdown = '1 adult';
     totalCost = {
       low: INSURANCE_COSTS.ADULT_PPO_LOW,
       high: INSURANCE_COSTS.ADULT_PPO_HIGH
     };
     reasoning = stateCount > 2
-      ? `A national PPO plan gives you flexibility to see doctors across all ${stateCount} of your states without referrals or network restrictions.`
-      : `A national PPO plan gives you flexibility to see doctors in both ${statesList} without referrals or network restrictions.`;
+      ? `A flexible plan lets you see any doctor in all ${stateCount} of your states without needing permission.`
+      : `A flexible plan lets you see any doctor in ${statesList} without needing permission.`;
   }
   // Couple (2 adults, no kids)
   else if (adultCount === 2 && childCount === 0) {
-    recommendedPlan = 'National PPO Couples Plan';
+    recommendedPlan = healthProfile.isHighUtilization
+      ? 'Nationwide Flexible Plan for Couples (Lower Deductible)'
+      : 'Nationwide Flexible Plan for Couples';
     householdBreakdown = '2 adults';
     totalCost = {
       low: INSURANCE_COSTS.COUPLE_LOW,
       high: INSURANCE_COSTS.COUPLE_HIGH
     };
     reasoning = stateCount > 2
-      ? `A couples plan provides comprehensive coverage for both of you across all ${stateCount} of your states with access to a nationwide network.`
-      : `A couples plan provides comprehensive coverage for both of you across ${statesList} with access to a nationwide network.`;
+      ? `A couples plan gives complete coverage for both of you in all ${stateCount} of your states with any doctor you choose.`
+      : `A couples plan gives complete coverage for both of you in ${statesList} with any doctor you choose.`;
   }
   // Family with children
   else if (childCount > 0) {
-    recommendedPlan = 'National PPO Family Plan';
+    recommendedPlan = healthProfile.isHighUtilization
+      ? 'Nationwide Flexible Family Plan (Lower Deductible)'
+      : 'Nationwide Flexible Family Plan';
     householdBreakdown = `${adultCount} ${adultCount === 1 ? 'adult' : 'adults'}, ${childCount} ${childCount === 1 ? 'child' : 'children'}`;
 
     // Base cost for 2 adults + 2 kids
@@ -202,31 +350,73 @@ export function getNonMedicareRecommendation(
     }
 
     reasoning = stateCount > 2
-      ? `A family PPO plan covers everyone in your household with access to care across all ${stateCount} of your states and nationwide.`
-      : `A family PPO plan covers everyone in your household with access to care in ${statesList} and nationwide.`;
+      ? `A family plan covers everyone in your household with access to doctors in all ${stateCount} of your states.`
+      : `A family plan covers everyone in your household with access to doctors in ${statesList}.`;
   }
   // Multiple adults, no children (roommates/extended family)
   else {
-    recommendedPlan = `National PPO Plan for ${adultCount} adults`;
+    recommendedPlan = `Nationwide Flexible Plan for ${adultCount} adults`;
     householdBreakdown = `${adultCount} adults`;
     totalCost = {
       low: adultCount * INSURANCE_COSTS.ADULT_PPO_LOW,
       high: adultCount * INSURANCE_COSTS.ADULT_PPO_HIGH,
     };
-    reasoning = `National PPO plans for each adult provide comprehensive multi-state coverage.`;
+    reasoning = `Flexible plans for each adult give complete multi-state coverage.`;
   }
 
+  const primaryZip = formData.residences[0]?.zip || '';
+  const primaryState = formData.residences[0]?.state || '';
+  const deadlines = getEnrollmentDeadlines();
+
+  // Generate concrete marketplace steps
+  const marketplaceSteps = getMarketplaceShoppingSteps(primaryZip, primaryState);
+
   const actionItems = [
-    'Get quotes from UnitedHealthcare Choice Plus',
-    'Compare with Cigna national PPO plans',
-    `Check provider networks in all your states: ${statesList}`,
-    'Consider high-deductible plan with HSA if your household is healthy',
+    `⏰ ${deadlines.urgency}`,
+    '',
+    formatActionStep(marketplaceSteps),
+    '',
+    '🏥 Find the Right Plan Type:',
   ];
+
+  // Health-based plan guidance
+  if (healthProfile.isHighUtilization) {
+    actionItems.push('→ Choose Silver or Gold tier plans (lower deductibles)');
+    actionItems.push('→ Select PPO plans for specialist access without referrals');
+    actionItems.push('→ Focus on total cost (premium + deductible + copays), not just monthly price');
+  } else {
+    actionItems.push('→ Bronze or Silver plans work well for healthy individuals');
+    actionItems.push('→ Consider Bronze HDHP + HSA for tax savings');
+    actionItems.push('→ HSA lets you save tax-free for medical expenses');
+  }
+
+  actionItems.push('');
+  actionItems.push(`📍 Verify Network Coverage:`);
+  actionItems.push(`→ Check provider directories for all your states: ${statesList}`);
+  actionItems.push('→ Call your preferred doctors to confirm they accept the plan');
+  actionItems.push('→ Ask about in-network hospitals near each residence');
+  actionItems.push('');
+
+  // Add health-specific action items
+  const healthActions = getHealthSpecificActions(healthProfile);
+  if (healthActions.length > 0) {
+    actionItems.push('📋 Additional Steps Based on Your Health:');
+    actionItems.push(...healthActions);
+  }
 
   const budgetNote = checkBudgetCompatibility(budget, totalCost);
   if (budgetNote) {
     actionItems.push(budgetNote);
   }
+
+  // Add health-based reasoning
+  const healthReasoning = getHealthBasedReasoning(healthProfile);
+  if (healthReasoning) {
+    reasoning += ' ' + simplifyReasoning(healthReasoning);
+  }
+
+  // Add "What this means" section
+  const whatThisMeans = generateWhatThisMeans(recommendedPlan, states, formData.simpleMode);
 
   const alternativeOptions = getNonMedicareAlternatives(
     formData,
@@ -241,7 +431,7 @@ export function getNonMedicareRecommendation(
     householdBreakdown,
     estimatedMonthlyCost: totalCost,
     coverageGapScore: coverageScore,
-    reasoning,
+    reasoning: reasoning + '\n\n' + whatThisMeans,
     actionItems,
     alternativeOptions,
   };
