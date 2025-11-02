@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import PrintButton from './PrintButton';
 import ExportButton from './ExportButton';
+import { trackResultsAction } from '@/lib/analytics';
 
 interface ShareButtonsProps {
   data: unknown;
@@ -21,6 +22,9 @@ export default function ShareButtons({ data, summary, filename }: ShareButtonsPr
       await navigator.clipboard.writeText(window.location.href);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+
+      // Track share action
+      trackResultsAction('shared');
     } catch (error) {
       console.error('Failed to copy:', error);
       alert('Failed to copy link. Please copy manually from the address bar.');
@@ -33,6 +37,9 @@ export default function ShareButtons({ data, summary, filename }: ShareButtonsPr
       `I used the Coverage Gap Analyzer and here are my results:\n\n${summary}\n\nView full results: ${window.location.href}`
     );
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
+
+    // Track share action
+    trackResultsAction('shared');
   };
 
   return (

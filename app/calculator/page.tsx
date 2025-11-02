@@ -1,6 +1,6 @@
 'use client';
 
-import { useReducer, useEffect } from 'react';
+import { useReducer, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { CalculatorFormData, FormErrors } from '@/types';
 import Step1Residences from '@/components/calculator/Step1Residences';
@@ -9,12 +9,25 @@ import Step2_5CurrentInsurance from '@/components/calculator/Step2_5CurrentInsur
 import Step3Budget from '@/components/calculator/Step3Budget';
 import MobileProgressBar from '@/components/MobileProgressBar';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import LoadingOverlay from '@/components/LoadingOverlay';
 import { loadCalculatorData, saveCalculatorData, clearCalculatorData, isDataRecent } from '@/lib/localStorage';
 import { calculatorReducer, createInitialState } from '@/lib/calculatorReducer';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardNavigation';
 import { useFocusOnError, useStepFocus, useLiveRegionAnnouncement, useFocusVisible } from '@/hooks/useFocusManagement';
 import { useDebouncedCallback } from '@/hooks/useDebounce';
 import { VALIDATION, THRESHOLDS, STORAGE_KEYS, STEP_NAMES, CALCULATOR_STEPS } from '@/lib/constants';
+import { trackEvent, trackStepCompleted } from '@/lib/analytics';
+import {
+  validateZipCodeWithMessage,
+  validateStateWithMessage,
+  validateNumAdultsWithMessage,
+  validateAdultAgeWithMessage,
+  validateChildAgeWithMessage,
+  validateCarrierWithMessage,
+  validatePlanTypeWithMessage,
+  validateMonthlyCostWithMessage,
+  validateBudgetWithMessage,
+} from '@/lib/validationMessages';
 
 const INITIAL_FORM_DATA: CalculatorFormData = {
   // New array-based residences (minimum 2 required)
@@ -48,6 +61,7 @@ const INITIAL_FORM_DATA: CalculatorFormData = {
 export default function Calculator() {
   const router = useRouter();
   const [state, dispatch] = useReducer(calculatorReducer, createInitialState(INITIAL_FORM_DATA));
+  const hasTrackedStart = useRef(false);
 
   const { formData, errors, isLoading, showResumePrompt } = state;
 
@@ -56,6 +70,14 @@ export default function Calculator() {
   const { liveRegionRef, announce } = useLiveRegionAnnouncement();
   useFocusOnError(errors);
   useFocusVisible();
+
+  // Track calculator start (once)
+  useEffect(() => {
+    if (!hasTrackedStart.current && !showResumePrompt) {
+      trackEvent('calculator_started');
+      hasTrackedStart.current = true;
+    }
+  }, [showResumePrompt]);
 
   // Announce step changes to screen readers
   useEffect(() => {
@@ -140,6 +162,12 @@ export default function Calculator() {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { timestamp, ...formDataWithoutTimestamp } = result.data;
       dispatch({ type: 'SET_FORM_DATA', data: formDataWithoutTimestamp });
+
+      // Track resume action
+      trackEvent('resume_data_used', {
+        step: formDataWithoutTimestamp.currentStep,
+        step_name: STEP_NAMES[formDataWithoutTimestamp.currentStep - 1],
+      });
     } else {
       // Failed to load or validate data
       console.error('Failed to resume saved calculator data:', result.error);
@@ -177,18 +205,21 @@ export default function Calculator() {
     // Validate all residences in the array
     formData.residences.forEach((residence, index) => {
       // Validate ZIP code
-      if (!residence.zip || residence.zip.length !== VALIDATION.ZIP_CODE_LENGTH) {
-        newErrors[`residence${index}Zip`] = `Please enter a valid ${VALIDATION.ZIP_CODE_LENGTH}-digit ZIP code`;
+      const zipValidation = validateZipCodeWithMessage(residence.zip);
+      if (!zipValidation.isValid) {
+        newErrors[`residence${index}Zip`] = zipValidation.error || 'Invalid ZIP code';
       }
+
       // Validate state
-      if (!residence.state) {
-        newErrors[`residence${index}State`] = 'Please select a state';
+      const stateValidation = validateStateWithMessage(residence.state);
+      if (!stateValidation.isValid) {
+        newErrors[`residence${index}State`] = stateValidation.error || 'Please select a state';
       }
     });
 
     // Ensure minimum residences
     if (formData.residences.length < VALIDATION.MIN_RESIDENCES) {
-      newErrors.residences = `You must have at least ${VALIDATION.MIN_RESIDENCES} residences`;
+      newErrors.residences = `You must have at least ${VALIDATION.MIN_RESIDENCES} residences to compare coverage`;
     }
 
     dispatch({ type: 'SET_ERRORS', errors: newErrors });
@@ -198,21 +229,25 @@ export default function Calculator() {
   const validateStep2 = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (formData.numAdults === 0) {
-      newErrors.numAdults = 'Please select the number of adults';
+    // Validate number of adults
+    const numAdultsValidation = validateNumAdultsWithMessage(formData.numAdults);
+    if (!numAdultsValidation.isValid) {
+      newErrors.numAdults = numAdultsValidation.error || 'Please select the number of adults';
     }
 
     // Validate adult ages
     formData.adultAges.forEach((age, index) => {
-      if (!age || age < 18 || age > 100) {
-        newErrors[`adultAge${index}`] = 'Please enter a valid age (18-100)';
+      const ageValidation = validateAdultAgeWithMessage(age);
+      if (!ageValidation.isValid) {
+        newErrors[`adultAge${index}`] = ageValidation.error || 'Invalid age';
       }
     });
 
     // Validate child ages
     formData.childAges.forEach((age, index) => {
-      if (age < 0 || age > 17) {
-        newErrors[`childAge${index}`] = 'Please enter a valid age (0-17)';
+      const ageValidation = validateChildAgeWithMessage(age);
+      if (!ageValidation.isValid) {
+        newErrors[`childAge${index}`] = ageValidation.error || 'Invalid age';
       }
     });
 
@@ -225,14 +260,19 @@ export default function Calculator() {
 
     // Only validate if user said they have current insurance
     if (formData.hasCurrentInsurance) {
-      if (!formData.currentInsurance.carrier.trim()) {
-        newErrors.carrier = 'Please enter your insurance carrier';
+      const carrierValidation = validateCarrierWithMessage(formData.currentInsurance.carrier);
+      if (!carrierValidation.isValid) {
+        newErrors.carrier = carrierValidation.error || 'Please enter your insurance carrier';
       }
-      if (!formData.currentInsurance.planType) {
-        newErrors.planType = 'Please select your plan type';
+
+      const planTypeValidation = validatePlanTypeWithMessage(formData.currentInsurance.planType);
+      if (!planTypeValidation.isValid) {
+        newErrors.planType = planTypeValidation.error || 'Please select your plan type';
       }
-      if (!formData.currentInsurance.monthlyCost || formData.currentInsurance.monthlyCost < 0) {
-        newErrors.monthlyCost = 'Please enter a valid monthly cost';
+
+      const costValidation = validateMonthlyCostWithMessage(formData.currentInsurance.monthlyCost);
+      if (!costValidation.isValid) {
+        newErrors.monthlyCost = costValidation.error || 'Please enter a valid monthly cost';
       }
     }
 
@@ -243,8 +283,9 @@ export default function Calculator() {
   const validateStep4 = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.budget) {
-      newErrors.budget = 'Please select a budget range';
+    const budgetValidation = validateBudgetWithMessage(formData.budget);
+    if (!budgetValidation.isValid) {
+      newErrors.budget = budgetValidation.error || 'Please select a budget range';
     }
 
     dispatch({ type: 'SET_ERRORS', errors: newErrors });
@@ -270,6 +311,8 @@ export default function Calculator() {
     }
 
     if (isValid) {
+      // Track step completion before advancing
+      trackStepCompleted(formData.currentStep, STEP_NAMES[formData.currentStep - 1]);
       dispatch({ type: 'NEXT_STEP' });
     }
   };
@@ -391,7 +434,6 @@ export default function Calculator() {
               const step = index + 1;
               const isCompleted = formData.currentStep > step;
               const isCurrent = formData.currentStep === step;
-              const isPending = formData.currentStep < step;
 
               return (
               <div key={step} className="flex items-center">
@@ -538,22 +580,12 @@ export default function Calculator() {
         </ErrorBoundary>
       </div>
 
-      {/* Loading Spinner Overlay */}
-      {isLoading && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 text-center shadow-2xl">
-            <div className="mb-6">
-              <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-accent border-t-transparent"></div>
-            </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">
-              Analyzing Your Coverage...
-            </h3>
-            <p className="text-gray-600">
-              Finding the best insurance options for your situation
-            </p>
-          </div>
-        </div>
-      )}
+      {/* Loading Overlay */}
+      <LoadingOverlay
+        isVisible={isLoading}
+        title="Analyzing Your Coverage..."
+        message="Finding the best insurance options for your situation"
+      />
     </div>
   );
 }

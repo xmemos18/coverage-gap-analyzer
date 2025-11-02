@@ -124,11 +124,56 @@ npm run dev          # Start dev server (hot reload)
 npm run build        # Create optimized production build
 npm run start        # Start production server
 npm run lint         # Run ESLint
+
+# Testing
+npm test             # Run unit and component tests (Jest)
+npm run test:watch   # Run tests in watch mode
+npm run test:coverage # Run tests with coverage report
+npm run test:e2e     # Run end-to-end tests (Playwright)
+npm run test:e2e:ui  # Run E2E tests in interactive mode
 ```
 
-## 🧪 Testing the Application
+## 🧪 Testing
 
-### Test Scenarios
+### Test Suite
+
+The application includes comprehensive testing at multiple levels:
+
+**Unit & Component Tests (Jest + React Testing Library):**
+- 179 tests covering business logic and UI components
+- Calculator engine tests (recommendation logic, cost calculations)
+- Component tests (forms, buttons, validation)
+- Utilities and helper function tests
+
+```bash
+npm test              # Run all unit and component tests
+npm run test:watch    # Run tests in watch mode
+npm run test:coverage # Generate coverage report
+```
+
+**End-to-End Tests (Playwright):**
+- 53 E2E tests across 5 test suites
+- Full user journey testing (calculator flow, results page)
+- Cross-browser testing (Chrome, Firefox, Safari)
+- Mobile device testing (iOS, Android)
+- Accessibility testing
+
+```bash
+npm run test:e2e      # Run all E2E tests
+npm run test:e2e:ui   # Run E2E tests in interactive UI mode
+npm run test:e2e:debug # Debug E2E tests step-by-step
+```
+
+**Test Coverage:**
+- Calculator logic: 5 test suites, 8 tests
+- Results page: 13 tests
+- Navigation: 8 tests
+- Accessibility: 12 tests
+- Mobile experience: 12 tests
+
+**See [e2e/README.md](e2e/README.md) for complete E2E testing documentation**
+
+### Manual Test Scenarios
 
 **1. Medicare-Eligible Couple**
 - Primary: 33101, FL
@@ -147,6 +192,64 @@ npm run lint         # Run ESLint
 - Secondary: 90210, CA
 - Adults: 2 (ages 70, 45), Children: 1 (age 10)
 - Expected: Medicare for senior + PPO for others
+
+## 📚 Documentation
+
+Comprehensive documentation is available in the `/docs` directory.
+
+### For Users
+
+- **[User Guide](docs/USER_GUIDE.md)** - Complete guide for using the calculator
+  - Step-by-step instructions
+  - Understanding your results
+  - Saving and sharing
+  - FAQ and troubleshooting
+
+### For Developers
+
+- **[Development Guide](docs/DEVELOPMENT.md)** - Setup and development workflow
+  - Initial setup and prerequisites
+  - Development workflow
+  - Code standards and best practices
+  - Testing guidelines
+  - Common tasks
+
+- **[Architecture Documentation](docs/ARCHITECTURE.md)** - System design and architecture
+  - Technology stack
+  - Application architecture
+  - Data flow and state management
+  - Component patterns
+  - Performance optimizations
+  - Design decisions
+
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment
+  - Pre-deployment checklist
+  - Platform-specific guides (Vercel, Netlify, etc.)
+  - Environment configuration
+  - Domain setup and SSL
+  - Monitoring and rollback
+
+### Feature Documentation
+
+- **[Analytics Integration](docs/ANALYTICS.md)** - Privacy-focused analytics
+- **[Security Documentation](docs/SECURITY.md)** - Security features and best practices
+- **[Print & Export](docs/PRINT_EXPORT.md)** - Print and export functionality
+- **[Tooltips System](docs/TOOLTIPS.md)** - Insurance term tooltips
+- **[Mobile UX](docs/MOBILE_UX.md)** - Mobile optimization guide
+- **[Security Headers](docs/SECURITY_HEADERS.md)** - HTTP security headers
+
+### Quick Links
+
+| I want to... | See documentation |
+|--------------|-------------------|
+| Use the calculator | [User Guide](docs/USER_GUIDE.md) |
+| Set up development | [Development Guide](docs/DEVELOPMENT.md#initial-setup) |
+| Deploy to production | [Deployment Guide](docs/DEPLOYMENT.md) |
+| Understand architecture | [Architecture](docs/ARCHITECTURE.md) |
+| Add analytics | [Analytics](docs/ANALYTICS.md) |
+| Review security | [Security](docs/SECURITY.md) |
+
+**📖 Full documentation index:** [docs/README.md](docs/README.md)
 
 ## 🔒 Security
 
@@ -269,6 +372,45 @@ if (env.isDevelopment) {
 - Non-prefixed variables are server-side only
 - Values are validated on startup in production
 - See `.env.example` for full documentation
+
+## 📊 Analytics (Optional)
+
+The application includes **privacy-focused analytics integration** to track user interactions and improve the product.
+
+### Supported Providers
+
+- **Google Analytics 4 (GA4)** - Industry standard analytics
+- **Plausible Analytics** - Privacy-focused, GDPR-compliant alternative
+
+### Quick Setup
+
+**1. Choose a provider and get your analytics ID:**
+- GA4: Create property at [analytics.google.com](https://analytics.google.com) → Get Measurement ID (`G-XXXXXXXXXX`)
+- Plausible: Create account at [plausible.io](https://plausible.io) → Use your domain
+
+**2. Enable in `.env.local`:**
+```bash
+NEXT_PUBLIC_ENABLE_ANALYTICS=true
+NEXT_PUBLIC_ANALYTICS_ID=G-XXXXXXXXXX  # or yourdomain.com for Plausible
+```
+
+**3. Deploy** - The app auto-detects your provider based on the ID format!
+
+### Events Tracked
+
+- Calculator flow: `calculator_started`, `step_completed`, `calculator_completed`
+- Results actions: `results_viewed`, `results_printed`, `results_exported`, `results_shared`
+- Errors: `error_occurred`
+- Data resume: `resume_data_used`
+
+### Privacy
+
+✅ **No personal data collected** (no ZIP codes, ages, or health info)
+✅ **IP anonymization** enabled by default
+✅ **Optional** - Disabled by default
+✅ **GDPR compliant** when using Plausible
+
+**📚 See [docs/ANALYTICS.md](docs/ANALYTICS.md) for complete setup and usage documentation**
 
 ## 🚢 Deployment
 

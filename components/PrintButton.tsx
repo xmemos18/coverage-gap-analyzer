@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { trackResultsAction } from '@/lib/analytics';
 
 interface PrintButtonProps {
   className?: string;
@@ -19,6 +20,9 @@ export default function PrintButton({
 
   const handlePrint = () => {
     setIsPrinting(true);
+
+    // Track print action
+    trackResultsAction('printed');
 
     // Give a moment for state to update (if needed for UI changes)
     setTimeout(() => {

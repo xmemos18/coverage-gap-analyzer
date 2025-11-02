@@ -18,6 +18,7 @@ export const VALIDATION = {
   MAX_CHILD_AGE: 17,
   MIN_RESIDENCES: 2,
   MAX_RESIDENCES: env.maxResidences,
+  MIN_ADULTS: 1,
   MAX_ADULTS: env.maxAdults,
   MAX_CHILDREN: env.maxChildren,
 } as const;

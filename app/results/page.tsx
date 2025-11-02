@@ -1,8 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { Suspense, useMemo } from 'react';
+import { Suspense, useMemo, useEffect } from 'react';
 import { analyzeInsurance } from '@/lib/calculator';
 import { CalculatorFormData } from '@/types';
 import RecommendationSummary from '@/components/results/RecommendationSummary';
@@ -14,6 +13,10 @@ import NextStepsSection from '@/components/results/NextStepsSection';
 import AlternativeOptions from '@/components/results/AlternativeOptions';
 import DisclaimerSection from '@/components/results/DisclaimerSection';
 import ShareButtons from '@/components/ShareButtons';
+import ResultsSkeleton from '@/components/results/ResultsSkeleton';
+import ValidationError from '@/components/results/ValidationError';
+import { trackEvent, trackCalculatorCompleted } from '@/lib/analytics';
+import { validateURLParameters, getValidationSummary } from '@/lib/urlValidation';
 
 function ResultsContent() {
   const searchParams = useSearchParams();
@@ -51,11 +54,39 @@ function ResultsContent() {
   const currentOutOfPocketMax = parseFloat(searchParams.get('currentOutOfPocketMax') || '0');
   const currentCoverageNotes = searchParams.get('currentCoverageNotes') || '';
 
-  // Check if required data is present
-  const hasRequiredData = residences.length >= 2 &&
-                          residences.every(r => r.state) &&
-                          numAdults > 0 &&
-                          adultAges.length > 0;
+  // Validate all URL parameters
+  const validationResult = useMemo(() => {
+    return validateURLParameters({
+      residenceZips,
+      residenceStates,
+      numAdults,
+      adultAges,
+      numChildren,
+      childAges,
+      hasMedicareEligible,
+      hasCurrentInsurance,
+      budget,
+    });
+  }, [residenceZips, residenceStates, numAdults, adultAges, numChildren, childAges, hasMedicareEligible, hasCurrentInsurance, budget]);
+
+  // Log validation results in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const summary = getValidationSummary(validationResult);
+      console.log('🔍 URL Validation:', summary);
+
+      if (!validationResult.isValid) {
+        console.error('Validation errors:', validationResult.errors);
+      }
+
+      if (validationResult.warnings.length > 0) {
+        console.warn('Validation warnings:', validationResult.warnings);
+      }
+    }
+  }, [validationResult]);
+
+  // Check if required data is present and valid
+  const hasRequiredData = validationResult.isValid;
 
   // Reconstruct form data for recommendation engine
   const formData: CalculatorFormData = useMemo(() => ({
@@ -90,29 +121,25 @@ function ResultsContent() {
     return analyzeInsurance(formData);
   }, [formData, hasRequiredData]);
 
-  // Error state - no data
+  // Track analytics when results are viewed
+  useEffect(() => {
+    if (hasRequiredData && recommendation) {
+      // Track results viewed
+      trackEvent('results_viewed');
+
+      // Track calculator completion with household details
+      trackCalculatorCompleted(
+        numAdults,
+        numAdults,
+        numChildren,
+        hasMedicareEligible
+      );
+    }
+  }, [hasRequiredData, recommendation, numAdults, numChildren, hasMedicareEligible]);
+
+  // Error state - invalid or missing data
   if (!hasRequiredData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-20 px-4">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="bg-white rounded-xl shadow-lg p-12">
-            <div className="text-6xl mb-6">📋</div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Please Complete the Calculator First
-            </h1>
-            <p className="text-gray-600 text-lg mb-8">
-              We need your information to provide personalized insurance recommendations.
-            </p>
-            <Link
-              href="/calculator"
-              className="inline-block px-8 py-4 bg-accent text-white rounded-lg font-semibold text-lg hover:bg-accent-light shadow-lg transition-all"
-            >
-              Start Calculator
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    return <ValidationError errors={validationResult.errors} warnings={validationResult.warnings} />;
   }
 
   if (!recommendation) return null;
@@ -199,14 +226,7 @@ function ResultsContent() {
 
 export default function Results() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
-        <div className="text-center">
-          <div className="text-6xl mb-4">⏳</div>
-          <div className="text-2xl font-semibold text-gray-700">Loading your recommendations...</div>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<ResultsSkeleton />}>
       <ResultsContent />
     </Suspense>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { trackResultsAction } from '@/lib/analytics';
 
 interface ExportButtonProps {
   data: unknown;
@@ -24,6 +25,9 @@ export default function ExportButton({
   const handleExport = () => {
     try {
       setIsExporting(true);
+
+      // Track export action
+      trackResultsAction('exported');
 
       // Convert data to JSON string with formatting
       const jsonString = JSON.stringify(data, null, 2);
