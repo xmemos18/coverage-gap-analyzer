@@ -161,15 +161,17 @@ export default function Calculator() {
   // Trigger save whenever form changes
   useEffect(() => {
     saveToLocalStorage();
-  }, [formData, saveToLocalStorage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // saveToLocalStorage is memoized by useDebouncedCallback and safe to exclude
+  }, [formData]);
 
   const resumeSavedData = () => {
     const result = loadCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
 
     if (result.success && result.data) {
-      // Remove timestamp before setting form data
+      // Remove timestamp before setting form data (if it exists)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { timestamp, ...formDataWithoutTimestamp } = result.data;
+      const { timestamp: _timestamp, ...formDataWithoutTimestamp } = result.data;
       dispatch({ type: 'SET_FORM_DATA', data: formDataWithoutTimestamp });
 
       // Track resume action

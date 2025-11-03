@@ -2,6 +2,7 @@
 
 import { FormErrors, UpdateFieldFunction } from '@/types';
 import ErrorMessage from '@/components/ErrorMessage';
+import InfoTooltip from '@/components/InfoTooltip';
 
 interface Step3Props {
   budget: string;
@@ -49,7 +50,10 @@ export default function Step3Budget({
       </div>
 
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">Monthly Budget</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          Monthly Budget
+          <InfoTooltip content="Your budget helps us filter plans you can afford. Remember, you'll also have out-of-pocket costs like deductibles, copays, and coinsurance on top of your monthly premium." />
+        </h3>
         <p className="text-gray-600 text-sm mb-4">
           What&apos;s your monthly budget for health insurance?
         </p>
@@ -91,11 +95,14 @@ export default function Step3Budget({
       </div>
 
       <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">Household Income</h3>
+        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          Household Income
+          <InfoTooltip content="Income determines eligibility for premium tax credits (subsidies) and Medicaid. Those earning 100-400% of federal poverty level may qualify for substantial savings. This information is private and never shared." />
+        </h3>
         <p className="text-gray-600 text-sm mb-4">
           This helps us determine if you qualify for financial assistance through subsidies or Medicaid.
         </p>
-        <div className="space-y-3" role="radiogroup" aria-labelledby="income-heading" aria-required="false">
+        <div className="space-y-3" role="radiogroup" aria-labelledby="budget-heading" aria-required="false">
           {INCOME_RANGE_OPTIONS.map((option) => (
             <button
               key={option.value}

@@ -36,12 +36,6 @@ export interface CalculatorFormData {
   // Step 1: Residences (array-based for infinite properties)
   residences: Residence[];
 
-  // Legacy fields (kept for backward compatibility, will be removed later)
-  primaryResidence?: Residence;
-  secondaryResidence?: Residence;
-  hasThirdHome?: boolean;
-  thirdResidence?: Residence;
-
   // Step 2: Household
   numAdults: number;
   adultAges: number[];

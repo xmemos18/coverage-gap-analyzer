@@ -106,12 +106,12 @@ function validateBudget(budget: string): ValidationError | null {
   }
 
   const validBudgets = [
-    'under-500',
+    'less-500',
     '500-1000',
     '1000-2000',
-    '2000-3000',
-    'over-3000',
-    'flexible',
+    '2000-3500',
+    '3500-plus',
+    'not-sure',
   ];
 
   if (!validBudgets.includes(budget)) {
@@ -142,11 +142,11 @@ export function validateURLParameters(params: {
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];
 
-  // Validate minimum residences (need at least 2)
+  // Validate minimum residences
   if (params.residenceZips.length < VALIDATION.MIN_RESIDENCES) {
     errors.push({
       field: 'residences',
-      message: `At least ${VALIDATION.MIN_RESIDENCES} residences are required (got: ${params.residenceZips.length})`,
+      message: `At least ${VALIDATION.MIN_RESIDENCES} residence${VALIDATION.MIN_RESIDENCES === 1 ? ' is' : 's are'} required (got: ${params.residenceZips.length})`,
       severity: 'error',
     });
   }

@@ -58,17 +58,22 @@ export function useInsuranceAnalysis({
       shoppingTips: getMedicareAdvantageShoppingTips(residenceStates),
       comparison: compareToMedigap(adultAges.filter(age => age >= 65).length, residenceStates.length > 1)
     };
-  }, [formData, recommendation, adultAges, residenceStates, hasRequiredData]);
+  }, [hasRequiredData, recommendation, formData, adultAges, residenceStates]);
 
   // COBRA analysis (for users with employer insurance)
   const cobraAnalysis = useMemo(() => {
     if (!hasRequiredData || !recommendation || !hasEmployerInsurance) return null;
 
+    // Constants for COBRA analysis
+    const EMPLOYER_COST_MULTIPLIER = 0.3; // Employee typically pays ~30% of total cost
+    const DEFAULT_EMPLOYER_COST = 400; // Average fallback monthly cost
+    const ASSUMED_MONTHS_SINCE_JOB_LOSS = 6; // Default assumption for educational purposes
+
     const estimatedCurrentCost = currentMonthlyCost > 0
       ? currentMonthlyCost
-      : (employerContribution > 0 ? employerContribution * 0.3 : 400);
+      : (employerContribution > 0 ? employerContribution * EMPLOYER_COST_MULTIPLIER : DEFAULT_EMPLOYER_COST);
 
-    const monthsSinceJobLoss = 6; // Assume 6 months for educational purposes
+    const monthsSinceJobLoss = ASSUMED_MONTHS_SINCE_JOB_LOSS;
 
     return {
       analysis: analyzeCOBRA(
@@ -99,11 +104,13 @@ export function useInsuranceAnalysis({
     const incomeEstimate = (() => {
       switch(incomeRange) {
         case 'under-30k': return 25000;
-        case '30k-60k': return 45000;
-        case '60k-90k': return 75000;
-        case '90k-120k': return 105000;
-        case 'over-120k': return 150000;
-        default: return 60000;
+        case '30k-50k': return 40000;
+        case '50k-75k': return 62500;
+        case '75k-100k': return 87500;
+        case '100k-150k': return 125000;
+        case 'over-150k': return 175000;
+        case 'prefer-not-say': return 75000; // Use median US household income
+        default: return 75000;
       }
     })();
 

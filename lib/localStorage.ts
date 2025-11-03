@@ -136,8 +136,10 @@ export function saveCalculatorData(
     return { success: true };
   } catch (error) {
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      console.error('localStorage quota exceeded:', error);
       return { success: false, error: 'Storage quota exceeded' };
     }
+    console.error('Failed to save to localStorage:', error);
     return { success: false, error: 'Failed to save data' };
   }
 }
@@ -152,7 +154,8 @@ export function clearCalculatorData(storageKey: string): {
   try {
     localStorage.removeItem(storageKey);
     return { success: true };
-  } catch {
+  } catch (error) {
+    console.error('Failed to clear localStorage:', error);
     return { success: false, error: 'Failed to clear data' };
   }
 }

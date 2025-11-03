@@ -2,6 +2,7 @@
 
 import { FormErrors, UpdateFieldFunction } from '@/types';
 import InsuranceTerm from '@/components/InsuranceTerm';
+import InfoTooltip from '@/components/InfoTooltip';
 
 interface Step2Props {
   numAdults: number;
@@ -54,16 +55,19 @@ export default function Step2Household({
     const newAges = [...adultAges];
     const age = newAges[index];
 
-    // Skip validation if age is not a valid number
+    // Skip validation if age is not provided or invalid
     // Let form validation catch empty/invalid inputs
-    if (age === undefined || age === null || isNaN(age) || age === 0) {
+    if (age === undefined || age === null || isNaN(age)) {
       return;
     }
 
     // Clamp age to valid range (18-120) and ensure integer
+    // Treat 0 as invalid input and correct to minimum
     const validAge = Math.max(18, Math.min(120, Math.floor(age)));
-    newAges[index] = validAge;
-    onUpdate('adultAges', newAges);
+    if (validAge !== age) {
+      newAges[index] = validAge;
+      onUpdate('adultAges', newAges);
+    }
   };
 
   const updateChildAge = (index: number, age: number) => {
@@ -76,7 +80,7 @@ export default function Step2Household({
     const newAges = [...childAges];
     const age = newAges[index];
 
-    // Skip validation if age is not a valid number
+    // Skip validation if age is not provided or invalid
     // Let form validation catch empty/invalid inputs
     if (age === undefined || age === null || isNaN(age)) {
       return;
@@ -84,8 +88,22 @@ export default function Step2Household({
 
     // Clamp age to valid range (0-17) and ensure integer
     const validAge = Math.max(0, Math.min(17, Math.floor(age)));
-    newAges[index] = validAge;
-    onUpdate('childAges', newAges);
+    if (validAge !== age) {
+      newAges[index] = validAge;
+      onUpdate('childAges', newAges);
+    }
+  };
+
+  const validateEmployerContribution = () => {
+    if (employerContribution === undefined || employerContribution === null || isNaN(employerContribution)) {
+      return;
+    }
+
+    // Clamp employer contribution to valid range (0-10000)
+    const validContribution = Math.max(0, Math.min(10000, Math.floor(employerContribution)));
+    if (validContribution !== employerContribution) {
+      onUpdate('employerContribution', validContribution);
+    }
   };
 
   return (
@@ -100,7 +118,10 @@ export default function Step2Household({
       <div className="space-y-8">
         {/* Number of Adults */}
         <div role="group" aria-labelledby="adults-count-heading">
-          <h3 id="adults-count-heading" className="text-xl font-semibold text-gray-900 mb-4">How many adults?</h3>
+          <h3 id="adults-count-heading" className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            How many adults?
+            <InfoTooltip content="We need to know how many adults (18+) need coverage. Premium costs are based on the number and age of people covered. Adults 65+ may qualify for Medicare instead." />
+          </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((count) => (
               <button
@@ -128,7 +149,10 @@ export default function Step2Household({
         {/* Adult Ages */}
         {numAdults > 0 && (
           <div className="bg-gray-50 p-6 rounded-lg border border-gray-200" role="group" aria-labelledby="adult-ages-heading">
-            <h3 id="adult-ages-heading" className="text-lg font-semibold text-gray-900 mb-4">Age of each adult</h3>
+            <h3 id="adult-ages-heading" className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              Age of each adult
+              <InfoTooltip content="Age is the biggest factor in health insurance premiums. Older adults pay more than younger ones. We also use age to determine Medicare eligibility (65+) and special subsidies for those near retirement age." />
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Array(numAdults)
                 .fill(0)
@@ -261,8 +285,9 @@ export default function Step2Household({
 
         {/* Employment & Coverage - NEW Phase 1 */}
         <div className="bg-blue-50 p-6 rounded-lg border border-blue-200" role="group" aria-labelledby="employment-heading">
-          <h3 id="employment-heading" className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 id="employment-heading" className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
             Employment & Coverage
+            <InfoTooltip content="Employer-sponsored insurance affects marketplace eligibility and subsidies. If your employer plan is 'affordable' (costs less than 9.12% of income), you may not qualify for marketplace subsidies." />
           </h3>
           <p className="text-sm text-gray-600 mb-4">
             This helps us determine if employer coverage or marketplace plans are better for you
@@ -317,6 +342,7 @@ export default function Step2Household({
                   max="10000"
                   value={employerContribution || ''}
                   onChange={(e) => onUpdate('employerContribution', parseInt(e.target.value) || 0)}
+                  onBlur={validateEmployerContribution}
                   className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                   placeholder="500"
                   aria-label="Monthly employer contribution amount"

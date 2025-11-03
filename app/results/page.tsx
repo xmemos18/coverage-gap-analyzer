@@ -19,6 +19,8 @@ import ValidationError from '@/components/results/ValidationError';
 import { trackEvent, trackCalculatorCompleted } from '@/lib/analytics';
 import { validateURLParameters, getValidationSummary } from '@/lib/urlValidation';
 import { logger, devLogger } from '@/lib/logger';
+import { PDFDownloadButton } from '@/components/PDFReport';
+import CostComparisonChart from '@/components/charts/CostComparisonChart';
 
 // Lazy load heavy components that are conditionally rendered
 const PlanComparisonTable = lazy(() => import('@/components/results/PlanComparisonTable'));
@@ -31,50 +33,48 @@ function ResultsContent() {
   const residenceZipsStr = searchParams.get('residenceZips') || '';
   const residenceStatesStr = searchParams.get('residenceStates') || '';
 
-  // Parse residences from comma-separated strings
-  const residenceZips = useMemo(() =>
-    residenceZipsStr ? residenceZipsStr.split(',') : [],
-    [residenceZipsStr]
-  );
-  const residenceStates = useMemo(() =>
-    residenceStatesStr ? residenceStatesStr.split(',') : [],
-    [residenceStatesStr]
-  );
+  // Parse all URL parameters in a single useMemo for better performance
+  const parsedParams = useMemo(() => {
+    const residenceZips = residenceZipsStr ? residenceZipsStr.split(',') : [];
+    const residenceStates = residenceStatesStr ? residenceStatesStr.split(',') : [];
+    const adultAgesStr = searchParams.get('adultAges') || '';
+    const adultAges = adultAgesStr ? adultAgesStr.split(',').map(Number).filter(n => !isNaN(n)) : [];
+    const childAgesStr = searchParams.get('childAges') || '';
+    const childAges = childAgesStr ? childAgesStr.split(',').map(Number).filter(n => !isNaN(n)) : [];
+    const chronicConditionsStr = searchParams.get('chronicConditions') || '';
+    const chronicConditions = chronicConditionsStr ? chronicConditionsStr.split(',') : [];
 
-  // Reconstruct residences array
-  const residences = residenceZips.map((zip, index) => ({
-    zip: zip || '',
-    state: residenceStates[index] || '',
-    isPrimary: index === 0, // First residence is considered primary by default
-    monthsPerYear: 0, // Default value, can be enhanced later to read from URL params
-  }));
+    // Reconstruct residences array
+    const residences = residenceZips.map((zip, index) => ({
+      zip: zip || '',
+      state: residenceStates[index] || '',
+      isPrimary: index === 0,
+      monthsPerYear: 0,
+    }));
 
-  // Parse household parameters
-  const numAdults = parseInt(searchParams.get('numAdults') || '0');
-  const adultAgesStr = searchParams.get('adultAges') || '';
-  const adultAges = useMemo(() =>
-    adultAgesStr ? adultAgesStr.split(',').map(Number).filter(n => !isNaN(n)) : [],
-    [adultAgesStr]
-  );
-  const numChildren = parseInt(searchParams.get('numChildren') || '0');
-  const childAgesStr = searchParams.get('childAges') || '';
-  const childAges = useMemo(() =>
-    childAgesStr ? childAgesStr.split(',').map(Number).filter(n => !isNaN(n)) : [],
-    [childAgesStr]
-  );
+    return {
+      residenceZips,
+      residenceStates,
+      residences,
+      adultAges,
+      childAges,
+      chronicConditions,
+    };
+  }, [residenceZipsStr, residenceStatesStr, searchParams]);
+
+  const { residenceZips, residenceStates, residences, adultAges, childAges, chronicConditions } = parsedParams;
+
+  // Parse household parameters with validation
+  const numAdults = parseInt(searchParams.get('numAdults') || '0') || 0;
+  const numChildren = parseInt(searchParams.get('numChildren') || '0') || 0;
   const hasMedicareEligible = searchParams.get('hasMedicareEligible') === 'true';
 
-  // Parse employment & coverage parameters
+  // Parse employment & coverage parameters with validation
   const hasEmployerInsurance = searchParams.get('hasEmployerInsurance') === 'true';
-  const employerContribution = parseInt(searchParams.get('employerContribution') || '0');
+  const employerContribution = parseInt(searchParams.get('employerContribution') || '0') || 0;
 
   // Parse health profile parameters
   const hasChronicConditions = searchParams.get('hasChronicConditions') === 'true';
-  const chronicConditionsStr = searchParams.get('chronicConditions') || '';
-  const chronicConditions = useMemo(() =>
-    chronicConditionsStr ? chronicConditionsStr.split(',') : [],
-    [chronicConditionsStr]
-  );
   const prescriptionCount = searchParams.get('prescriptionCount') || '';
   const providerPreference = searchParams.get('providerPreference') || '';
 
@@ -85,13 +85,13 @@ function ResultsContent() {
   // Parse UI mode
   const simpleMode = searchParams.get('simpleMode') === 'true';
 
-  // Parse current insurance parameters
+  // Parse current insurance parameters with validation
   const hasCurrentInsurance = searchParams.get('hasCurrentInsurance') === 'true';
   const currentCarrier = searchParams.get('currentCarrier') || '';
   const currentPlanType = searchParams.get('currentPlanType') || '';
-  const currentMonthlyCost = parseFloat(searchParams.get('currentMonthlyCost') || '0');
-  const currentDeductible = parseFloat(searchParams.get('currentDeductible') || '0');
-  const currentOutOfPocketMax = parseFloat(searchParams.get('currentOutOfPocketMax') || '0');
+  const currentMonthlyCost = parseFloat(searchParams.get('currentMonthlyCost') || '0') || 0;
+  const currentDeductible = parseFloat(searchParams.get('currentDeductible') || '0') || 0;
+  const currentOutOfPocketMax = parseFloat(searchParams.get('currentOutOfPocketMax') || '0') || 0;
   const currentCoverageNotes = searchParams.get('currentCoverageNotes') || '';
 
   // Validate all URL parameters
@@ -253,6 +253,18 @@ function ResultsContent() {
             summary={`${recommendation.recommendedInsurance} - Estimated Cost: $${recommendation.estimatedMonthlyCost.low}-${recommendation.estimatedMonthlyCost.high}/month`}
             filename="insurance-analysis"
           />
+          <PDFDownloadButton
+            recommendation={recommendation}
+            formData={{
+              residences: residences.map(r => ({ zip: r.zip, state: r.state })),
+              numAdults,
+              numChildren,
+              adultAges,
+              childAges,
+              budget,
+              incomeRange,
+            }}
+          />
           <button
             onClick={() => window.print()}
             className="px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center gap-2"
@@ -267,7 +279,7 @@ function ResultsContent() {
           <CurrentInsuranceComparison
             currentInsuranceSummary={recommendation.currentInsuranceSummary}
             costComparison={recommendation.costComparison}
-            improvementAreas={recommendation.improvementAreas}
+            improvementAreas={recommendation.improvementAreas || []}
           />
         )}
 
@@ -278,6 +290,31 @@ function ResultsContent() {
 
         {/* Why This Recommendation */}
         <ReasoningSection reasoning={recommendation.reasoning} />
+
+        {/* Cost Comparison Chart */}
+        {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
+          <div className="bg-white rounded-xl shadow-lg p-8 mb-8 print:break-inside-avoid">
+            <CostComparisonChart
+              data={[
+                {
+                  name: 'Recommended',
+                  cost: recommendation.estimatedMonthlyCost,
+                  color: '#3b82f6',
+                },
+                ...recommendation.alternativeOptions.slice(0, 3).map((alt, idx) => ({
+                  name: alt.name,
+                  cost: alt.monthlyCost,
+                  color: ['#10b981', '#f59e0b', '#ef4444'][idx] || '#6b7280',
+                })),
+              ]}
+              title="Monthly Premium Comparison"
+              height={350}
+            />
+            <p className="text-sm text-gray-600 text-center mt-4">
+              * Costs shown are estimates. Actual premiums may vary based on plan details and subsidies.
+            </p>
+          </div>
+        )}
 
         {/* Medicare Advantage Comparison (for Medicare-eligible users) */}
         {medicareAdvantageAnalysis && (

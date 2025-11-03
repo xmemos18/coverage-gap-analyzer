@@ -4,6 +4,8 @@ import { Residence, FormErrors, UpdateFieldFunction } from '@/types';
 import { US_STATES } from '@/lib/states';
 import { validateZipCode, validateResidenceTimeDistribution } from '@/lib/validation';
 import { getStateFromZip } from '@/lib/zipToState';
+import { getMonthLabel, MONTH_OPTIONS } from '@/lib/residenceHelpers';
+import InfoTooltip from '@/components/InfoTooltip';
 import { useMemo } from 'react';
 
 interface Step1Props {
@@ -40,12 +42,10 @@ export default function Step1Residences({
     } else if (field === 'isPrimary' && typeof value === 'boolean') {
       // If setting this residence as primary, unset all others
       if (value === true) {
-        updatedResidences.forEach((res, i) => {
-          updatedResidences[i] = {
-            ...res,
-            isPrimary: i === index,
-          };
-        });
+        updatedResidences = updatedResidences.map((res, i) => ({
+          ...res,
+          isPrimary: i === index,
+        }));
       }
     } else {
       updatedResidences[index] = {
@@ -143,6 +143,7 @@ export default function Step1Residences({
                     className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
                   >
                     ZIP Code
+                    <InfoTooltip content="We use your ZIP code to find health insurance plans available in your area and calculate accurate premium costs based on your location." />
                     {residence.zip.length === 5 && !zipError && (
                       <span className="text-success text-sm" aria-label="Valid ZIP code">✓</span>
                     )}
@@ -191,6 +192,7 @@ export default function Step1Residences({
                     className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
                   >
                     State
+                    <InfoTooltip content="Different states have different insurance regulations, Medicaid eligibility rules, and available plans. This helps us provide state-specific recommendations and resources." />
                     {residence.state && !stateError && (
                       <span className="text-success text-sm" aria-label="Valid state selected">✓</span>
                     )}
@@ -261,9 +263,10 @@ export default function Step1Residences({
                 <div>
                   <label
                     htmlFor={`residence-${index}-months`}
-                    className="block text-sm font-medium text-gray-700 mb-2"
+                    className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"
                   >
                     How much time do you spend here per year?
+                    <InfoTooltip content="If you split time between multiple residences (snowbirds, seasonal workers), we need to know your time distribution to ensure you have coverage in all locations and meet plan requirements." />
                   </label>
                   <select
                     id={`residence-${index}-months`}
@@ -273,10 +276,11 @@ export default function Step1Residences({
                     aria-label={`Time spent per year at ${getResidenceLabel(index)}`}
                   >
                     <option value="">Select timeframe</option>
-                    <option value="2">1-3 months</option>
-                    <option value="5">4-6 months</option>
-                    <option value="8">7-9 months</option>
-                    <option value="11">10-12 months</option>
+                    {MONTH_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -309,7 +313,14 @@ export default function Step1Residences({
               </div>
 
               {/* Progress bar */}
-              <div className="w-full bg-gray-200 rounded-full h-6 overflow-hidden">
+              <div
+                className="w-full bg-gray-200 rounded-full h-6 overflow-hidden"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={12}
+                aria-valuenow={timeDistribution.totalMonths}
+                aria-label={`Total time allocated: ${timeDistribution.totalMonths} of 12 months`}
+              >
                 <div
                   className={`h-full transition-all duration-300 ${
                     timeDistribution.isValid
@@ -317,6 +328,7 @@ export default function Step1Residences({
                       : 'bg-red-500'
                   }`}
                   style={{ width: `${Math.min((timeDistribution.totalMonths / 12) * 100, 100)}%` }}
+                  aria-hidden="true"
                 >
                   <div className="text-xs text-white font-semibold text-center leading-6">
                     {timeDistribution.totalMonths > 0 && `${timeDistribution.totalMonths} months`}
@@ -337,11 +349,7 @@ export default function Step1Residences({
                       {getResidenceLabel(index)} ({residence.state || 'Unknown'})
                     </span>
                     <span className="font-semibold text-gray-900">
-                      {months === 2 && '1-3 months'}
-                      {months === 5 && '4-6 months'}
-                      {months === 8 && '7-9 months'}
-                      {months === 11 && '10-12 months'}
-                      {![2, 5, 8, 11].includes(months) && `${months} months`}
+                      {getMonthLabel(months)}
                     </span>
                   </div>
                 );
