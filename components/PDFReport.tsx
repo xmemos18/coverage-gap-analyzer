@@ -110,7 +110,7 @@ export async function generatePDF(props: PDFReportProps): Promise<Blob> {
           <Text style={styles.sectionTitle}>Your Household</Text>
           <Text style={styles.text}>
             <Text style={styles.label}>Location:</Text>
-            {formData.residences.map(r => `${r.city || r.state} (${r.zip})`).join(', ')}
+            {formData.residences.map(r => `${r.state} ${r.zip}`).join(', ')}
           </Text>
           <Text style={styles.text}>
             <Text style={styles.label}>Family Size:</Text>

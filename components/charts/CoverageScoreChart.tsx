@@ -40,7 +40,18 @@ export default function CoverageScoreChart({
     { category: 'Out-of-Pocket', score: scores.outOfPocketProtection, fullMark: 100 },
   ];
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  interface TooltipProps {
+    active?: boolean;
+    payload?: Array<{
+      payload: {
+        category: string;
+        score: number;
+        fullMark: number;
+      };
+    }>;
+  }
+
+  const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (

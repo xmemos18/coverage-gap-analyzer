@@ -22,7 +22,7 @@ export default function Step1Residences({
   onNext,
 }: Step1Props) {
   const updateResidence = (index: number, field: 'zip' | 'state' | 'isPrimary' | 'monthsPerYear', value: string | boolean | number) => {
-    const updatedResidences = [...residences];
+    let updatedResidences = [...residences];
 
     // Sanitize ZIP code input
     if (field === 'zip' && typeof value === 'string') {
