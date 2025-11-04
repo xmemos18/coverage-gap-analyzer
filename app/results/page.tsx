@@ -12,6 +12,7 @@ import CostBreakdown from '@/components/results/CostBreakdown';
 import VisualCostBreakdown from '@/components/results/VisualCostBreakdown';
 import NextStepsSection from '@/components/results/NextStepsSection';
 import AlternativeOptions from '@/components/results/AlternativeOptions';
+import AddOnInsuranceSection from '@/components/results/AddOnInsuranceSection';
 import DisclaimerSection from '@/components/results/DisclaimerSection';
 import ShareButtons from '@/components/ShareButtons';
 import ResultsSkeleton from '@/components/results/ResultsSkeleton';
@@ -155,6 +156,7 @@ function ResultsContent() {
     incomeRange,
     currentStep: 5,
     simpleMode,
+    interestedInAddOns: true, // Always show add-on recommendations on results page
   }), [residences, numAdults, adultAges, numChildren, childAges, hasMedicareEligible, hasEmployerInsurance, employerContribution, hasChronicConditions, chronicConditions, prescriptionCount, providerPreference, hasCurrentInsurance, currentCarrier, currentPlanType, currentMonthlyCost, currentDeductible, currentOutOfPocketMax, currentCoverageNotes, budget, incomeRange, simpleMode]);
 
   // Get all insurance analysis using custom hook
@@ -737,6 +739,11 @@ function ResultsContent() {
 
         {/* Other Options to Consider */}
         <AlternativeOptions options={recommendation.alternativeOptions} />
+
+        {/* Add-On Insurance Recommendations */}
+        {recommendation.addOnInsuranceAnalysis && (
+          <AddOnInsuranceSection analysis={recommendation.addOnInsuranceAnalysis} />
+        )}
 
         {/* Plan Comparison Table */}
         {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (

@@ -66,6 +66,10 @@ export interface CalculatorFormData {
 
   // UI Mode (Phase 3)
   simpleMode: boolean; // Simple mode skips optional questions
+
+  // Add-on Insurance Preferences (Phase 4)
+  interestedInAddOns: boolean;
+  addOnBudget?: number;
 }
 
 export interface FormErrors {
@@ -145,4 +149,7 @@ export interface InsuranceRecommendation {
   };
   suggestions?: Suggestion[];
   improvementAreas?: string[];
+
+  // Add-on insurance recommendations (Phase 4)
+  addOnInsuranceAnalysis?: import('./addOnInsurance').AddOnInsuranceAnalysis;
 }

@@ -4,6 +4,7 @@ import { getMedicareRecommendation, getMixedHouseholdRecommendation, getNonMedic
 import { addCurrentInsuranceComparison } from './comparison';
 import { calculateSubsidy } from './subsidyCalculator';
 import { compareEmployerToMarketplace } from './employerComparison';
+import { generateAddOnRecommendations } from './addOnRecommendations';
 import { INSURANCE_COSTS } from '@/lib/constants';
 
 /**
@@ -151,6 +152,23 @@ export function analyzeInsurance(formData: CalculatorFormData): InsuranceRecomme
       currentInsurance,
       uniqueStates
     );
+  }
+
+  // Generate add-on insurance recommendations if user is interested
+  if (formData.interestedInAddOns !== false) {
+    // Default to true (always show recommendations unless explicitly disabled)
+    const addOnPreferences = {
+      interested: true,
+      maxMonthlyBudget: formData.addOnBudget,
+    };
+
+    const addOnAnalysis = generateAddOnRecommendations(
+      formData,
+      recommendation,
+      addOnPreferences
+    );
+
+    recommendation.addOnInsuranceAnalysis = addOnAnalysis;
   }
 
   return recommendation;

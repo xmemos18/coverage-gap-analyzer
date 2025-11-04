@@ -63,6 +63,7 @@ const INITIAL_FORM_DATA: CalculatorFormData = {
   incomeRange: '',
   currentStep: CALCULATOR_STEPS.RESIDENCES,
   simpleMode: false, // Default to advanced mode
+  interestedInAddOns: true, // Default to showing add-on recommendations
 };
 
 export default function Calculator() {

@@ -183,6 +183,61 @@ export async function generatePDF(props: PDFReportProps): Promise<Blob> {
           </View>
         )}
 
+        {/* Add-On Insurance Recommendations */}
+        {recommendation.addOnInsuranceAnalysis && recommendation.addOnInsuranceAnalysis.recommendations.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Recommended Add-On Insurance</Text>
+            <Text style={styles.text}>
+              Based on your household composition, we recommend these supplemental coverage options:
+            </Text>
+
+            {/* High Priority Recommendations */}
+            {recommendation.addOnInsuranceAnalysis.highPriority.length > 0 && (
+              <View style={{ marginTop: 10 }}>
+                <Text style={{ ...styles.text, ...styles.label }}>High Priority:</Text>
+                {recommendation.addOnInsuranceAnalysis.highPriority.map((rec, index) => (
+                  <View key={index} style={{ marginLeft: 15, marginBottom: 8 }}>
+                    <Text style={styles.text}>
+                      <Text style={styles.bullet}>•</Text>
+                      <Text style={styles.label}>{rec.insurance.name}</Text>
+                      {' - $'}{rec.householdCostPerMonth}/month
+                    </Text>
+                    <Text style={{ fontSize: 10, marginLeft: 15, color: '#6b7280' }}>
+                      {rec.insurance.description}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Medium Priority Recommendations */}
+            {recommendation.addOnInsuranceAnalysis.mediumPriority.length > 0 && (
+              <View style={{ marginTop: 10 }}>
+                <Text style={{ ...styles.text, ...styles.label }}>Consider:</Text>
+                {recommendation.addOnInsuranceAnalysis.mediumPriority.slice(0, 3).map((rec, index) => (
+                  <View key={index} style={{ marginLeft: 15, marginBottom: 5 }}>
+                    <Text style={styles.text}>
+                      <Text style={styles.bullet}>•</Text>
+                      {rec.insurance.name} - ${rec.householdCostPerMonth}/month
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <View style={{ ...styles.costBox, marginTop: 10 }}>
+              <Text style={styles.text}>
+                <Text style={styles.label}>Total High Priority Add-Ons:</Text>
+                ${recommendation.addOnInsuranceAnalysis.totalMonthlyHighPriority}/month
+              </Text>
+              <Text style={styles.text}>
+                <Text style={styles.label}>All Recommended Add-Ons:</Text>
+                ${recommendation.addOnInsuranceAnalysis.totalMonthlyAllRecommended}/month
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Disclaimer */}
         <View style={styles.disclaimer}>
           <Text>

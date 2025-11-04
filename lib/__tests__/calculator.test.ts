@@ -32,6 +32,7 @@ describe('Insurance Calculator Engine', () => {
     incomeRange: '',
     currentStep: 5,
     simpleMode: false,
+    interestedInAddOns: true,
     ...overrides,
   });
 
