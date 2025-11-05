@@ -188,49 +188,37 @@ function AddOnInsuranceSection({ analysis }: AddOnInsuranceSectionProps) {
         </div>
       </div>
 
-      {/* Filtering and Sorting Controls */}
-      <div className="mb-6 bg-gray-50 rounded-lg p-4 border border-gray-200">
-        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-          {/* Filter by Category */}
-          <div className="flex-1 w-full md:w-auto">
-            <label htmlFor="category-filter" className="block text-sm font-semibold text-gray-700 mb-1">
-              Filter by Type
-            </label>
-            <select
-              id="category-filter"
-              value={filterByCategory}
-              onChange={(e) => setFilterByCategory(e.target.value)}
-              className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-            >
-              {categories.map(cat => (
-                <option key={cat} value={cat}>
-                  {cat === 'all' ? 'All Types' : cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* Simplified Filtering Controls */}
+      <div className="mb-6 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        {/* Filter by Category */}
+        <select
+          id="category-filter"
+          value={filterByCategory}
+          onChange={(e) => setFilterByCategory(e.target.value)}
+          className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+        >
+          {categories.map(cat => (
+            <option key={cat} value={cat}>
+              {cat === 'all' ? '📋 All Types' : `🔍 ${cat.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}`}
+            </option>
+          ))}
+        </select>
 
-          {/* Sort Options */}
-          <div className="flex-1 w-full md:w-auto">
-            <label htmlFor="sort-by" className="block text-sm font-semibold text-gray-700 mb-1">
-              Sort By
-            </label>
-            <select
-              id="sort-by"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as 'priority' | 'cost' | 'score')}
-              className="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
-            >
-              <option value="priority">Priority (High to Low)</option>
-              <option value="cost">Cost (High to Low)</option>
-              <option value="score">Probability Score (High to Low)</option>
-            </select>
-          </div>
+        {/* Sort Options */}
+        <select
+          id="sort-by"
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as 'priority' | 'cost' | 'score')}
+          className="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+        >
+          <option value="priority">⭐ Priority</option>
+          <option value="cost">💰 Cost</option>
+          <option value="score">📊 Score</option>
+        </select>
 
-          {/* Results Count */}
-          <div className="text-sm text-gray-600 mt-2 md:mt-6">
-            Showing <span className="font-semibold text-gray-900">{filteredAndSorted.length}</span> of {showAllOptions ? allRecommendations.length : recommendations.length}
-          </div>
+        {/* Results Count */}
+        <div className="text-sm text-gray-600 px-2 py-2.5 hidden sm:block">
+          <span className="font-semibold text-gray-900">{filteredAndSorted.length}</span> of {showAllOptions ? allRecommendations.length : recommendations.length}
         </div>
       </div>
 
@@ -293,19 +281,26 @@ function AddOnInsuranceSection({ analysis }: AddOnInsuranceSectionProps) {
         <div className="mb-6">
           <button
             onClick={() => setShowMediumPriority(!showMediumPriority)}
-            className="w-full text-left mb-4 flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            className="w-full text-left mb-4 flex items-center justify-between p-4 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg hover:from-yellow-100 hover:to-orange-100 transition-all border border-yellow-200"
           >
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-warning/10 text-warning border border-warning/30 rounded-full text-sm font-bold">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="px-3 py-1 bg-warning text-white rounded-full text-sm font-bold inline-block w-fit">
                 Medium Priority
               </span>
-              <span className="text-gray-600 text-base">
-                — Consider based on your needs ({filteredMediumPriority.length})
+              <span className="text-gray-700 text-sm sm:text-base">
+                Consider based on your needs • {filteredMediumPriority.length} {filteredMediumPriority.length === 1 ? 'option' : 'options'}
               </span>
             </div>
-            <span className="text-gray-400 text-2xl">
-              {showMediumPriority ? '−' : '+'}
-            </span>
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center">
+              <svg
+                className={`w-5 h-5 text-gray-600 transition-transform ${showMediumPriority ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </button>
 
           {showMediumPriority && (
@@ -323,19 +318,26 @@ function AddOnInsuranceSection({ analysis }: AddOnInsuranceSectionProps) {
         <div className="mb-6">
           <button
             onClick={() => setShowLowPriority(!showLowPriority)}
-            className="w-full text-left mb-4 flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            className="w-full text-left mb-4 flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all border border-gray-200"
           >
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded-full text-sm font-bold">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-bold inline-block w-fit">
                 Other Options
               </span>
-              <span className="text-gray-600 text-base">
-                — Additional coverage to consider ({filteredLowPriority.length})
+              <span className="text-gray-600 text-sm sm:text-base">
+                Additional coverage to consider • {filteredLowPriority.length} {filteredLowPriority.length === 1 ? 'option' : 'options'}
               </span>
             </div>
-            <span className="text-gray-400 text-2xl">
-              {showLowPriority ? '−' : '+'}
-            </span>
+            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center">
+              <svg
+                className={`w-5 h-5 text-gray-600 transition-transform ${showLowPriority ? 'rotate-180' : ''}`}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </button>
 
           {showLowPriority && (
