@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import ShareButtons from '@/components/ShareButtons';
 import { PDFDownloadButton } from '@/components/PDFReport';
-import { CalculatorFormData, InsuranceRecommendation } from '@/types';
+import { InsuranceRecommendation } from '@/types';
 
 interface ResultsActionsProps {
   recommendation: InsuranceRecommendation;

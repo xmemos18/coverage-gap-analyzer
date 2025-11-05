@@ -4,9 +4,10 @@ import { Residence, FormErrors, UpdateFieldFunction } from '@/types';
 import { US_STATES } from '@/lib/states';
 import { validateZipCode, validateResidenceTimeDistribution } from '@/lib/validation';
 import { getStateFromZip } from '@/lib/zipToState';
+import { validateZipCode as validateZipCodeAPI, ZipCodeLocation } from '@/lib/zipCodeApi';
 import { getMonthLabel, MONTH_OPTIONS } from '@/lib/residenceHelpers';
 import InfoTooltip from '@/components/InfoTooltip';
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 
 interface Step1Props {
   residences: Residence[];
@@ -21,6 +22,64 @@ export default function Step1Residences({
   onUpdate,
   onNext,
 }: Step1Props) {
+  // Track ZIP validation states for each residence
+  const [zipValidation, setZipValidation] = useState<{
+    [key: number]: {
+      isValidating: boolean;
+      isValid: boolean | null;
+      locationData: ZipCodeLocation | null;
+    };
+  }>({});
+
+  // Debounce timer for ZIP validation
+  const [zipDebounceTimer, setZipDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
+  // Validate ZIP code using API with debouncing
+  const validateZipWithAPI = useCallback(async (index: number, zip: string) => {
+    if (zip.length !== 5) {
+      setZipValidation(prev => ({
+        ...prev,
+        [index]: { isValidating: false, isValid: null, locationData: null }
+      }));
+      return;
+    }
+
+    // Set validating state
+    setZipValidation(prev => ({
+      ...prev,
+      [index]: { isValidating: true, isValid: null, locationData: null }
+    }));
+
+    try {
+      const locationData = await validateZipCodeAPI(zip);
+
+      setZipValidation(prev => ({
+        ...prev,
+        [index]: {
+          isValidating: false,
+          isValid: locationData !== null,
+          locationData,
+        }
+      }));
+
+      // Auto-populate state if valid
+      if (locationData) {
+        const updatedResidences = [...residences];
+        updatedResidences[index] = {
+          ...updatedResidences[index],
+          state: locationData.stateAbbr,
+        };
+        onUpdate('residences', updatedResidences);
+      }
+    } catch (error) {
+      console.error('ZIP validation error:', error);
+      setZipValidation(prev => ({
+        ...prev,
+        [index]: { isValidating: false, isValid: false, locationData: null }
+      }));
+    }
+  }, [residences, onUpdate]);
+
   const updateResidence = (index: number, field: 'zip' | 'state' | 'isPrimary' | 'monthsPerYear', value: string | boolean | number) => {
     let updatedResidences = [...residences];
 
@@ -32,11 +91,30 @@ export default function Step1Residences({
         [field]: sanitized,
       };
 
-      // Auto-populate state if ZIP is valid (5 digits)
+      // Clear previous debounce timer
+      if (zipDebounceTimer) {
+        clearTimeout(zipDebounceTimer);
+      }
+
+      // Validate ZIP with API after debounce
       if (sanitized.length === 5) {
-        const detectedState = getStateFromZip(sanitized);
-        if (detectedState) {
-          updatedResidences[index].state = detectedState;
+        const timer = setTimeout(() => {
+          validateZipWithAPI(index, sanitized);
+        }, 500); // 500ms debounce
+        setZipDebounceTimer(timer);
+      } else {
+        // Reset validation state for incomplete ZIP
+        setZipValidation(prev => ({
+          ...prev,
+          [index]: { isValidating: false, isValid: null, locationData: null }
+        }));
+
+        // Fallback to old method for partial input (keep existing behavior)
+        if (sanitized.length === 5) {
+          const detectedState = getStateFromZip(sanitized);
+          if (detectedState) {
+            updatedResidences[index].state = detectedState;
+          }
         }
       }
     } else if (field === 'isPrimary' && typeof value === 'boolean') {
@@ -56,6 +134,15 @@ export default function Step1Residences({
 
     onUpdate('residences', updatedResidences);
   };
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (zipDebounceTimer) {
+        clearTimeout(zipDebounceTimer);
+      }
+    };
+  }, [zipDebounceTimer]);
 
   const addResidence = () => {
     const updatedResidences = [...residences, { zip: '', state: '', isPrimary: false, monthsPerYear: 0 }];
@@ -105,6 +192,10 @@ export default function Step1Residences({
           const isRequired = isPrimary;
           const zipError = errors[`residence${index}Zip`];
           const stateError = errors[`residence${index}State`];
+          const validation = zipValidation[index];
+          const isValidating = validation?.isValidating || false;
+          const isValid = validation?.isValid;
+          const locationData = validation?.locationData;
 
           return (
             <div
@@ -144,8 +235,20 @@ export default function Step1Residences({
                   >
                     ZIP Code
                     <InfoTooltip content="We use your ZIP code to find health insurance plans available in your area and calculate accurate premium costs based on your location." />
-                    {residence.zip.length === 5 && !zipError && (
-                      <span className="text-success text-sm" aria-label="Valid ZIP code">✓</span>
+                    {isValidating && (
+                      <span className="text-gray-500 text-sm flex items-center gap-1" aria-label="Validating ZIP code">
+                        <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Checking...
+                      </span>
+                    )}
+                    {!isValidating && isValid === true && (
+                      <span className="text-success text-sm font-semibold" aria-label="Valid ZIP code">✓ Valid</span>
+                    )}
+                    {!isValidating && isValid === false && residence.zip.length === 5 && (
+                      <span className="text-red-500 text-sm font-semibold" aria-label="Invalid ZIP code">✗ Invalid</span>
                     )}
                   </label>
                   <div className="relative">
@@ -156,23 +259,44 @@ export default function Step1Residences({
                       maxLength={5}
                       value={residence.zip}
                       onChange={(e) => updateResidence(index, 'zip', e.target.value)}
-                      className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${
-                        zipError
-                          ? 'border-red-500'
-                          : residence.zip.length === 5
-                          ? 'border-success'
+                      className={`w-full px-4 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${
+                        zipError || (isValid === false && residence.zip.length === 5)
+                          ? 'border-red-500 bg-red-50'
+                          : isValid === true
+                          ? 'border-success bg-green-50'
                           : 'border-gray-300'
                       }`}
                       placeholder="12345"
                       aria-label={`ZIP code for ${getResidenceLabel(index)}`}
                       aria-required="true"
-                      aria-invalid={!!zipError}
+                      aria-invalid={!!zipError || isValid === false}
                       aria-describedby={zipError ? `residence-${index}-zip-error` : undefined}
                     />
-                    {residence.zip.length === 5 && !zipError && (
-                      <span className="absolute right-3 top-2.5 text-success" aria-hidden="true">✓</span>
+                    {isValidating && (
+                      <span className="absolute right-3 top-2.5" aria-hidden="true">
+                        <svg className="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      </span>
+                    )}
+                    {!isValidating && isValid === true && (
+                      <span className="absolute right-3 top-2.5 text-success text-xl" aria-hidden="true">✓</span>
+                    )}
+                    {!isValidating && isValid === false && residence.zip.length === 5 && (
+                      <span className="absolute right-3 top-2.5 text-red-500 text-xl" aria-hidden="true">✗</span>
                     )}
                   </div>
+                  {/* Show city name when ZIP is valid */}
+                  {locationData && (
+                    <p className="text-sm text-gray-600 mt-1 flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <span className="font-medium">{locationData.city}, {locationData.stateAbbr}</span>
+                    </p>
+                  )}
                   {zipError && (
                     <p
                       id={`residence-${index}-zip-error`}
@@ -181,6 +305,11 @@ export default function Step1Residences({
                       aria-live="polite"
                     >
                       {zipError}
+                    </p>
+                  )}
+                  {!zipError && isValid === false && residence.zip.length === 5 && (
+                    <p className="text-red-600 text-sm mt-1" role="alert">
+                      This ZIP code doesn&apos;t exist. Please check and try again.
                     </p>
                   )}
                 </div>
