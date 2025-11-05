@@ -3,7 +3,6 @@
 import { Residence, FormErrors, UpdateFieldFunction } from '@/types';
 import { US_STATES } from '@/lib/states';
 import { validateZipCode, validateResidenceTimeDistribution } from '@/lib/validation';
-import { getStateFromZip } from '@/lib/zipToState';
 import { validateZipCode as validateZipCodeAPI, ZipCodeLocation } from '@/lib/zipCodeApi';
 import { getMonthLabel, MONTH_OPTIONS } from '@/lib/residenceHelpers';
 import InfoTooltip from '@/components/InfoTooltip';
@@ -108,14 +107,6 @@ export default function Step1Residences({
           ...prev,
           [index]: { isValidating: false, isValid: null, locationData: null }
         }));
-
-        // Fallback to old method for partial input (keep existing behavior)
-        if (sanitized.length === 5) {
-          const detectedState = getStateFromZip(sanitized);
-          if (detectedState) {
-            updatedResidences[index].state = detectedState;
-          }
-        }
       }
     } else if (field === 'isPrimary' && typeof value === 'boolean') {
       // If setting this residence as primary, unset all others
