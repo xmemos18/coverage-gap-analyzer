@@ -22,6 +22,7 @@ import CollapsibleSection from '@/components/results/CollapsibleSection';
 import ResultsActions from '@/components/results/ResultsActions';
 import { TabNavigation, TabPanel, TabId } from '@/components/results/TabNavigation';
 import MarketplacePlans from '@/components/results/MarketplacePlans';
+import MedicarePlanFinderLink from '@/components/results/MedicarePlanFinderLink';
 
 // Lazy load heavy components
 const PlanComparisonTable = lazy(() => import('@/components/results/PlanComparisonTable'));
@@ -359,35 +360,43 @@ function ResultsContent() {
             <div className="space-y-6 md:space-y-8">
               {/* Medicare Advantage Analysis */}
               {medicareAdvantageAnalysis && (
-                <CollapsibleSection
-                  title="Medicare vs Medicare Advantage"
-                  icon="🏥"
-                  colorScheme="blue"
-                  summary={
-                    <div>
-                      <div className="flex items-start gap-3 mb-3">
-                        <span className="text-2xl">
-                          {medicareAdvantageAnalysis.analysis.isGoodFit ? '✅' : '⚠️'}
-                        </span>
-                        <div>
-                          <h4 className="font-semibold text-lg text-gray-900 mb-1">
-                            Medicare Advantage {medicareAdvantageAnalysis.analysis.isGoodFit ? 'May Work For You' : 'May Not Be Ideal'}
-                          </h4>
-                          <p className="text-sm text-gray-600 mb-2">
-                            Confidence: <span className="font-semibold capitalize">{medicareAdvantageAnalysis.analysis.confidenceLevel}</span>
-                          </p>
-                          <ul className="text-sm text-gray-700 space-y-1">
-                            {medicareAdvantageAnalysis.analysis.reasoning.slice(0, 2).map((reason, idx) => (
-                              <li key={idx}>• {reason}</li>
-                            ))}
-                          </ul>
+                <>
+                  <CollapsibleSection
+                    title="Medicare vs Medicare Advantage"
+                    icon="🏥"
+                    colorScheme="blue"
+                    summary={
+                      <div>
+                        <div className="flex items-start gap-3 mb-3">
+                          <span className="text-2xl">
+                            {medicareAdvantageAnalysis.analysis.isGoodFit ? '✅' : '⚠️'}
+                          </span>
+                          <div>
+                            <h4 className="font-semibold text-lg text-gray-900 mb-1">
+                              Medicare Advantage {medicareAdvantageAnalysis.analysis.isGoodFit ? 'May Work For You' : 'May Not Be Ideal'}
+                            </h4>
+                            <p className="text-sm text-gray-600 mb-2">
+                              Confidence: <span className="font-semibold capitalize">{medicareAdvantageAnalysis.analysis.confidenceLevel}</span>
+                            </p>
+                            <ul className="text-sm text-gray-700 space-y-1">
+                              {medicareAdvantageAnalysis.analysis.reasoning.slice(0, 2).map((reason, idx) => (
+                                <li key={idx}>• {reason}</li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  }
-                >
-                  <MedicareAdvantageDetails analysis={medicareAdvantageAnalysis} />
-                </CollapsibleSection>
+                    }
+                  >
+                    <MedicareAdvantageDetails analysis={medicareAdvantageAnalysis} />
+                  </CollapsibleSection>
+
+                  {/* Medicare Plan Finder Link */}
+                  <MedicarePlanFinderLink
+                    zipCode={residenceZipsStr.split(',')[0] || ''}
+                    recommendationType={medicareAdvantageAnalysis.analysis.isGoodFit ? 'both' : 'medigap'}
+                  />
+                </>
               )}
 
               {/* COBRA Analysis */}

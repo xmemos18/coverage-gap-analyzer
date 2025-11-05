@@ -79,19 +79,66 @@ Healthcare.gov API key not configured. Request one at: https://developer.cms.gov
 
 ---
 
-## 3. Medicare.gov API (Coming Soon)
+## 3. Medicare Plan Data
 
-### What it does
-- Medicare Advantage plan search
-- Medigap plan options
-- Star ratings and provider networks
-- Prescription drug coverage (Part D)
+### Important Note: No Real-Time API Available
 
-### Status
-🚧 Integration in progress
+**Unlike Healthcare.gov, Medicare does NOT have a public REST API** for plan comparison data.
 
-### Setup Instructions
-Will be added once integration is complete.
+CMS publishes Medicare plan data as downloadable files instead of providing a queryable API like the Marketplace API.
+
+### What's Available
+
+Medicare plan data is distributed through:
+
+1. **Annual Landscape Files** - Complete plan offerings released each September
+2. **Monthly Data Files** - Enrollment and utilization statistics
+3. **Medicare Plan Finder** - CMS's own tool (no public API)
+
+### Why This Matters
+
+- ✅ You can get the **same data** as Medicare Plan Finder
+- ❌ But it requires **downloading files** and importing to a database
+- ❌ **Not real-time** - updated monthly/annually
+- ❌ **No API key** available for plan searches
+
+### How to Use Medicare Data
+
+See **MEDICARE_DATA.md** in the project root for complete instructions on:
+
+- Downloading CMS landscape files
+- Setting up a local database
+- Importing plan data
+- Querying by ZIP code/county
+- Update schedules
+
+### Current Application Behavior
+
+For Medicare-eligible users, this application:
+
+- ✅ Recommends Medicare + Medigap or Medicare Advantage
+- ✅ Provides educational content about Medicare options
+- ✅ Estimates costs based on national averages
+- ✅ Links to Medicare.gov Plan Finder for real plan searches
+- ⚠️ **Does not show real plan premiums** (no API available)
+
+### Future Enhancement
+
+To add real Medicare plan data:
+
+1. Download annual landscape file from CMS
+2. Import CSV data into PostgreSQL/MySQL database
+3. Create API endpoints to query the database
+4. Update the application to use local data
+5. Re-import annually during open enrollment
+
+**Estimated effort**: 8-16 hours for initial setup + annual updates
+
+### Resources
+
+- **Landscape Files**: https://www.cms.gov/data-research/statistics-trends-and-reports/medicare-advantagepart-d-contract-and-enrollment-data
+- **Medicare Plan Finder**: https://www.medicare.gov/plan-compare/
+- **Implementation Guide**: See MEDICARE_DATA.md in this repository
 
 ---
 
