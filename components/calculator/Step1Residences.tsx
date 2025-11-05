@@ -35,10 +35,7 @@ export default function Step1Residences({
 
   // Validate ZIP code using API with debouncing
   const validateZipWithAPI = useCallback(async (index: number, zip: string) => {
-    console.log('[ZIP Validation] Starting validation for:', zip, 'at index:', index);
-
     if (zip.length !== 5) {
-      console.log('[ZIP Validation] ZIP too short, resetting');
       setZipValidation(prev => ({
         ...prev,
         [index]: { isValidating: false, isValid: null, locationData: null }
@@ -47,18 +44,14 @@ export default function Step1Residences({
     }
 
     // Set validating state
-    console.log('[ZIP Validation] Setting validating state');
     setZipValidation(prev => ({
       ...prev,
       [index]: { isValidating: true, isValid: null, locationData: null }
     }));
 
     try {
-      console.log('[ZIP Validation] Calling API for:', zip);
       const locationData = await validateZipCodeAPI(zip);
-      console.log('[ZIP Validation] API response:', locationData);
 
-      console.log('[ZIP Validation] Setting final state - valid:', locationData !== null);
       setZipValidation(prev => ({
         ...prev,
         [index]: {
@@ -70,7 +63,6 @@ export default function Step1Residences({
 
       // Auto-populate state if valid
       if (locationData) {
-        console.log('[ZIP Validation] Auto-populating state:', locationData.stateAbbr);
         const updatedResidences = [...residences];
         updatedResidences[index] = {
           ...updatedResidences[index],
@@ -105,14 +97,11 @@ export default function Step1Residences({
 
       // Validate ZIP with API after debounce
       if (sanitized.length === 5) {
-        console.log('[ZIP Input] Full ZIP entered, starting 500ms debounce for:', sanitized);
         const timer = setTimeout(() => {
-          console.log('[ZIP Input] Debounce complete, triggering validation');
           validateZipWithAPI(index, sanitized);
         }, 500); // 500ms debounce
         setZipDebounceTimer(timer);
       } else {
-        console.log('[ZIP Input] Incomplete ZIP:', sanitized);
         // Reset validation state for incomplete ZIP
         setZipValidation(prev => ({
           ...prev,

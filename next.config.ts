@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'", // Tailwind requires unsafe-inline
               "img-src 'self' data: blob: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://www.google-analytics.com https://plausible.io",
+              "connect-src 'self' https://www.google-analytics.com https://plausible.io https://api.zippopotam.us https://marketplace.api.healthcare.gov",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
