@@ -162,9 +162,7 @@ export default function Calculator() {
   // Trigger save whenever form changes
   useEffect(() => {
     saveToLocalStorage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    // saveToLocalStorage is memoized by useDebouncedCallback and safe to exclude
-  }, [formData]);
+  }, [formData, saveToLocalStorage]);
 
   const resumeSavedData = () => {
     const result = loadCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);

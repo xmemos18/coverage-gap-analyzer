@@ -46,17 +46,11 @@ const createBaseFormData = (overrides?: Partial<CalculatorFormData>): Calculator
 });
 
 const createBasePrimaryRecommendation = (): InsuranceRecommendation => ({
-  planType: 'MARKETPLACE',
-  category: 'Bronze',
-  monthlyPremium: 500,
-  annualDeductible: 5000,
-  outOfPocketMax: 8000,
-  copays: { primaryCare: 40, specialist: 80, urgentCare: 100, emergencyRoom: 500 },
-  coinsurance: 30,
-  pros: ['Lower monthly premium'],
-  cons: ['Higher out-of-pocket costs'],
-  suitableFor: ['Generally healthy individuals'],
-  whyRecommended: 'Balanced option for your situation',
+  recommendedInsurance: 'Nationwide Flexible Plan',
+  householdBreakdown: '1 adult',
+  estimatedMonthlyCost: { low: 500, high: 900 },
+  coverageGapScore: 85,
+  reasoning: 'Balanced option for your situation',
   actionItems: [],
   alternativeOptions: [],
 });

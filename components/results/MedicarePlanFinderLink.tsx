@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getMedicarePlanFinderUrl, getMedicareResources, getEstimatedMedicareCosts } from '@/lib/medicareApi';
+import { getMedicareResources, getEstimatedMedicareCosts } from '@/lib/medicareApi';
 
 interface MedicarePlanFinderLinkProps {
   zipCode: string;

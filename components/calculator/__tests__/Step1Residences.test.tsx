@@ -1,7 +1,8 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import Step1Residences from '../Step1Residences';
 import { Residence, FormErrors } from '@/types';
+import * as zipCodeApi from '@/lib/zipCodeApi';
 
 describe('Step1Residences Component', () => {
   const mockOnUpdate = jest.fn();
@@ -16,6 +17,22 @@ describe('Step1Residences Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Mock the ZIP code validation API
+    jest.spyOn(zipCodeApi, 'validateZipCode').mockImplementation((zip: string) => {
+      // Return mock location data for known ZIPs
+      const zipMap: { [key: string]: { stateAbbr: string; city: string; county: string } } = {
+        '12345': { stateAbbr: 'NY', city: 'Schenectady', county: 'Schenectady County' },
+        '10001': { stateAbbr: 'NY', city: 'New York', county: 'New York County' },
+        '90001': { stateAbbr: 'CA', city: 'Los Angeles', county: 'Los Angeles County' },
+      };
+
+      return Promise.resolve(zipMap[zip] || null);
+    });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('should render primary and secondary residence fields', () => {
@@ -49,7 +66,7 @@ describe('Step1Residences Component', () => {
     expect(form).toHaveAttribute('aria-labelledby', 'residences-heading');
   });
 
-  it('should call onUpdate when ZIP code is changed', () => {
+  it('should call onUpdate when ZIP code is changed', async () => {
     render(
       <Step1Residences
         residences={defaultResidences}
@@ -59,19 +76,34 @@ describe('Step1Residences Component', () => {
       />
     );
 
-    const zipInputs = screen.getAllByLabelText(/ZIP code/i);
-    const primaryZipInput = zipInputs[0];
+    const zipInput = screen.getByRole('textbox', { name: /ZIP code.*Primary/i });
 
-    fireEvent.change(primaryZipInput, { target: { value: '12345' } });
+    // Verify input exists
+    expect(zipInput).toBeInTheDocument();
 
-    // Note: 12345 is a valid NY ZIP, so state should auto-populate
-    expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '12345', state: 'NY', isPrimary: true, monthsPerYear: 0 },
-      { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
-    ]);
+    fireEvent.change(zipInput, { target: { value: '12345' } });
+
+    // First check that onUpdate is called with the ZIP (immediate call)
+    await waitFor(() => {
+      expect(mockOnUpdate).toHaveBeenCalled();
+    }, { timeout: 1000 });
+
+    // Then wait for the auto-populated state (after async validation)
+    await waitFor(() => {
+      const lastCall = mockOnUpdate.mock.calls[mockOnUpdate.mock.calls.length - 1];
+      expect(lastCall).toBeDefined();
+      expect(lastCall[0]).toBe('residences');
+      const residences = lastCall[1];
+      expect(residences[0]).toMatchObject({
+        zip: '12345',
+        state: 'NY',
+        isPrimary: true,
+        monthsPerYear: 0
+      });
+    }, { timeout: 3000 });
   });
 
-  it('should sanitize ZIP code input (remove non-numeric characters)', () => {
+  it('should sanitize ZIP code input (remove non-numeric characters)', async () => {
     render(
       <Step1Residences
         residences={defaultResidences}
@@ -86,14 +118,15 @@ describe('Step1Residences Component', () => {
 
     fireEvent.change(primaryZipInput, { target: { value: '123-45' } });
 
-    // ZIP should be sanitized to remove dash and state auto-populated
-    expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '12345', state: 'NY', isPrimary: true, monthsPerYear: 0 },
-      { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
-    ]);
+    await waitFor(() => {
+      expect(mockOnUpdate).toHaveBeenCalledWith('residences', expect.arrayContaining([
+        expect.objectContaining({ zip: '12345', state: 'NY', isPrimary: true, monthsPerYear: 0 }),
+        expect.objectContaining({ zip: '', state: '', isPrimary: false, monthsPerYear: 0 }),
+      ]));
+    }, { timeout: 3000 });
   });
 
-  it('should truncate ZIP codes to 5 digits', () => {
+  it('should truncate ZIP codes to 5 digits', async () => {
     render(
       <Step1Residences
         residences={defaultResidences}
@@ -106,14 +139,15 @@ describe('Step1Residences Component', () => {
     const zipInputs = screen.getAllByLabelText(/ZIP code/i);
     fireEvent.change(zipInputs[0], { target: { value: '123456789' } });
 
-    // ZIP should be truncated to 5 digits and state auto-populated
-    expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '12345', state: 'NY', isPrimary: true, monthsPerYear: 0 },
-      { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
-    ]);
+    await waitFor(() => {
+      expect(mockOnUpdate).toHaveBeenCalledWith('residences', expect.arrayContaining([
+        expect.objectContaining({ zip: '12345', state: 'NY', isPrimary: true, monthsPerYear: 0 }),
+        expect.objectContaining({ zip: '', state: '', isPrimary: false, monthsPerYear: 0 }),
+      ]));
+    }, { timeout: 3000 });
   });
 
-  it('should auto-populate state when valid ZIP code is entered', () => {
+  it('should auto-populate state when valid ZIP code is entered', async () => {
     render(
       <Step1Residences
         residences={defaultResidences}
@@ -126,16 +160,17 @@ describe('Step1Residences Component', () => {
     const zipInputs = screen.getAllByLabelText(/ZIP code/i);
     const primaryZipInput = zipInputs[0];
 
-    // Enter a valid New York ZIP code
     fireEvent.change(primaryZipInput, { target: { value: '10001' } });
 
-    expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 0 },
-      { zip: '', state: '', isPrimary: false, monthsPerYear: 0 },
-    ]);
+    await waitFor(() => {
+      expect(mockOnUpdate).toHaveBeenCalledWith('residences', expect.arrayContaining([
+        expect.objectContaining({ zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 0 }),
+        expect.objectContaining({ zip: '', state: '', isPrimary: false, monthsPerYear: 0 }),
+      ]));
+    }, { timeout: 3000 });
   });
 
-  it('should auto-populate state for California ZIP code', () => {
+  it('should auto-populate state for California ZIP code', async () => {
     render(
       <Step1Residences
         residences={defaultResidences}
@@ -148,13 +183,14 @@ describe('Step1Residences Component', () => {
     const zipInputs = screen.getAllByLabelText(/ZIP code/i);
     const secondaryZipInput = zipInputs[1];
 
-    // Enter a valid California ZIP code
     fireEvent.change(secondaryZipInput, { target: { value: '90001' } });
 
-    expect(mockOnUpdate).toHaveBeenCalledWith('residences', [
-      { zip: '', state: '', isPrimary: true, monthsPerYear: 0 },
-      { zip: '90001', state: 'CA', isPrimary: false, monthsPerYear: 0 },
-    ]);
+    await waitFor(() => {
+      expect(mockOnUpdate).toHaveBeenCalledWith('residences', expect.arrayContaining([
+        expect.objectContaining({ zip: '', state: '', isPrimary: true, monthsPerYear: 0 }),
+        expect.objectContaining({ zip: '90001', state: 'CA', isPrimary: false, monthsPerYear: 0 }),
+      ]));
+    }, { timeout: 3000 });
   });
 
   it('should call onUpdate when state is changed', () => {

@@ -27,18 +27,21 @@ describe('Environment Variables Configuration', () => {
 
   describe('Environment Detection', () => {
     it('should correctly detect development environment', () => {
-      process.env.NODE_ENV = 'development';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (process.env as any).NODE_ENV = 'development';
       // Note: env object is already initialized, so we check the value directly
       expect(process.env.NODE_ENV).toBe('development');
     });
 
     it('should correctly detect production environment', () => {
-      process.env.NODE_ENV = 'production';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (process.env as any).NODE_ENV = 'production';
       expect(process.env.NODE_ENV).toBe('production');
     });
 
     it('should correctly detect test environment', () => {
-      process.env.NODE_ENV = 'test';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (process.env as any).NODE_ENV = 'test';
       expect(process.env.NODE_ENV).toBe('test');
     });
   });
@@ -85,12 +88,14 @@ describe('Environment Variables Configuration', () => {
 
   describe('validateEnv', () => {
     it('should not throw in non-production environments', () => {
-      process.env.NODE_ENV = 'development';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (process.env as any).NODE_ENV = 'development';
       expect(() => validateEnv()).not.toThrow();
     });
 
     it('should not throw when all vars are present', () => {
-      process.env.NODE_ENV = 'production';
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (process.env as any).NODE_ENV = 'production';
       // No required vars currently, so should not throw
       expect(() => validateEnv()).not.toThrow();
     });

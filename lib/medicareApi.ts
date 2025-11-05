@@ -97,9 +97,10 @@ export function isMedicareDataAvailable(): boolean {
  * @param includePartD - Filter for plans with prescription drug coverage
  * @returns Array of Medicare Advantage plans (currently returns empty array)
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function searchMedicareAdvantagePlans(
-  zipCode: string,
-  options?: {
+  _zipCode: string,
+  _options?: {
     includePartD?: boolean;
     planTypes?: MedicarePlanType[];
     minStarRating?: number;
@@ -126,9 +127,10 @@ export async function searchMedicareAdvantagePlans(
  * @param planLetters - Specific Medigap plans to search for (e.g., ['G', 'N'])
  * @returns Array of Medigap plans (currently returns empty array)
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function searchMedigapPlans(
-  zipCode: string,
-  planLetters?: MedigapPlanLetter[]
+  _zipCode: string,
+  _planLetters?: MedigapPlanLetter[]
 ): Promise<MedigapPlan[]> {
   // TODO: Integrate with private carriers or state insurance departments
 
@@ -148,9 +150,10 @@ export async function searchMedigapPlans(
  * @param zipCode - 5-digit ZIP code
  * @returns Array of Part D plans (currently returns empty array)
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function searchPartDPlans(
-  zipCode: string,
-  options?: {
+  _zipCode: string,
+  _options?: {
     minStarRating?: number;
   }
 ): Promise<PartDPlan[]> {
@@ -359,7 +362,7 @@ export function getLandscapeFileInstructions() {
   };
 }
 
-export default {
+const medicareApi = {
   isMedicareDataAvailable,
   searchMedicareAdvantagePlans,
   searchMedigapPlans,
@@ -370,3 +373,5 @@ export default {
   getMedicareResources,
   getLandscapeFileInstructions,
 };
+
+export default medicareApi;

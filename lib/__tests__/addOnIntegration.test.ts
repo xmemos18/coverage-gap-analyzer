@@ -43,9 +43,9 @@ describe('Add-On Insurance Integration', () => {
   });
 
   describe('Age Input Flow', () => {
-    it('should pass ages from form data to main calculator', () => {
+    it('should pass ages from form data to main calculator', async () => {
       const formData = createTestFormData();
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
 
       expect(recommendation).toBeDefined();
       expect(recommendation.recommendedInsurance).toBeDefined();
@@ -53,28 +53,28 @@ describe('Add-On Insurance Integration', () => {
       expect(recommendation.coverageGapScore).toBeGreaterThanOrEqual(0);
     });
 
-    it('should generate add-on analysis when interestedInAddOns is true', () => {
+    it('should generate add-on analysis when interestedInAddOns is true', async () => {
       const formData = createTestFormData({ interestedInAddOns: true });
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
 
       expect(recommendation.addOnInsuranceAnalysis).toBeDefined();
       expect(recommendation.addOnInsuranceAnalysis?.recommendations).toBeDefined();
       expect(recommendation.addOnInsuranceAnalysis?.allRecommendations).toBeDefined();
     });
 
-    it('should not generate add-on analysis when interestedInAddOns is false', () => {
+    it('should not generate add-on analysis when interestedInAddOns is false', async () => {
       const formData = createTestFormData({ interestedInAddOns: false });
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
 
       expect(recommendation.addOnInsuranceAnalysis).toBeUndefined();
     });
 
-    it('should use all household ages for add-on recommendations', () => {
+    it('should use all household ages for add-on recommendations', async () => {
       const formData = createTestFormData({
         adultAges: [30, 65],
         childAges: [5, 10],
       });
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
 
       expect(recommendation.addOnInsuranceAnalysis).toBeDefined();
 
@@ -92,14 +92,14 @@ describe('Add-On Insurance Integration', () => {
   });
 
   describe('Integration with Existing Functionality', () => {
-    it('should not affect main recommendation calculation', () => {
+    it('should not affect main recommendation calculation', async () => {
       const formData = createTestFormData();
 
       // Generate with add-ons
-      const withAddOns = analyzeInsurance({ ...formData, interestedInAddOns: true });
+      const withAddOns = await analyzeInsurance({ ...formData, interestedInAddOns: true });
 
       // Generate without add-ons
-      const withoutAddOns = analyzeInsurance({ ...formData, interestedInAddOns: false });
+      const withoutAddOns = await analyzeInsurance({ ...formData, interestedInAddOns: false });
 
       // Main recommendation should be identical
       expect(withAddOns.recommendedInsurance).toBe(withoutAddOns.recommendedInsurance);
@@ -108,12 +108,12 @@ describe('Add-On Insurance Integration', () => {
       expect(withAddOns.reasoning).toBe(withoutAddOns.reasoning);
     });
 
-    it('should handle households without children', () => {
+    it('should handle households without children', async () => {
       const formData = createTestFormData({
         numChildren: 0,
         childAges: [],
       });
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
 
       expect(recommendation).toBeDefined();
       expect(recommendation.addOnInsuranceAnalysis).toBeDefined();
@@ -122,21 +122,21 @@ describe('Add-On Insurance Integration', () => {
       expect(recommendation.addOnInsuranceAnalysis!.recommendations.length).toBeGreaterThan(0);
     });
 
-    it('should handle single-person households', () => {
+    it('should handle single-person households', async () => {
       const formData = createTestFormData({
         numAdults: 1,
         adultAges: [28],
         numChildren: 0,
         childAges: [],
       });
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
 
       expect(recommendation).toBeDefined();
       expect(recommendation.addOnInsuranceAnalysis).toBeDefined();
       expect(recommendation.addOnInsuranceAnalysis!.recommendations.length).toBeGreaterThan(0);
     });
 
-    it('should handle Medicare-eligible households', () => {
+    it('should handle Medicare-eligible households', async () => {
       const formData = createTestFormData({
         numAdults: 2,
         adultAges: [67, 65],
@@ -144,7 +144,7 @@ describe('Add-On Insurance Integration', () => {
         childAges: [],
         hasMedicareEligible: true,
       });
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
 
       expect(recommendation).toBeDefined();
       expect(recommendation.addOnInsuranceAnalysis).toBeDefined();
@@ -160,12 +160,12 @@ describe('Add-On Insurance Integration', () => {
       expect(hasGapCoverage).toBe(true);
     });
 
-    it('should handle chronic conditions modifier', () => {
+    it('should handle chronic conditions modifier', async () => {
       const formData = createTestFormData({
         hasChronicConditions: true,
         chronicConditions: ['diabetes', 'hypertension'],
       });
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
 
       expect(recommendation).toBeDefined();
       expect(recommendation.addOnInsuranceAnalysis).toBeDefined();
@@ -180,9 +180,9 @@ describe('Add-On Insurance Integration', () => {
   });
 
   describe('Filtering and Sorting', () => {
-    it('should return both filtered and unfiltered recommendations', () => {
+    it('should return both filtered and unfiltered recommendations', async () => {
       const formData = createTestFormData();
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
       const analysis = recommendation.addOnInsuranceAnalysis!;
 
       expect(analysis.recommendations).toBeDefined();
@@ -195,9 +195,9 @@ describe('Add-On Insurance Integration', () => {
       expect(analysis.recommendations.length).toBeLessThanOrEqual(8);
     });
 
-    it('should properly categorize by priority', () => {
+    it('should properly categorize by priority', async () => {
       const formData = createTestFormData();
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
       const analysis = recommendation.addOnInsuranceAnalysis!;
 
       // Check priority arrays
@@ -228,9 +228,9 @@ describe('Add-On Insurance Integration', () => {
       });
     });
 
-    it('should sort recommendations by priority and score', () => {
+    it('should sort recommendations by priority and score', async () => {
       const formData = createTestFormData();
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
       const analysis = recommendation.addOnInsuranceAnalysis!;
 
       // Check that recommendations are sorted (high -> medium -> low, then by score)
@@ -255,9 +255,9 @@ describe('Add-On Insurance Integration', () => {
   });
 
   describe('Cost Calculations', () => {
-    it('should calculate household costs correctly', () => {
+    it('should calculate household costs correctly', async () => {
       const formData = createTestFormData();
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
       const analysis = recommendation.addOnInsuranceAnalysis!;
 
       expect(analysis.totalMonthlyHighPriority).toBeGreaterThanOrEqual(0);
@@ -271,14 +271,14 @@ describe('Add-On Insurance Integration', () => {
       expect(analysis.totalMonthlyAllRecommended).toBe(manualTotal);
     });
 
-    it('should apply family discounts for multiple members', () => {
+    it('should apply family discounts for multiple members', async () => {
       const formData = createTestFormData({
         numAdults: 3,
         adultAges: [30, 32, 35],
         numChildren: 0,
         childAges: [],
       });
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
       const analysis = recommendation.addOnInsuranceAnalysis!;
 
       // Find a recommendation with multiple applicable members
@@ -292,7 +292,7 @@ describe('Add-On Insurance Integration', () => {
       }
     });
 
-    it('should apply state cost adjustments', () => {
+    it('should apply state cost adjustments', async () => {
       const formDataNY = createTestFormData({
         residences: [{ zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 12 }],
       });
@@ -301,8 +301,8 @@ describe('Add-On Insurance Integration', () => {
         residences: [{ zip: '90001', state: 'CA', isPrimary: true, monthsPerYear: 12 }],
       });
 
-      const recommendationNY = analyzeInsurance(formDataNY);
-      const recommendationCA = analyzeInsurance(formDataCA);
+      const recommendationNY = await analyzeInsurance(formDataNY);
+      const recommendationCA = await analyzeInsurance(formDataCA);
 
       expect(recommendationNY.addOnInsuranceAnalysis).toBeDefined();
       expect(recommendationCA.addOnInsuranceAnalysis).toBeDefined();
@@ -316,7 +316,7 @@ describe('Add-On Insurance Integration', () => {
       expect(analysisCA.totalMonthlyAllRecommended).toBeGreaterThan(0);
     });
 
-    it('should handle multi-state households with premium adjustment', () => {
+    it('should handle multi-state households with premium adjustment', async () => {
       const formData = createTestFormData({
         residences: [
           { zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 6 },
@@ -324,7 +324,7 @@ describe('Add-On Insurance Integration', () => {
         ],
       });
 
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
       expect(recommendation.addOnInsuranceAnalysis).toBeDefined();
 
       // Multi-state should apply premium multiplier
@@ -334,13 +334,13 @@ describe('Add-On Insurance Integration', () => {
   });
 
   describe('Household Age Groups', () => {
-    it('should correctly categorize household members into age groups', () => {
+    it('should correctly categorize household members into age groups', async () => {
       const formData = createTestFormData({
         adultAges: [18, 28, 45, 67],
         childAges: [5, 15],
       });
 
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
       const analysis = recommendation.addOnInsuranceAnalysis!;
 
       expect(analysis.householdAgeGroups.length).toBeGreaterThanOrEqual(4);
@@ -360,7 +360,7 @@ describe('Add-On Insurance Integration', () => {
       expect(seniorGroup?.memberCount).toBe(1);
     });
 
-    it('should handle all ages in same group', () => {
+    it('should handle all ages in same group', async () => {
       const formData = createTestFormData({
         numAdults: 3,
         adultAges: [35, 36, 38],
@@ -368,7 +368,7 @@ describe('Add-On Insurance Integration', () => {
         childAges: [],
       });
 
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
       const analysis = recommendation.addOnInsuranceAnalysis!;
 
       expect(analysis.householdAgeGroups.length).toBe(1);
@@ -377,7 +377,7 @@ describe('Add-On Insurance Integration', () => {
   });
 
   describe('Error Handling and Edge Cases', () => {
-    it('should handle empty adult ages array gracefully', () => {
+    it('should handle empty adult ages array gracefully', async () => {
       const formData = createTestFormData({
         numAdults: 0,
         adultAges: [],
@@ -385,13 +385,12 @@ describe('Add-On Insurance Integration', () => {
         childAges: [10],
       });
 
-      expect(() => {
-        const recommendation = analyzeInsurance(formData);
-        expect(recommendation).toBeDefined();
-      }).not.toThrow();
+      // Test that it doesn't throw
+      const recommendation = await analyzeInsurance(formData);
+      expect(recommendation).toBeDefined();
     });
 
-    it('should handle budget constraints', () => {
+    it('should handle budget constraints', async () => {
       const formDataLowBudget = createTestFormData({
         budget: 'under-300',
       });
@@ -400,19 +399,19 @@ describe('Add-On Insurance Integration', () => {
         budget: 'over-1000',
       });
 
-      const recLow = analyzeInsurance(formDataLowBudget);
-      const recHigh = analyzeInsurance(formDataHighBudget);
+      const recLow = await analyzeInsurance(formDataLowBudget);
+      const recHigh = await analyzeInsurance(formDataHighBudget);
 
       // Both should have recommendations
       expect(recLow.addOnInsuranceAnalysis?.recommendations.length).toBeGreaterThan(0);
       expect(recHigh.addOnInsuranceAnalysis?.recommendations.length).toBeGreaterThan(0);
     });
 
-    it('should maintain consistency across multiple calls', () => {
+    it('should maintain consistency across multiple calls', async () => {
       const formData = createTestFormData();
 
-      const rec1 = analyzeInsurance(formData);
-      const rec2 = analyzeInsurance(formData);
+      const rec1 = await analyzeInsurance(formData);
+      const rec2 = await analyzeInsurance(formData);
 
       // Should produce identical results
       expect(rec1.addOnInsuranceAnalysis?.recommendations.length)
@@ -424,9 +423,9 @@ describe('Add-On Insurance Integration', () => {
   });
 
   describe('Recommendation Reasons and Context', () => {
-    it('should provide reasoning for recommendations', () => {
+    it('should provide reasoning for recommendations', async () => {
       const formData = createTestFormData();
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
       const analysis = recommendation.addOnInsuranceAnalysis!;
 
       // All recommendations should have reasons
@@ -441,7 +440,7 @@ describe('Add-On Insurance Integration', () => {
       });
     });
 
-    it('should include actuarial reasoning in recommendations', () => {
+    it('should include actuarial reasoning in recommendations', async () => {
       const formData = createTestFormData({
         adultAges: [70],
         numChildren: 0,
@@ -449,7 +448,7 @@ describe('Add-On Insurance Integration', () => {
         hasMedicareEligible: true,
       });
 
-      const recommendation = analyzeInsurance(formData);
+      const recommendation = await analyzeInsurance(formData);
       const analysis = recommendation.addOnInsuranceAnalysis!;
 
       // Should have high-priority recommendations for senior
