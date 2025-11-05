@@ -21,6 +21,7 @@ import CostComparisonChart from '@/components/charts/CostComparisonChart';
 import CollapsibleSection from '@/components/results/CollapsibleSection';
 import ResultsActions from '@/components/results/ResultsActions';
 import { TabNavigation, TabPanel, TabId } from '@/components/results/TabNavigation';
+import MarketplacePlans from '@/components/results/MarketplacePlans';
 
 // Lazy load heavy components
 const PlanComparisonTable = lazy(() => import('@/components/results/PlanComparisonTable'));
@@ -302,13 +303,38 @@ function ResultsContent() {
 
           {/* COSTS TAB */}
           <TabPanel value="costs" activeTab={activeTab}>
-            <CostAnalysis
-              monthlyCost={recommendation.estimatedMonthlyCost}
-              budget={budget}
-              currentCost={hasCurrentInsurance ? currentMonthlyCost : undefined}
-              subsidyAmount={recommendation.subsidyAnalysis?.estimatedMonthlySubsidy}
-              costAfterSubsidy={recommendation.subsidyAnalysis?.estimatedAfterSubsidyCost}
-            />
+            <div className="space-y-6 md:space-y-8">
+              <CostAnalysis
+                monthlyCost={recommendation.estimatedMonthlyCost}
+                budget={budget}
+                currentCost={hasCurrentInsurance ? currentMonthlyCost : undefined}
+                subsidyAmount={recommendation.subsidyAnalysis?.estimatedMonthlySubsidy}
+                costAfterSubsidy={recommendation.subsidyAnalysis?.estimatedAfterSubsidyCost}
+              />
+
+              {/* Real Marketplace Plans (if available) */}
+              {recommendation.marketplaceDataAvailable && recommendation.marketplacePlans && recommendation.marketplacePlans.length > 0 && (
+                <MarketplacePlans plans={recommendation.marketplacePlans} />
+              )}
+
+              {/* Message when API key is not configured */}
+              {!recommendation.marketplaceDataAvailable && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-blue-900 mb-2">💡 Want to see real marketplace plans?</h4>
+                  <p className="text-sm text-blue-800 mb-3">
+                    Configure the Healthcare.gov API to show actual plans available in your area with real premium costs.
+                  </p>
+                  <a
+                    href="https://developer.cms.gov/marketplace-api/key-request.html"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-blue-700 hover:text-blue-900 underline"
+                  >
+                    Request Free API Key →
+                  </a>
+                </div>
+              )}
+            </div>
           </TabPanel>
 
           {/* ALTERNATIVES TAB */}
