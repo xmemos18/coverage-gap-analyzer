@@ -152,4 +152,20 @@ export interface InsuranceRecommendation {
 
   // Add-on insurance recommendations (Phase 4)
   addOnInsuranceAnalysis?: import('./addOnInsurance').AddOnInsuranceAnalysis;
+
+  // Real marketplace plan data from Healthcare.gov API (Phase 5)
+  marketplacePlans?: Array<{
+    id: string;
+    name: string;
+    issuer: string;
+    type: string;
+    metalLevel: string;
+    premium: number;
+    premiumAfterCredit?: number;
+    deductible: number;
+    outOfPocketMax: number;
+    qualityRating?: number;
+    hasNationalNetwork: boolean;
+  }>;
+  marketplaceDataAvailable?: boolean;
 }

@@ -17,7 +17,7 @@ import { INSURANCE_COSTS } from '@/lib/constants';
 /**
  * Main recommendation function
  */
-export function analyzeInsurance(formData: CalculatorFormData): InsuranceRecommendation {
+export async function analyzeInsurance(formData: CalculatorFormData): Promise<InsuranceRecommendation> {
   const { adultAges, childAges, hasMedicareEligible, budget, residences, hasCurrentInsurance, currentInsurance } = formData;
 
   const totalAdults = adultAges.length;
@@ -98,7 +98,7 @@ export function analyzeInsurance(formData: CalculatorFormData): InsuranceRecomme
       uniqueStates
     );
   } else {
-    recommendation = getNonMedicareRecommendation(
+    recommendation = await getNonMedicareRecommendation(
       formData,
       totalAdults,
       totalChildren,

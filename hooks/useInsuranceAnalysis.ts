@@ -3,7 +3,7 @@
  * Handles recommendation calculations and related analyses
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { CalculatorFormData, InsuranceRecommendation } from '@/types';
 import { analyzeInsurance } from '@/lib/calculator';
 import { analyzeMedicareAdvantageFit, getMedicareAdvantageShoppingTips, compareToMedigap } from '@/lib/calculator/medicareAdvantageHelper';
@@ -40,10 +40,42 @@ export function useInsuranceAnalysis({
   hasRequiredData,
 }: UseInsuranceAnalysisProps) {
 
-  // Main recommendation
-  const recommendation = useMemo(() => {
-    if (!hasRequiredData) return null;
-    return analyzeInsurance(formData);
+  // Main recommendation (now async)
+  const [recommendation, setRecommendation] = useState<InsuranceRecommendation | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!hasRequiredData) {
+      setRecommendation(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const fetchRecommendation = async () => {
+      setIsLoading(true);
+      try {
+        const result = await analyzeInsurance(formData);
+        if (!cancelled) {
+          setRecommendation(result);
+        }
+      } catch (error) {
+        console.error('Error analyzing insurance:', error);
+        if (!cancelled) {
+          setRecommendation(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchRecommendation();
+
+    return () => {
+      cancelled = true;
+    };
   }, [formData, hasRequiredData]);
 
   // Medicare Advantage analysis (for Medicare-eligible users)
@@ -133,6 +165,7 @@ export function useInsuranceAnalysis({
 
   return {
     recommendation,
+    isLoading,
     medicareAdvantageAnalysis,
     cobraAnalysis,
     hsaAnalysis,

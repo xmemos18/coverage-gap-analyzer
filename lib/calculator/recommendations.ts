@@ -5,6 +5,7 @@ import { INSURANCE_COSTS, COVERAGE_SCORES } from '@/lib/constants';
 import { simplifyReasoning, generateWhatThisMeans } from '@/lib/plainEnglish';
 import { getMedigapShoppingSteps, getPartDShoppingSteps, getMarketplaceShoppingSteps, getEnrollmentDeadlines, formatActionStep } from '../concreteActions';
 import { adjustCostForStates } from '@/lib/stateSpecificData';
+import { searchMarketplacePlans, isHealthcareGovApiAvailable, calculateSubsidyEstimates, type MarketplacePlan } from '@/lib/healthcareGovApi';
 
 /**
  * Health Profile Analysis Helper
@@ -28,6 +29,113 @@ function analyzeHealthProfile(formData: CalculatorFormData): HealthProfile {
     hasChronicConditions,
     prescriptionCount: formData.prescriptionCount || 'none',
   };
+}
+
+/**
+ * Fetch real marketplace plans from Healthcare.gov API
+ * Returns null if API is not configured or request fails
+ */
+async function fetchMarketplacePlans(
+  formData: CalculatorFormData,
+  healthProfile: HealthProfile
+): Promise<{
+  plans: MarketplacePlan[];
+  subsidyAmount?: number;
+  csrLevel?: string;
+} | null> {
+  if (!isHealthcareGovApiAvailable()) {
+    return null;
+  }
+
+  const primaryZip = formData.residences[0]?.zip;
+  const primaryState = formData.residences[0]?.state;
+
+  if (!primaryZip || !/^\d{5}$/.test(primaryZip)) {
+    return null;
+  }
+
+  try {
+    // Build household data for API request
+    const householdData = {
+      income: parseIncomeRange(formData.incomeRange),
+      people: [
+        ...formData.adultAges.map((age) => ({
+          age,
+          aptc_eligible: !formData.hasEmployerInsurance, // Not eligible for subsidies if has employer insurance
+          uses_tobacco: false, // TODO: Add tobacco use question to form
+        })),
+        ...formData.childAges.map((age) => ({
+          age,
+          aptc_eligible: true,
+          uses_tobacco: false,
+        })),
+      ],
+    };
+
+    // Fetch subsidy eligibility if income is provided
+    let subsidyAmount = 0;
+    let csrLevel = 'None';
+
+    if (formData.incomeRange && !formData.hasEmployerInsurance) {
+      const subsidyData = await calculateSubsidyEstimates(
+        primaryZip,
+        householdData,
+        new Date().getFullYear()
+      );
+
+      if (subsidyData) {
+        subsidyAmount = subsidyData.aptc;
+        csrLevel = subsidyData.csr;
+      }
+    }
+
+    // Search for plans with filters based on health profile
+    const searchParams = {
+      zipcode: primaryZip,
+      state: primaryState,
+      household: householdData,
+      market: 'Individual' as const,
+      limit: 10,
+      filter: healthProfile.isHighUtilization
+        ? {
+            metal_levels: ['Silver' as const, 'Gold' as const],
+            type: ['PPO' as const], // PPO for better specialist access
+          }
+        : {
+            metal_levels: ['Bronze' as const, 'Silver' as const, 'Gold' as const],
+          },
+    };
+
+    const result = await searchMarketplacePlans(searchParams);
+
+    if (!result || result.plans.length === 0) {
+      return null;
+    }
+
+    return {
+      plans: result.plans,
+      subsidyAmount,
+      csrLevel,
+    };
+  } catch (error) {
+    console.error('Error fetching marketplace plans:', error);
+    return null;
+  }
+}
+
+/**
+ * Parse income range string to approximate annual income (midpoint)
+ */
+function parseIncomeRange(incomeRange: string): number {
+  const ranges: Record<string, number> = {
+    'under-30k': 25000,
+    '30k-50k': 40000,
+    '50k-75k': 62500,
+    '75k-100k': 87500,
+    '100k-150k': 125000,
+    '150k-plus': 175000,
+  };
+  return ranges[incomeRange] || 50000; // Default to 50k if not specified
 }
 
 /**
@@ -282,7 +390,7 @@ export function getMixedHouseholdRecommendation(
  *
  * Options vary by household composition
  */
-export function getNonMedicareRecommendation(
+export async function getNonMedicareRecommendation(
   formData: CalculatorFormData,
   adultCount: number,
   childCount: number,
@@ -290,8 +398,11 @@ export function getNonMedicareRecommendation(
   coverageScore: number,
   budget: string,
   states: string[]
-): InsuranceRecommendation {
+): Promise<InsuranceRecommendation> {
   const healthProfile = analyzeHealthProfile(formData);
+
+  // Try to fetch real marketplace plans
+  const marketplaceData = await fetchMarketplacePlans(formData, healthProfile);
   const statesList = states.length > 1 ? states.join(', ') : states[0];
   const stateCount = states.length;
 
@@ -371,8 +482,27 @@ export function getNonMedicareRecommendation(
     reasoning = `Flexible plans for each adult give complete multi-state coverage.`;
   }
 
-  // Apply state-specific cost adjustments to final cost
-  totalCost = adjustCostForStates(totalCost, states);
+  // If real marketplace data is available, use actual plan costs
+  if (marketplaceData && marketplaceData.plans.length > 0) {
+    const plans = marketplaceData.plans;
+
+    // Calculate cost range from top 3 recommended plans
+    const topPlans = plans.slice(0, Math.min(3, plans.length));
+    const premiums = topPlans.map(p => p.premium_w_credit || p.premium);
+
+    totalCost = {
+      low: Math.min(...premiums),
+      high: Math.max(...premiums),
+    };
+
+    // Update reasoning if subsidies are available
+    if (marketplaceData.subsidyAmount && marketplaceData.subsidyAmount > 0) {
+      reasoning += ` Good news: Based on your income, you may qualify for approximately $${Math.round(marketplaceData.subsidyAmount)}/month in premium tax credits.`;
+    }
+  } else {
+    // Apply state-specific cost adjustments to estimated cost
+    totalCost = adjustCostForStates(totalCost, states);
+  }
 
   const primaryZip = formData.residences[0]?.zip || '';
   const primaryState = formData.residences[0]?.state || '';
@@ -436,6 +566,21 @@ export function getNonMedicareRecommendation(
     coverageScore
   );
 
+  // Transform marketplace plans to simplified format for UI
+  const simplifiedPlans = marketplaceData?.plans.slice(0, 5).map(plan => ({
+    id: plan.id,
+    name: plan.name,
+    issuer: plan.issuer.name,
+    type: plan.type,
+    metalLevel: plan.metal_level,
+    premium: plan.premium,
+    premiumAfterCredit: plan.premium_w_credit,
+    deductible: plan.deductibles[0]?.individual?.amount || 0,
+    outOfPocketMax: plan.moops[0]?.individual?.amount || 0,
+    qualityRating: plan.quality_rating.available ? plan.quality_rating.global_rating : undefined,
+    hasNationalNetwork: plan.has_national_network,
+  }));
+
   return {
     recommendedInsurance: recommendedPlan,
     householdBreakdown,
@@ -444,5 +589,7 @@ export function getNonMedicareRecommendation(
     reasoning: reasoning + '\n\n' + whatThisMeans,
     actionItems,
     alternativeOptions,
+    marketplacePlans: simplifiedPlans,
+    marketplaceDataAvailable: !!marketplaceData && marketplaceData.plans.length > 0,
   };
 }
