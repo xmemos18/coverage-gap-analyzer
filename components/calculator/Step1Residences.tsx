@@ -6,7 +6,7 @@ import { validateZipCode, validateResidenceTimeDistribution } from '@/lib/valida
 import { validateZipCode as validateZipCodeAPI, ZipCodeLocation } from '@/lib/zipCodeApi';
 import { getMonthLabel, MONTH_OPTIONS } from '@/lib/residenceHelpers';
 import InfoTooltip from '@/components/InfoTooltip';
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 
 interface Step1Props {
   residences: Residence[];
@@ -32,6 +32,9 @@ export default function Step1Residences({
 
   // Debounce timer for ZIP validation
   const [zipDebounceTimer, setZipDebounceTimer] = useState<NodeJS.Timeout | null>(null);
+
+  // Ref to store state value to auto-populate after validation
+  const stateToAutoPopulate = useRef<{ index: number; state: string } | null>(null);
 
   // Validate ZIP code using API with debouncing
   const validateZipWithAPI = useCallback(async (index: number, zip: string) => {
@@ -62,13 +65,9 @@ export default function Step1Residences({
       }));
 
       // Auto-populate state if valid
+      // Store the state value to update after setting validation state
       if (locationData) {
-        const updatedResidences = [...residences];
-        updatedResidences[index] = {
-          ...updatedResidences[index],
-          state: locationData.stateAbbr,
-        };
-        onUpdate('residences', updatedResidences);
+        stateToAutoPopulate.current = { index, state: locationData.stateAbbr };
       }
     } catch (error) {
       console.error('[ZIP Validation] Error:', error);
@@ -77,7 +76,7 @@ export default function Step1Residences({
         [index]: { isValidating: false, isValid: false, locationData: null }
       }));
     }
-  }, [residences, onUpdate]);
+  }, []);
 
   const updateResidence = (index: number, field: 'zip' | 'state' | 'isPrimary' | 'monthsPerYear', value: string | boolean | number) => {
     let updatedResidences = [...residences];
@@ -134,6 +133,20 @@ export default function Step1Residences({
       }
     };
   }, [zipDebounceTimer]);
+
+  // Auto-populate state field after successful ZIP validation
+  useEffect(() => {
+    if (stateToAutoPopulate.current) {
+      const { index, state } = stateToAutoPopulate.current;
+      const updatedResidences = [...residences];
+      updatedResidences[index] = {
+        ...updatedResidences[index],
+        state,
+      };
+      onUpdate('residences', updatedResidences);
+      stateToAutoPopulate.current = null; // Clear after updating
+    }
+  }, [zipValidation, residences, onUpdate]);
 
   const addResidence = () => {
     const updatedResidences = [...residences, { zip: '', state: '', isPrimary: false, monthsPerYear: 0 }];
