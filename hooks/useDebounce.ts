@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 
 /**
  * Debounce a value - delays updating the value until after a specified delay
@@ -107,7 +108,7 @@ export function useDebouncedLocalStorage<T>(
       const serialized = JSON.stringify(debouncedValue);
       localStorage.setItem(key, serialized);
     } catch (error) {
-      console.error(`Error saving to localStorage (key: ${key}):`, error);
+      logger.error('Error saving to localStorage', { key, error });
     }
   }, [key, debouncedValue]);
 }

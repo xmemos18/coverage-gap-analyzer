@@ -4,6 +4,7 @@
  */
 
 import type { AddOnInsuranceAnalysis } from '@/types/addOnInsurance';
+import { logger } from './logger';
 
 /**
  * Convert add-on insurance recommendations to CSV format
@@ -75,7 +76,7 @@ export function exportAndDownloadRecommendations(analysis: AddOnInsuranceAnalysi
     const filename = `add-on-insurance-recommendations-${timestamp}.csv`;
     downloadCSV(csvContent, filename);
   } catch (error) {
-    console.error('Error exporting recommendations:', error);
+    logger.error('Error exporting recommendations', { error });
     throw new Error('Failed to export recommendations. Please try again.');
   }
 }
@@ -139,7 +140,7 @@ export async function copyRecommendationsToClipboard(analysis: AddOnInsuranceAna
     const text = getRecommendationSummaryText(analysis);
     await navigator.clipboard.writeText(text);
   } catch (error) {
-    console.error('Error copying to clipboard:', error);
+    logger.error('Error copying to clipboard', { error });
     throw new Error('Failed to copy to clipboard. Please try again.');
   }
 }

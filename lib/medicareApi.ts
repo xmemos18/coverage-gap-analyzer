@@ -1,21 +1,30 @@
 /**
  * Medicare Plan Data Helpers
  *
- * NOTE: Unlike Healthcare.gov, Medicare does NOT have a real-time queryable API
+ * ⚠️ IMPORTANT: Medicare plan data is NOT available via real-time API
+ *
+ * Unlike Healthcare.gov, Medicare does NOT have a real-time queryable API
  * for plan comparison data. CMS publishes Medicare plan data as downloadable files.
  *
- * See MEDICARE_DATA.md for full explanation and implementation guide.
+ * CURRENT BEHAVIOR:
+ * - All search functions return empty arrays []
+ * - Users are directed to Medicare.gov Plan Finder instead
+ * - This is EXPECTED and DOCUMENTED behavior
+ * - National average cost estimates are provided
  *
- * Current Implementation:
- * - Provides structure for future file-based data integration
- * - Returns sample/mock data for demonstration
- * - Links users to Medicare.gov Plan Finder for real searches
+ * WHY: CMS does not provide an API for real-time plan queries.
+ *      Data is published annually as large CSV files (100k+ rows, 50-100MB).
  *
- * Future Enhancement:
- * - Download annual landscape files from CMS
- * - Import into local database
- * - Query by ZIP/county for real plan data
+ * TO IMPLEMENT REAL DATA:
+ * 1. Download landscape files from CMS website (see MEDICARE_DATA.md)
+ * 2. Import CSV into database (PostgreSQL/MySQL/SQLite)
+ * 3. Update search functions to query database
+ * 4. Re-import annually during open enrollment
+ *
+ * See MEDICARE_DATA.md for complete implementation guide.
  */
+
+import { logger } from './logger';
 
 // Medicare Plan Types
 export type MedicarePlanType = 'HMO' | 'PPO' | 'PFFS' | 'SNP' | 'MSA' | 'Cost';
@@ -81,9 +90,15 @@ export interface PartDPlan {
 /**
  * Check if Medicare data is available
  * Currently always returns false until landscape files are imported
+ *
+ * @returns false - Real-time Medicare plan data not available
  */
 export function isMedicareDataAvailable(): boolean {
-  // TODO: Check if landscape file data has been imported to database
+  // IMPLEMENTATION NOTE: To enable this, you would:
+  // 1. Download CMS landscape files and import to database
+  // 2. Add environment variable: MEDICARE_DATA_ENABLED=true
+  // 3. Update this function to: return !!process.env.MEDICARE_DATA_ENABLED
+  // See MEDICARE_DATA.md for complete implementation guide
   return false;
 }
 
@@ -106,11 +121,16 @@ export async function searchMedicareAdvantagePlans(
     minStarRating?: number;
   }
 ): Promise<MedicareAdvantagePlan[]> {
-  // TODO: Implement database query when landscape files are imported
+  // IMPLEMENTATION NOTE: To enable Medicare Advantage plan searches:
+  // 1. Download CMS landscape files from data.cms.gov
+  // 2. Import into database with ZIP/county indexing
+  // 3. Replace this function with database query
+  // See MEDICARE_DATA.md for complete implementation guide
 
-  console.warn(
-    'Medicare plan data not available. CMS does not provide a real-time API. ' +
-    'See MEDICARE_DATA.md for how to implement file-based plan data.'
+  logger.warn(
+    '📋 Medicare Advantage plan data not available - This is expected behavior',
+    'CMS does not provide a real-time API. Users will be directed to Medicare.gov Plan Finder. ' +
+    'See MEDICARE_DATA.md to implement file-based plan data.'
   );
 
   return [];
@@ -132,11 +152,17 @@ export async function searchMedigapPlans(
   _zipCode: string,
   _planLetters?: MedigapPlanLetter[]
 ): Promise<MedigapPlan[]> {
-  // TODO: Integrate with private carriers or state insurance departments
+  // IMPLEMENTATION NOTE: Medigap pricing varies by carrier and is not in CMS files
+  // Options to implement:
+  // 1. Partner with insurance carriers for rate quotes
+  // 2. Integrate with state insurance department databases
+  // 3. Use web scraping (check legal compliance)
+  // 4. Direct users to medicare.gov/medigap (current approach)
 
-  console.warn(
-    'Medigap plan pricing not available via API. Premiums vary by carrier. ' +
-    'Direct users to medicare.gov/medigap-supplemental-insurance-plans'
+  logger.warn(
+    '📋 Medigap plan pricing not available - This is expected behavior',
+    'Premiums vary significantly by carrier and are not available via API. ' +
+    'Users will be directed to medicare.gov/medigap-supplemental-insurance-plans'
   );
 
   return [];
@@ -157,11 +183,17 @@ export async function searchPartDPlans(
     minStarRating?: number;
   }
 ): Promise<PartDPlan[]> {
-  // TODO: Implement database query when Part D files are imported
+  // IMPLEMENTATION NOTE: To enable Part D plan searches:
+  // 1. Download monthly Part D files from data.cms.gov
+  // 2. Import into database (updates more frequently than landscape files)
+  // 3. Replace this function with database query
+  // 4. Consider drug formulary matching for user's prescriptions
+  // See MEDICARE_DATA.md for complete implementation guide
 
-  console.warn(
-    'Part D plan data not available. Requires importing monthly files from data.cms.gov. ' +
-    'See MEDICARE_DATA.md for implementation guide.'
+  logger.warn(
+    '💊 Part D prescription plan data not available - This is expected behavior',
+    'Requires importing monthly files from data.cms.gov. ' +
+    'Users will be directed to Medicare.gov Plan Finder. See MEDICARE_DATA.md for implementation guide.'
   );
 
   return [];

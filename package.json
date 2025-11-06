@@ -41,5 +41,9 @@
     "tailwindcss": "^3.4.14",
     "ts-jest": "^29.4.5",
     "typescript": "^5"
+  },
+  "notes": {
+    "eslint": "Using ESLint v8. To upgrade to v9, see: https://eslint.org/docs/latest/use/migrate-to-9.0.0",
+    "deprecations": "Some indirect dependencies (glob, inflight) show deprecation warnings but are managed by Next.js/ESLint. These will be resolved when upgrading to ESLint v9 or newer Next.js versions."
   }
 }

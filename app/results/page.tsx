@@ -23,6 +23,7 @@ import ResultsActions from '@/components/results/ResultsActions';
 import { TabNavigation, TabPanel, TabId } from '@/components/results/TabNavigation';
 import MarketplacePlans from '@/components/results/MarketplacePlans';
 import MedicarePlanFinderLink from '@/components/results/MedicarePlanFinderLink';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Lazy load heavy components
 const PlanComparisonTable = lazy(() => import('@/components/results/PlanComparisonTable'));
@@ -378,12 +379,23 @@ function ResultsContent() {
 
               {/* Plan Comparison Table */}
               {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
-                <Suspense fallback={<div className="bg-white rounded-xl shadow-lg p-8 animate-pulse h-96" />}>
-                  <PlanComparisonTable
-                    recommended={recommendation}
-                    alternatives={recommendation.alternativeOptions}
-                  />
-                </Suspense>
+                <ErrorBoundary
+                  fallback={
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                      <h4 className="font-semibold text-yellow-900 mb-2">⚠️ Unable to load plan comparison</h4>
+                      <p className="text-sm text-yellow-800">
+                        The detailed plan comparison table could not be loaded. You can still view alternative options above.
+                      </p>
+                    </div>
+                  }
+                >
+                  <Suspense fallback={<div className="bg-white rounded-xl shadow-lg p-8 animate-pulse h-96" />}>
+                    <PlanComparisonTable
+                      recommended={recommendation}
+                      alternatives={recommendation.alternativeOptions}
+                    />
+                  </Suspense>
+                </ErrorBoundary>
               )}
             </div>
           </TabPanel>
