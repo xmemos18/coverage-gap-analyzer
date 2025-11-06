@@ -47,7 +47,6 @@ export default function CollapsibleSection({
   colorScheme = 'blue',
 }: CollapsibleSectionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
-  const colors = colorClasses[colorScheme];
 
   // Ripple effect handler
   const handleRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -67,39 +66,42 @@ export default function CollapsibleSection({
     setTimeout(() => ripple.remove(), 600);
   };
 
+  const iconColors = {
+    blue: 'icon-cyan',
+    orange: 'icon-gold',
+    green: 'icon-green',
+    purple: 'icon-purple',
+  };
+
   return (
-    <div className={`mb-8 ${colors.bg} rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-glass-premium card-lift animate-bouncy-entrance`}>
-      {/* Specular highlights */}
-      <div className="specular-highlight"></div>
-
-      {/* Enhanced decorative glow */}
-      <div className={`absolute -top-20 -right-20 w-80 h-80 bg-gradient-to-br ${colors.glow} rounded-full blur-3xl opacity-40 glass-pulse`}></div>
-
-      {/* Header with Premium Effects */}
-      <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3 relative z-cards text-depth-lg">
-        <span className="text-3xl md:text-4xl drop-shadow-sm">{icon}</span>
-        <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+    <div className="mb-8 glass-card rounded-3xl p-6 md:p-8 fade-in">
+      {/* Header with Icon */}
+      <div className="flex items-center gap-3 mb-6">
+        <div className={`${iconColors[colorScheme]} w-12 h-12 rounded-xl flex items-center justify-center text-2xl`}>
+          {icon}
+        </div>
+        <h3 className="card-title text-2xl md:text-3xl flex-1">
           {title}
-        </span>
-      </h3>
+        </h3>
+      </div>
 
-      {/* Summary (Always Visible) - Premium Glass Card */}
-      <div className="glass-card-accent rounded-2xl p-5 md:p-7 mb-6 relative z-cards shadow-glass card-lift">
+      {/* Summary (Always Visible) */}
+      <div className="glass-card-static rounded-2xl p-5 md:p-7 mb-6">
         {summary}
       </div>
 
       {/* Expand/Collapse Button with Ripple */}
-      <div className="flex justify-center mb-4 relative z-cards">
+      <div className="flex justify-center mb-4">
         <button
           onClick={(e) => {
             handleRipple(e);
             setIsExpanded(!isExpanded);
           }}
-          className={`px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 ${colors.button} morph-scale shadow-glass-premium spring-bouncy ripple-container`}
+          className="btn-secondary px-6 py-3 rounded-full font-bold transition-all flex items-center gap-2 ripple-container"
         >
-          <span className="text-depth-sm">{isExpanded ? 'Hide' : 'Show'} Full Analysis</span>
+          <span>{isExpanded ? 'Hide' : 'Show'} Full Analysis</span>
           <svg
-            className={`w-5 h-5 transition-transform duration-300 spring-bouncy ${isExpanded ? 'rotate-180' : ''}`}
+            className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -109,10 +111,10 @@ export default function CollapsibleSection({
         </button>
       </div>
 
-      {/* Expandable Content with Staggered Animation */}
+      {/* Expandable Content */}
       {isExpanded && (
-        <div className="mt-6 relative z-cards animate-bouncy-entrance">
-          <div className="glass-card rounded-2xl p-5 md:p-7 shadow-glass-premium">
+        <div className="mt-6 slide-up">
+          <div className="glass-card-static rounded-2xl p-5 md:p-7">
             {children}
           </div>
         </div>
