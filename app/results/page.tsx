@@ -216,13 +216,8 @@ function ResultsContent() {
   ].filter(Boolean) as Array<{ id: TabId; label: string; icon: string; badge?: number }>;
 
   return (
-    <div className="min-h-screen dark-gradient-bg py-6 md:py-12 px-4 relative overflow-hidden">
-      {/* Bold Floating Orbs */}
-      <div className="orb-coral top-20 left-10"></div>
-      <div className="orb-cyan bottom-20 right-10"></div>
-      <div className="orb-gold top-1/2 right-1/4"></div>
-
-      <div className="container-max relative z-20">
+    <div className="min-h-screen bg-gray-50 py-6 md:py-12 px-4">
+      <div className="container-max">
         {/* Print-only header */}
         <div className="hidden print:block mb-8">
           <div className="border-b-2 border-gray-300 pb-4 mb-4">
@@ -247,23 +242,61 @@ function ResultsContent() {
           }}
         />
 
-        {/* Page Header with Bold Dark Glass Effect */}
-        <div className="text-center mb-8 md:mb-12 print:hidden fade-in">
-          <h1 className="hero-title mb-4">
-            Your Personalized Recommendations
+        {/* Page Header */}
+        <div className="text-center mb-8 md:mb-10 print:hidden fade-in">
+          <h1 className="heading-1 mb-3">
+            Your Personalized Insurance Recommendations
           </h1>
-          <p className="hero-subtitle slide-up" style={{animationDelay: '100ms'}}>
-            Based on your multi-state lifestyle
+          <p className="body-text text-gray-600" style={{animationDelay: '100ms'}}>
+            Based on your household situation and coverage needs
           </p>
 
           {simpleMode && (
-            <div className="mt-6 inline-flex items-center gap-2 badge-coral slide-up" style={{animationDelay: '200ms'}}>
-              <span className="text-lg">🎯</span>
-              <span>
-                Simple Mode Results
-              </span>
+            <div className="mt-4 inline-flex items-center gap-2 badge-blue">
+              <span>🎯</span>
+              <span>Simple Mode Results</span>
             </div>
           )}
+        </div>
+
+        {/* Trust Signals Bar */}
+        <div className="card mb-6 md:mb-8 fade-in" style={{animationDelay: '100ms'}}>
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600 text-xl">🔒</span>
+              <span className="text-gray-700 font-medium">HIPAA Compliant</span>
+            </div>
+            <div className="hidden md:block w-px h-6 bg-gray-300"></div>
+            <div className="flex items-center gap-2">
+              <span className="text-green-600 text-xl">✓</span>
+              <span className="text-gray-700 font-medium">CMS Data Verified</span>
+            </div>
+            <div className="hidden md:block w-px h-6 bg-gray-300"></div>
+            <div className="flex items-center gap-2">
+              <span className="text-blue-600 text-xl">📞</span>
+              <span className="text-gray-700 font-medium">Licensed Advisors Available</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Top CTA Banner */}
+        <div className="cta-banner mb-8 md:mb-10 fade-in" style={{animationDelay: '150ms'}}>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-center md:text-left">
+              <h3 className="text-xl md:text-2xl font-bold mb-2">Need Help Choosing?</h3>
+              <p className="text-blue-50 text-sm md:text-base">
+                Talk to a licensed advisor for personalized guidance — completely free, no obligation.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+              <button className="btn-secondary whitespace-nowrap">
+                📞 Schedule Free Call
+              </button>
+              <button className="btn-tertiary text-white hover:bg-white/10 whitespace-nowrap">
+                📧 Email Results
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Collapsible Hero Summary */}
@@ -499,6 +532,44 @@ function ResultsContent() {
             <DisclaimerSection />
           </TabPanel>
         </TabNavigation>
+
+        {/* Bottom CTA Banner */}
+        <div className="cta-banner-secondary mt-8 md:mt-12 print:hidden fade-in">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-center md:text-left flex-1">
+              <h3 className="heading-3 text-gray-900 mb-2">Ready to Get Coverage?</h3>
+              <p className="body-text mb-0">
+                Connect with a licensed advisor to finalize your plan selection and enroll with confidence.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+              <button className="btn-primary whitespace-nowrap">
+                🎯 Schedule Free Consultation
+              </button>
+              <button className="btn-secondary whitespace-nowrap">
+                📧 Email Me These Results
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Methodology Transparency Section */}
+        <div className="mt-8 card-info print:hidden">
+          <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+            <span className="text-lg">📊</span>
+            <span>How We Calculate Recommendations</span>
+          </h4>
+          <p className="text-sm text-blue-800 leading-relaxed mb-3">
+            Our recommendations are based on your household size, location, income, health needs, and budget.
+            We analyze coverage options from marketplace plans, Medicare programs, and specialized insurance
+            using data from CMS, state insurance departments, and major carriers.
+          </p>
+          <p className="text-xs text-blue-700">
+            <strong>Note:</strong> These are estimates for educational purposes. Final costs depend on specific
+            plan selection, carrier underwriting, and enrollment timing. Always verify details with carriers
+            before enrolling.
+          </p>
+        </div>
       </div>
     </div>
   );
