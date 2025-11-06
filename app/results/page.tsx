@@ -271,11 +271,6 @@ function ResultsContent() {
               <span className="text-green-600 text-xl">✓</span>
               <span className="text-gray-700 font-medium">CMS Data Verified</span>
             </div>
-            <div className="hidden md:block w-px h-6 bg-gray-300"></div>
-            <div className="flex items-center gap-2">
-              <span className="text-blue-600 text-xl">📞</span>
-              <span className="text-gray-700 font-medium">Licensed Advisors Available</span>
-            </div>
           </div>
         </div>
 
@@ -512,26 +507,6 @@ function ResultsContent() {
             <DisclaimerSection />
           </TabPanel>
         </TabNavigation>
-
-        {/* Bottom CTA Banner */}
-        <div className="cta-banner-secondary mt-8 md:mt-12 print:hidden fade-in">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="text-center md:text-left flex-1">
-              <h3 className="heading-3 text-gray-900 mb-2">Ready to Get Coverage?</h3>
-              <p className="body-text mb-0">
-                Connect with a licensed advisor to finalize your plan selection and enroll with confidence.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-              <button className="btn-primary whitespace-nowrap">
-                🎯 Schedule Free Consultation
-              </button>
-              <button className="btn-secondary whitespace-nowrap">
-                📧 Email Me These Results
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Methodology Transparency Section */}
         <div className="mt-8 card-info print:hidden">

@@ -24,9 +24,16 @@ interface PDFReportProps {
  * Generates a downloadable PDF of insurance recommendations
  */
 export async function generatePDF(props: PDFReportProps): Promise<Blob> {
-  // Dynamic import to avoid SSR issues
-  const ReactPDF = await import('@react-pdf/renderer');
-  const { Document, Page, Text, View, StyleSheet, pdf } = ReactPDF;
+  try {
+    // Dynamic import to avoid SSR issues
+    console.log('Importing @react-pdf/renderer...');
+    const ReactPDF = await import('@react-pdf/renderer');
+    const { Document, Page, Text, View, StyleSheet, pdf } = ReactPDF;
+    console.log('Successfully imported @react-pdf/renderer');
+
+    if (!Document || !Page || !Text || !View || !StyleSheet || !pdf) {
+      throw new Error('Failed to load PDF components from @react-pdf/renderer');
+    }
 
   const styles = StyleSheet.create({
     page: {
@@ -257,27 +264,47 @@ export async function generatePDF(props: PDFReportProps): Promise<Blob> {
     </Document>
   );
 
-  const blob = await pdf(<MyDocument />).toBlob();
-  return blob;
+    console.log('Rendering PDF document...');
+    const blob = await pdf(<MyDocument />).toBlob();
+    console.log('PDF blob created successfully');
+    return blob;
+  } catch (error) {
+    console.error('Error in generatePDF:', error);
+    throw new Error(`Failed to generate PDF document: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
 }
 
 /**
  * Trigger PDF download
  */
 export async function downloadPDF(props: PDFReportProps): Promise<void> {
+  // Ensure this only runs on client side
+  if (typeof window === 'undefined') {
+    throw new Error('PDF generation must run in the browser');
+  }
+
   try {
+    console.log('Starting PDF generation...');
     const blob = await generatePDF(props);
+    console.log('PDF blob generated, creating download link...');
+
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = `insurance-recommendation-${new Date().toISOString().split('T')[0]}.pdf`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+
+    // Clean up
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
+
+    console.log('PDF download triggered successfully');
   } catch (error) {
     console.error('Failed to generate PDF:', error);
-    throw error;
+    throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
@@ -297,8 +324,12 @@ export function PDFDownloadButton({ className = '', onError, ...pdfProps }: PDFD
     try {
       await downloadPDF(pdfProps);
     } catch (error) {
+      console.error('PDF generation error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate PDF';
       if (onError) {
         onError(error as Error);
+      } else {
+        alert(`PDF Generation Failed: ${errorMessage}\n\nPlease try using the Print button instead.`);
       }
     } finally {
       setIsGenerating(false);
