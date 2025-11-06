@@ -216,13 +216,17 @@ function ResultsContent() {
   ].filter(Boolean) as Array<{ id: TabId; label: string; icon: string; badge?: number }>;
 
   return (
-    <div className="min-h-screen glass-bg py-6 md:py-12 px-4 relative overflow-hidden">
-      {/* Decorative floating orbs */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300/20 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300/15 rounded-full blur-3xl glass-pulse"></div>
-      <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-cyan-300/10 rounded-full blur-3xl glass-float"></div>
+    <div className="min-h-screen mesh-gradient py-6 md:py-12 px-4 relative overflow-hidden">
+      {/* Noise texture overlay */}
+      <div className="noise-texture"></div>
 
-      <div className="max-w-5xl mx-auto relative z-10">
+      {/* Enhanced floating orbs with parallax layers */}
+      <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-blue-400/25 to-blue-600/15 rounded-full blur-3xl glass-pulse parallax-orb" data-speed="0.3"></div>
+      <div className="absolute bottom-20 right-10 w-[32rem] h-[32rem] bg-gradient-to-br from-purple-400/20 to-pink-600/10 rounded-full blur-3xl glass-float parallax-orb" data-speed="0.5"></div>
+      <div className="absolute top-1/2 left-1/4 w-80 h-80 bg-gradient-to-br from-cyan-400/15 to-emerald-600/10 rounded-full blur-3xl animate-pulse parallax-orb" data-speed="0.4"></div>
+      <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-gradient-to-br from-orange-400/10 to-yellow-600/5 rounded-full blur-3xl glass-pulse parallax-orb" data-speed="0.6"></div>
+
+      <div className="max-w-5xl mx-auto relative z-cards">
         {/* Print-only header */}
         <div className="hidden print:block mb-8">
           <div className="border-b-2 border-gray-300 pb-4 mb-4">
@@ -247,19 +251,19 @@ function ResultsContent() {
           }}
         />
 
-        {/* Page Header with Glass Effect */}
-        <div className="text-center mb-8 md:mb-12 print:hidden">
-          <h1 className="text-3xl md:text-4xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 bg-clip-text text-transparent drop-shadow-sm">
+        {/* Page Header with Premium Glass Effect */}
+        <div className="text-center mb-8 md:mb-12 print:hidden animate-bouncy-entrance">
+          <h1 className="text-3xl md:text-4xl lg:text-6xl font-bold mb-4 text-gradient-animated text-depth-lg spring-bouncy">
             Your Personalized Recommendations
           </h1>
-          <p className="text-lg md:text-xl text-gray-700 font-medium">
+          <p className="text-lg md:text-xl text-gray-700 font-medium text-depth-sm animate-slideUpGlass" style={{animationDelay: '100ms'}}>
             Based on your multi-state lifestyle
           </p>
 
           {simpleMode && (
-            <div className="mt-6 inline-flex items-center gap-2 glass-badge px-5 py-3 rounded-full shadow-lg">
+            <div className="mt-6 inline-flex items-center gap-2 badge-premium badge-pulse px-5 py-3 rounded-full shadow-glass-premium animate-slideUpGlass" style={{animationDelay: '200ms'}}>
               <span className="text-lg">🎯</span>
-              <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+              <span className="text-sm font-bold text-gradient">
                 Simple Mode Results
               </span>
             </div>

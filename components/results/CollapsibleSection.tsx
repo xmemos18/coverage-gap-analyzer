@@ -49,33 +49,57 @@ export default function CollapsibleSection({
   const [isExpanded, setIsExpanded] = useState(defaultExpanded);
   const colors = colorClasses[colorScheme];
 
-  return (
-    <div className={`mb-8 ${colors.bg} rounded-3xl p-6 md:p-8 relative overflow-hidden`}>
-      {/* Decorative glow */}
-      <div className={`absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br ${colors.glow} rounded-full blur-3xl opacity-30`}></div>
+  // Ripple effect handler
+  const handleRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const button = e.currentTarget;
+    const ripple = document.createElement('span');
+    const rect = button.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
 
-      {/* Header */}
-      <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3 relative z-10">
+    ripple.className = 'ripple';
+    ripple.style.width = ripple.style.height = `${size}px`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+
+    button.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+  };
+
+  return (
+    <div className={`mb-8 ${colors.bg} rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-glass-premium card-lift animate-bouncy-entrance`}>
+      {/* Specular highlights */}
+      <div className="specular-highlight"></div>
+
+      {/* Enhanced decorative glow */}
+      <div className={`absolute -top-20 -right-20 w-80 h-80 bg-gradient-to-br ${colors.glow} rounded-full blur-3xl opacity-40 glass-pulse`}></div>
+
+      {/* Header with Premium Effects */}
+      <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3 relative z-cards text-depth-lg">
         <span className="text-3xl md:text-4xl drop-shadow-sm">{icon}</span>
         <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
           {title}
         </span>
       </h3>
 
-      {/* Summary (Always Visible) - Glass Card */}
-      <div className="glass-card-accent rounded-2xl p-5 md:p-7 mb-6 relative z-10">
+      {/* Summary (Always Visible) - Premium Glass Card */}
+      <div className="glass-card-accent rounded-2xl p-5 md:p-7 mb-6 relative z-cards shadow-glass card-lift">
         {summary}
       </div>
 
-      {/* Expand/Collapse Button */}
-      <div className="flex justify-center mb-4 relative z-10">
+      {/* Expand/Collapse Button with Ripple */}
+      <div className="flex justify-center mb-4 relative z-cards">
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className={`px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 ${colors.button} hover:scale-105 shadow-lg`}
+          onClick={(e) => {
+            handleRipple(e);
+            setIsExpanded(!isExpanded);
+          }}
+          className={`px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 ${colors.button} morph-scale shadow-glass-premium spring-bouncy ripple-container`}
         >
-          <span>{isExpanded ? 'Hide' : 'Show'} Full Analysis</span>
+          <span className="text-depth-sm">{isExpanded ? 'Hide' : 'Show'} Full Analysis</span>
           <svg
-            className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
+            className={`w-5 h-5 transition-transform duration-300 spring-bouncy ${isExpanded ? 'rotate-180' : ''}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -85,10 +109,10 @@ export default function CollapsibleSection({
         </button>
       </div>
 
-      {/* Expandable Content */}
+      {/* Expandable Content with Staggered Animation */}
       {isExpanded && (
-        <div className="mt-6 relative z-10 animate-slideUpGlass">
-          <div className="glass-card rounded-2xl p-5 md:p-7">
+        <div className="mt-6 relative z-cards animate-bouncy-entrance">
+          <div className="glass-card rounded-2xl p-5 md:p-7 shadow-glass-premium">
             {children}
           </div>
         </div>
