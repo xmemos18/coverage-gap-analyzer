@@ -13,12 +13,19 @@ export function sanitizeTextInput(input: string): string {
   if (!input) return '';
 
   // Remove control characters and potentially dangerous patterns
-  return input
+  const sanitized = input
     .replace(/[<>]/g, '') // Remove angle brackets to prevent HTML injection
+    .replace(/&lt;/gi, '') // Remove HTML entity for <
+    .replace(/&gt;/gi, '') // Remove HTML entity for >
     .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/data:/gi, '') // Remove data: protocol
+    .replace(/vbscript:/gi, '') // Remove vbscript: protocol
     .replace(/on\w+=/gi, '') // Remove inline event handlers
-    .trim()
-    .slice(0, 200); // Limit length to prevent DoS
+    .replace(/&#/g, '') // Remove HTML entity encoding attempts
+    .trim();
+
+  // Limit length to prevent DoS
+  return sanitized.slice(0, 200);
 }
 
 /**
@@ -161,12 +168,13 @@ export function validateResidenceTimeDistribution(residences: Array<{ monthsPerY
 
 /**
  * Validate income range is selected
+ * FIXED: Updated to match actual form options
  */
 export function validateIncomeRange(incomeRange: string | undefined): {
   isValid: boolean;
   error?: string;
 } {
-  const validRanges = ['under-30k', '30k-60k', '60k-90k', '90k-120k', 'over-120k'];
+  const validRanges = ['under-30k', '30k-50k', '50k-75k', '75k-100k', '100k-150k', '150k-plus', 'prefer-not-say'];
 
   if (!incomeRange) {
     return {

@@ -566,20 +566,22 @@ export async function getNonMedicareRecommendation(
     coverageScore
   );
 
-  // Transform marketplace plans to simplified format for UI
-  const simplifiedPlans = marketplaceData?.plans.slice(0, 5).map(plan => ({
-    id: plan.id,
-    name: plan.name,
-    issuer: plan.issuer.name,
-    type: plan.type,
-    metalLevel: plan.metal_level,
-    premium: plan.premium,
-    premiumAfterCredit: plan.premium_w_credit,
-    deductible: plan.deductibles[0]?.individual?.amount || 0,
-    outOfPocketMax: plan.moops[0]?.individual?.amount || 0,
-    qualityRating: plan.quality_rating.available ? plan.quality_rating.global_rating : undefined,
-    hasNationalNetwork: plan.has_national_network,
-  }));
+  // Transform marketplace plans to simplified format for UI (with safe null checks)
+  const simplifiedPlans = (marketplaceData?.plans && Array.isArray(marketplaceData.plans))
+    ? marketplaceData.plans.slice(0, 5).map(plan => ({
+        id: plan.id || '',
+        name: plan.name || 'Unknown Plan',
+        issuer: plan.issuer?.name || 'Unknown Issuer',
+        type: plan.type || 'Unknown',
+        metalLevel: plan.metal_level || 'Silver',
+        premium: plan.premium || 0,
+        premiumAfterCredit: plan.premium_w_credit,
+        deductible: plan.deductibles?.[0]?.individual?.amount || 0,
+        outOfPocketMax: plan.moops?.[0]?.individual?.amount || 0,
+        qualityRating: plan.quality_rating?.available ? plan.quality_rating.global_rating : undefined,
+        hasNationalNetwork: plan.has_national_network || false,
+      }))
+    : undefined;
 
   return {
     recommendedInsurance: recommendedPlan,

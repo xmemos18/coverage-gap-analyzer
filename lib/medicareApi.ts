@@ -239,10 +239,12 @@ export function getEstimatedMedicareCosts() {
 
 /**
  * Get Medicare eligibility information
+ * @param age - Person's age to check Medicare eligibility
  */
 export function getMedicareEligibilityInfo(age: number) {
+  const isEligible = age >= 65;
   return {
-    isEligible: age >= 65,
+    isEligible,
     enrollmentPeriod: {
       initial: 'Starts 3 months before your 65th birthday',
       annual: 'October 15 - December 7 each year',

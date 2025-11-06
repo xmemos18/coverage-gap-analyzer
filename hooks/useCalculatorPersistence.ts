@@ -33,9 +33,9 @@ export function useCalculatorPersistence({
 }: UseCalculatorPersistenceProps = {}) {
 
   /**
-   * Load saved calculator data
+   * Load saved calculator data (synchronous read, async cleanup)
    */
-  const loadData = useCallback(() => {
+  const loadData = useCallback(async () => {
     const result = loadCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
 
     if (result.success && result.data) {
@@ -44,17 +44,17 @@ export function useCalculatorPersistence({
         onDataLoaded?.(result.data);
         return { success: true, data: result.data };
       } else {
-        // Data is too old, clear it
-        const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+        // Data is too old, clear it (async)
+        const clearResult = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
         if (!clearResult.success) {
           logger.error('Failed to clear old data', clearResult.error);
         }
         return { success: false, error: 'Data expired' };
       }
     } else if (result.error) {
-      // Invalid or corrupted data - log and clear
+      // Invalid or corrupted data - log and clear (async)
       logger.error('Failed to load saved calculator data', result.error);
-      const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+      const clearResult = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
       if (!clearResult.success) {
         logger.error('Failed to clear corrupted data', clearResult.error);
       }
@@ -65,10 +65,10 @@ export function useCalculatorPersistence({
   }, [onDataLoaded]);
 
   /**
-   * Save calculator data
+   * Save calculator data (async)
    */
-  const saveData = useCallback((data: CalculatorFormData) => {
-    const result = saveCalculatorData(STORAGE_KEYS.CALCULATOR_DATA, data, true);
+  const saveData = useCallback(async (data: CalculatorFormData) => {
+    const result = await saveCalculatorData(STORAGE_KEYS.CALCULATOR_DATA, data, true);
 
     if (!result.success) {
       logger.error('Failed to save calculator data', result.error);
@@ -79,10 +79,10 @@ export function useCalculatorPersistence({
   }, []);
 
   /**
-   * Clear saved calculator data
+   * Clear saved calculator data (async)
    */
-  const clearData = useCallback(() => {
-    const result = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+  const clearData = useCallback(async () => {
+    const result = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
 
     if (!result.success) {
       logger.error('Failed to clear saved calculator data', result.error);

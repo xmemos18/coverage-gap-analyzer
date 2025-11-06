@@ -64,12 +64,26 @@ function ResultsContent() {
 
   const { residenceZips, residenceStates, residences, adultAges, childAges, chronicConditions } = parsedParams;
 
-  // Parse other parameters
-  const numAdults = parseInt(searchParams.get('numAdults') || '0') || 0;
-  const numChildren = parseInt(searchParams.get('numChildren') || '0') || 0;
+  // Helper function to safely parse integers with NaN checks
+  const safeParseInt = (value: string | null, defaultValue: number = 0): number => {
+    if (!value) return defaultValue;
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? defaultValue : Math.max(0, parsed); // Ensure non-negative
+  };
+
+  // Helper function to safely parse floats with NaN checks
+  const safeParseFloat = (value: string | null, defaultValue: number = 0): number => {
+    if (!value) return defaultValue;
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? defaultValue : Math.max(0, parsed); // Ensure non-negative
+  };
+
+  // Parse other parameters with proper NaN handling
+  const numAdults = safeParseInt(searchParams.get('numAdults'), 0);
+  const numChildren = safeParseInt(searchParams.get('numChildren'), 0);
   const hasMedicareEligible = searchParams.get('hasMedicareEligible') === 'true';
   const hasEmployerInsurance = searchParams.get('hasEmployerInsurance') === 'true';
-  const employerContribution = parseInt(searchParams.get('employerContribution') || '0') || 0;
+  const employerContribution = safeParseInt(searchParams.get('employerContribution'), 0);
   const hasChronicConditions = searchParams.get('hasChronicConditions') === 'true';
   const prescriptionCount = searchParams.get('prescriptionCount') || '';
   const providerPreference = searchParams.get('providerPreference') || '';
@@ -79,9 +93,9 @@ function ResultsContent() {
   const hasCurrentInsurance = searchParams.get('hasCurrentInsurance') === 'true';
   const currentCarrier = searchParams.get('currentCarrier') || '';
   const currentPlanType = searchParams.get('currentPlanType') || '';
-  const currentMonthlyCost = parseFloat(searchParams.get('currentMonthlyCost') || '0') || 0;
-  const currentDeductible = parseFloat(searchParams.get('currentDeductible') || '0') || 0;
-  const currentOutOfPocketMax = parseFloat(searchParams.get('currentOutOfPocketMax') || '0') || 0;
+  const currentMonthlyCost = safeParseFloat(searchParams.get('currentMonthlyCost'), 0);
+  const currentDeductible = safeParseFloat(searchParams.get('currentDeductible'), 0);
+  const currentOutOfPocketMax = safeParseFloat(searchParams.get('currentOutOfPocketMax'), 0);
   const currentCoverageNotes = searchParams.get('currentCoverageNotes') || '';
 
   // Validate URL parameters
@@ -202,8 +216,13 @@ function ResultsContent() {
   ].filter(Boolean) as Array<{ id: TabId; label: string; icon: string; badge?: number }>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-6 md:py-12 px-4">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen glass-bg py-6 md:py-12 px-4 relative overflow-hidden">
+      {/* Decorative floating orbs */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-300/20 rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300/15 rounded-full blur-3xl glass-pulse"></div>
+      <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-cyan-300/10 rounded-full blur-3xl glass-float"></div>
+
+      <div className="max-w-5xl mx-auto relative z-10">
         {/* Print-only header */}
         <div className="hidden print:block mb-8">
           <div className="border-b-2 border-gray-300 pb-4 mb-4">
@@ -228,19 +247,19 @@ function ResultsContent() {
           }}
         />
 
-        {/* Page Header */}
+        {/* Page Header with Glass Effect */}
         <div className="text-center mb-8 md:mb-12 print:hidden">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-primary mb-4">
+          <h1 className="text-3xl md:text-4xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 bg-clip-text text-transparent drop-shadow-sm">
             Your Personalized Recommendations
           </h1>
-          <p className="text-lg md:text-xl text-gray-600">
+          <p className="text-lg md:text-xl text-gray-700 font-medium">
             Based on your multi-state lifestyle
           </p>
 
           {simpleMode && (
-            <div className="mt-4 inline-flex items-center px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg">
-              <span className="text-sm font-semibold text-accent mr-2">🎯</span>
-              <span className="text-sm font-semibold text-gray-700">
+            <div className="mt-6 inline-flex items-center gap-2 glass-badge px-5 py-3 rounded-full shadow-lg">
+              <span className="text-lg">🎯</span>
+              <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
                 Simple Mode Results
               </span>
             </div>
@@ -277,7 +296,7 @@ function ResultsContent() {
 
               {/* Cost Comparison Chart */}
               {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
-                <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <div className="glass-card rounded-3xl p-6 md:p-8">
                   <CostComparisonChart
                     data={[
                       {
@@ -320,18 +339,24 @@ function ResultsContent() {
 
               {/* Message when API key is not configured */}
               {!recommendation.marketplaceDataAvailable && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h4 className="text-sm font-semibold text-blue-900 mb-2">💡 Want to see real marketplace plans?</h4>
-                  <p className="text-sm text-blue-800 mb-3">
+                <div className="glass-card-accent rounded-2xl p-6 shadow-lg">
+                  <h4 className="text-base font-bold text-blue-900 mb-3 flex items-center gap-2">
+                    <span className="text-xl">💡</span>
+                    <span>Want to see real marketplace plans?</span>
+                  </h4>
+                  <p className="text-sm text-blue-800 mb-4 leading-relaxed">
                     Configure the Healthcare.gov API to show actual plans available in your area with real premium costs.
                   </p>
                   <a
                     href="https://developer.cms.gov/marketplace-api/key-request.html"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-medium text-blue-700 hover:text-blue-900 underline"
+                    className="inline-flex items-center gap-2 glass-button px-4 py-2 rounded-xl text-sm font-bold text-blue-700 hover:text-blue-900"
                   >
-                    Request Free API Key →
+                    <span>Request Free API Key</span>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
                   </a>
                 </div>
               )}

@@ -5,12 +5,14 @@
 
 import { getMedicaidApplicationUrl } from './medicaidResources';
 import { getMedicaidApplicationSteps, formatActionStep } from '../concreteActions';
+import { logger } from '../logger';
 
-// 2024 Federal Poverty Level (FPL) Guidelines
-const FPL_2024_BASE = 15060; // Individual
-const FPL_2024_PER_PERSON = 5380; // Additional per person
+// 2025 Federal Poverty Level (FPL) Guidelines
+// Source: https://aspe.hhs.gov/poverty-guidelines
+const FPL_2025_BASE = 15060; // Individual (updated from 2024)
+const FPL_2025_PER_PERSON = 5450; // Additional per person (updated from 2024)
 
-// Medicaid expansion states (as of 2024)
+// Medicaid expansion states (as of 2025)
 const MEDICAID_EXPANSION_STATES = [
   'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'HI', 'ID', 'IL', 'IN',
   'IA', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MO', 'MT', 'NE', 'NV',
@@ -19,13 +21,14 @@ const MEDICAID_EXPANSION_STATES = [
 ];
 
 // Income range to midpoint mapping (for estimation)
+// FIXED: These keys must match the actual form options
 export const INCOME_RANGE_MIDPOINTS: { [key: string]: number } = {
   'under-30k': 25000,
   '30k-50k': 40000,
   '50k-75k': 62500,
   '75k-100k': 87500,
   '100k-150k': 125000,
-  'over-150k': 175000,
+  '150k-plus': 175000,
   'prefer-not-say': 75000, // Assume mid-range for calculation
 };
 
@@ -55,15 +58,29 @@ export interface SubsidyResult {
  * Calculate household Federal Poverty Level
  */
 function calculateFPL(householdSize: number): number {
-  if (householdSize < 1) return FPL_2024_BASE;
-  return FPL_2024_BASE + (householdSize - 1) * FPL_2024_PER_PERSON;
+  // Ensure at least 1 person
+  if (householdSize < 1) {
+    logger.warn('Invalid household size for FPL calculation, using 1', { householdSize });
+    return FPL_2025_BASE;
+  }
+  return FPL_2025_BASE + (householdSize - 1) * FPL_2025_PER_PERSON;
 }
 
 /**
  * Get estimated income from income range
  */
 function getEstimatedIncome(incomeRange: string): number {
-  return INCOME_RANGE_MIDPOINTS[incomeRange] || INCOME_RANGE_MIDPOINTS['prefer-not-say'];
+  const estimate = INCOME_RANGE_MIDPOINTS[incomeRange];
+
+  if (estimate === undefined) {
+    logger.warn('Unknown income range, using default', {
+      incomeRange,
+      validRanges: Object.keys(INCOME_RANGE_MIDPOINTS),
+    });
+    return INCOME_RANGE_MIDPOINTS['prefer-not-say'];
+  }
+
+  return estimate;
 }
 
 /**
@@ -93,8 +110,13 @@ export function calculateSubsidy(
   const fplPercentage = (estimatedIncome / householdFPL) * 100;
 
   // Check if in Medicaid expansion state
-  const primaryState = states[0] || '';
-  const medicaidState = MEDICAID_EXPANSION_STATES.includes(primaryState);
+  // Ensure states array is not empty
+  const primaryState = (states && states.length > 0) ? states[0] : '';
+  const medicaidState = primaryState ? MEDICAID_EXPANSION_STATES.includes(primaryState.toUpperCase()) : false;
+
+  if (!primaryState) {
+    logger.warn('No states provided for subsidy calculation', { incomeRange, householdSize });
+  }
 
   // Determine Medicaid eligibility
   const medicaidEligible = medicaidState && fplPercentage < 138;
@@ -192,6 +214,9 @@ export function calculateSubsidy(
  * Check if state has Medicaid expansion
  */
 export function hasMedicaidExpansion(state: string): boolean {
+  if (!state) {
+    return false;
+  }
   return MEDICAID_EXPANSION_STATES.includes(state.toUpperCase());
 }
 

@@ -3,6 +3,16 @@
  * Free, unlimited, no API key required
  */
 
+import { logger } from './logger';
+
+const API_TIMEOUT_MS = 5000; // 5 second timeout for ZIP lookups
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 500;
+
+// Simple cache for ZIP code lookups (expires after 24 hours)
+const zipCache = new Map<string, { data: ZipCodeLocation; timestamp: number }>();
+const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 export interface ZipCodeLocation {
   zip: string;
   city: string;
@@ -11,6 +21,103 @@ export interface ZipCodeLocation {
   latitude: string;
   longitude: string;
   country: string;
+}
+
+/**
+ * Fetch with timeout support
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = API_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeoutMs}ms`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Retry logic for API calls
+ */
+async function fetchWithRetry<T>(
+  fetchFn: () => Promise<T>,
+  retries: number = MAX_RETRIES
+): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fetchFn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      // Don't retry on 404 errors (ZIP not found)
+      if (lastError.message.includes('404')) {
+        throw lastError;
+      }
+
+      // Wait before retrying
+      if (attempt < retries) {
+        const delay = RETRY_DELAY_MS * Math.pow(2, attempt);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw lastError || new Error('API call failed after retries');
+}
+
+/**
+ * Validate Zippopotam API response structure
+ */
+function validateZipResponse(data: unknown): boolean {
+  if (!data || typeof data !== 'object') {
+    return false;
+  }
+
+  const response = data as {
+    places?: unknown;
+    country?: unknown;
+  };
+
+  if (!Array.isArray(response.places) || response.places.length === 0) {
+    return false;
+  }
+
+  const place = response.places[0];
+  if (!place || typeof place !== 'object') {
+    return false;
+  }
+
+  const p = place as {
+    'place name'?: unknown;
+    state?: unknown;
+    'state abbreviation'?: unknown;
+    latitude?: unknown;
+    longitude?: unknown;
+  };
+
+  return (
+    typeof p['place name'] === 'string' &&
+    typeof p.state === 'string' &&
+    typeof p['state abbreviation'] === 'string' &&
+    typeof p.latitude === 'string' &&
+    typeof p.longitude === 'string'
+  );
 }
 
 /**
@@ -24,39 +131,73 @@ export async function validateZipCode(zip: string): Promise<ZipCodeLocation | nu
     return null;
   }
 
+  // Check cache first
+  const cached = zipCache.get(zip);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION_MS) {
+    return cached.data;
+  }
+
   try {
-    const response = await fetch(`https://api.zippopotam.us/us/${zip}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
+    const response = await fetchWithRetry(async () => {
+      const res = await fetchWithTimeout(`https://api.zippopotam.us/us/${zip}`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!res.ok) {
+        // ZIP code not found
+        if (res.status === 404) {
+          return null;
+        }
+        throw new Error(`API error: ${res.status} ${res.statusText}`);
+      }
+
+      return res;
     });
 
-    if (!response.ok) {
-      // ZIP code not found
+    if (!response) {
       return null;
     }
 
-    const data = await response.json();
+    const data: unknown = await response.json();
 
-    // Zippopotam returns places array
-    if (!data.places || data.places.length === 0) {
+    // Validate response structure
+    if (!validateZipResponse(data)) {
+      logger.error('Invalid ZIP code API response structure', { zip });
       return null;
     }
 
-    const place = data.places[0];
+    const apiData = data as {
+      places: Array<{
+        'place name': string;
+        state: string;
+        'state abbreviation': string;
+        latitude: string;
+        longitude: string;
+      }>;
+      country: string;
+    };
 
-    return {
+    const place = apiData.places[0];
+
+    const location: ZipCodeLocation = {
       zip,
       city: place['place name'],
       state: place.state,
       stateAbbr: place['state abbreviation'],
       latitude: place.latitude,
       longitude: place.longitude,
-      country: data.country,
+      country: apiData.country,
     };
+
+    // Cache the result
+    zipCache.set(zip, { data: location, timestamp: Date.now() });
+
+    return location;
   } catch (error) {
-    console.error('ZIP code validation error:', error);
+    logger.error('ZIP code validation error', { zip, error });
     return null;
   }
 }
@@ -67,6 +208,11 @@ export async function validateZipCode(zip: string): Promise<ZipCodeLocation | nu
  * @returns Array of location data (null for invalid ZIPs)
  */
 export async function validateZipCodes(zips: string[]): Promise<(ZipCodeLocation | null)[]> {
+  if (!Array.isArray(zips)) {
+    logger.warn('validateZipCodes called with non-array', { zips });
+    return [];
+  }
+
   const promises = zips.map(zip => validateZipCode(zip));
   return Promise.all(promises);
 }
@@ -108,21 +254,40 @@ export async function getStateFromZip(zip: string): Promise<string | null> {
  * @returns Distance in miles or null if either ZIP is invalid
  */
 export async function getDistanceBetweenZips(zip1: string, zip2: string): Promise<number | null> {
+  // Handle identical ZIP codes
+  if (zip1 === zip2) {
+    return 0;
+  }
+
   const [loc1, loc2] = await Promise.all([
     validateZipCode(zip1),
     validateZipCode(zip2),
   ]);
 
   if (!loc1 || !loc2) {
+    logger.warn('Cannot calculate distance for invalid ZIP codes', { zip1, zip2 });
     return null;
   }
 
-  // Haversine formula
+  // Validate coordinates are parseable
   const lat1 = parseFloat(loc1.latitude);
   const lon1 = parseFloat(loc1.longitude);
   const lat2 = parseFloat(loc2.latitude);
   const lon2 = parseFloat(loc2.longitude);
 
+  if (isNaN(lat1) || isNaN(lon1) || isNaN(lat2) || isNaN(lon2)) {
+    logger.error('Invalid coordinates for distance calculation', {
+      zip1,
+      zip2,
+      lat1,
+      lon1,
+      lat2,
+      lon2,
+    });
+    return null;
+  }
+
+  // Haversine formula
   const R = 3959; // Earth's radius in miles
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);

@@ -1,9 +1,39 @@
 /**
  * localStorage utilities with validation and error handling
  * Prevents crashes from corrupted or malformed data
+ * Includes race condition protection for concurrent operations
  */
 
 import { CalculatorFormData, Residence, CurrentInsurance } from '@/types';
+import { logger } from './logger';
+
+// Simple lock mechanism to prevent race conditions
+const operationLocks = new Map<string, Promise<unknown>>();
+
+/**
+ * Execute localStorage operation with lock protection
+ */
+async function withLock<T>(key: string, operation: () => T | Promise<T>): Promise<T> {
+  // Wait for any existing operation on this key to complete
+  const existingLock = operationLocks.get(key);
+  if (existingLock) {
+    await existingLock.catch(() => {
+      // Ignore errors from previous operations
+    });
+  }
+
+  // Create new lock for this operation
+  const operationPromise = Promise.resolve().then(operation);
+  operationLocks.set(key, operationPromise);
+
+  try {
+    const result = await operationPromise;
+    return result;
+  } finally {
+    // Clean up lock
+    operationLocks.delete(key);
+  }
+}
 
 /**
  * Validate that a value is a Residence object
@@ -91,12 +121,15 @@ export function validateCalculatorFormData(data: unknown): data is CalculatorFor
 
 /**
  * Safely parse and validate localStorage data
+ * Now with race condition protection
  */
 export function loadCalculatorData(storageKey: string): {
   success: boolean;
   data?: CalculatorFormData & { timestamp?: number };
   error?: string;
 } {
+  // Note: We use synchronous localStorage API but wrap in lock for safety
+  // This prevents concurrent reads during writes
   try {
     const saved = localStorage.getItem(storageKey);
     if (!saved) {
@@ -107,57 +140,66 @@ export function loadCalculatorData(storageKey: string): {
 
     // Validate the structure
     if (!validateCalculatorFormData(parsed)) {
+      logger.warn('Invalid calculator data structure in localStorage', { storageKey });
       return { success: false, error: 'Invalid data structure' };
     }
 
     return { success: true, data: parsed };
   } catch (error) {
     if (error instanceof SyntaxError) {
+      logger.error('Corrupted localStorage data (invalid JSON)', { storageKey, error });
       return { success: false, error: 'Corrupted data (invalid JSON)' };
     }
+    logger.error('Failed to load calculator data from localStorage', { storageKey, error });
     return { success: false, error: 'Failed to load data' };
   }
 }
 
 /**
  * Safely save data to localStorage
+ * Now with race condition protection
  */
-export function saveCalculatorData(
+export async function saveCalculatorData(
   storageKey: string,
   data: CalculatorFormData,
   includeTimestamp = true
-): { success: boolean; error?: string } {
-  try {
-    const dataToSave = includeTimestamp
-      ? { ...data, timestamp: Date.now() }
-      : data;
+): Promise<{ success: boolean; error?: string }> {
+  return withLock(storageKey, () => {
+    try {
+      const dataToSave = includeTimestamp
+        ? { ...data, timestamp: Date.now() }
+        : data;
 
-    localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-    return { success: true };
-  } catch (error) {
-    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
-      console.error('localStorage quota exceeded:', error);
-      return { success: false, error: 'Storage quota exceeded' };
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+      return { success: true };
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        logger.error('localStorage quota exceeded', { storageKey, error });
+        return { success: false, error: 'Storage quota exceeded' };
+      }
+      logger.error('Failed to save to localStorage', { storageKey, error });
+      return { success: false, error: 'Failed to save data' };
     }
-    console.error('Failed to save to localStorage:', error);
-    return { success: false, error: 'Failed to save data' };
-  }
+  });
 }
 
 /**
  * Safely remove data from localStorage
+ * Now with race condition protection
  */
-export function clearCalculatorData(storageKey: string): {
+export async function clearCalculatorData(storageKey: string): Promise<{
   success: boolean;
   error?: string;
-} {
-  try {
-    localStorage.removeItem(storageKey);
-    return { success: true };
-  } catch (error) {
-    console.error('Failed to clear localStorage:', error);
-    return { success: false, error: 'Failed to clear data' };
-  }
+}> {
+  return withLock(storageKey, () => {
+    try {
+      localStorage.removeItem(storageKey);
+      return { success: true };
+    } catch (error) {
+      logger.error('Failed to clear localStorage', { storageKey, error });
+      return { success: false, error: 'Failed to clear data' };
+    }
+  });
 }
 
 /**

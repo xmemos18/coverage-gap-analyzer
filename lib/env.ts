@@ -90,8 +90,11 @@ export const env = {
   // Session
   sessionTimeoutHours: getNumberEnvVar('NEXT_PUBLIC_SESSION_TIMEOUT_HOURS', 24),
 
-  // API Configuration (for future use)
+  // API Configuration
   apiBaseUrl: getEnvVar('NEXT_PUBLIC_API_BASE_URL', '/api'),
+
+  // External API Keys (optional)
+  healthcareGovApiKey: getEnvVar('NEXT_PUBLIC_HEALTHCARE_GOV_API_KEY', ''),
 } as const;
 
 /**

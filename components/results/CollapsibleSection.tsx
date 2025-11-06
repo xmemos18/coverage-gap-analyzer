@@ -13,32 +13,28 @@ interface CollapsibleSectionProps {
 
 const colorClasses = {
   blue: {
-    bg: 'bg-gradient-to-br from-blue-50 to-indigo-50',
-    border: 'border-blue-200',
-    summaryBg: 'bg-white',
-    summaryBorder: 'border-blue-200',
-    button: 'bg-blue-100 hover:bg-blue-200 text-blue-700',
+    bg: 'glass-card',
+    glow: 'from-blue-400/20 to-blue-600/20',
+    button: 'glass-button text-blue-700 hover:text-blue-900',
+    accent: 'text-blue-600',
   },
   orange: {
-    bg: 'bg-gradient-to-br from-orange-50 to-yellow-50',
-    border: 'border-orange-200',
-    summaryBg: 'bg-white',
-    summaryBorder: 'border-orange-200',
-    button: 'bg-orange-100 hover:bg-orange-200 text-orange-700',
+    bg: 'glass-card',
+    glow: 'from-orange-400/20 to-yellow-600/20',
+    button: 'glass-button text-orange-700 hover:text-orange-900',
+    accent: 'text-orange-600',
   },
   green: {
-    bg: 'bg-gradient-to-br from-green-50 to-emerald-50',
-    border: 'border-green-200',
-    summaryBg: 'bg-white',
-    summaryBorder: 'border-green-200',
-    button: 'bg-green-100 hover:bg-green-200 text-green-700',
+    bg: 'glass-card',
+    glow: 'from-green-400/20 to-emerald-600/20',
+    button: 'glass-button text-green-700 hover:text-green-900',
+    accent: 'text-green-600',
   },
   purple: {
-    bg: 'bg-gradient-to-br from-purple-50 to-pink-50',
-    border: 'border-purple-200',
-    summaryBg: 'bg-white',
-    summaryBorder: 'border-purple-200',
-    button: 'bg-purple-100 hover:bg-purple-200 text-purple-700',
+    bg: 'glass-card',
+    glow: 'from-purple-400/20 to-pink-600/20',
+    button: 'glass-button text-purple-700 hover:text-purple-900',
+    accent: 'text-purple-600',
   },
 };
 
@@ -54,40 +50,47 @@ export default function CollapsibleSection({
   const colors = colorClasses[colorScheme];
 
   return (
-    <div className={`mb-8 ${colors.bg} rounded-lg p-6 md:p-8 border-2 ${colors.border}`}>
+    <div className={`mb-8 ${colors.bg} rounded-3xl p-6 md:p-8 relative overflow-hidden`}>
+      {/* Decorative glow */}
+      <div className={`absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br ${colors.glow} rounded-full blur-3xl opacity-30`}></div>
+
       {/* Header */}
-      <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-        <span className="text-3xl md:text-4xl">{icon}</span>
-        {title}
+      <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3 relative z-10">
+        <span className="text-3xl md:text-4xl drop-shadow-sm">{icon}</span>
+        <span className="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          {title}
+        </span>
       </h3>
 
-      {/* Summary (Always Visible) */}
-      <div className={`${colors.summaryBg} rounded-lg p-4 md:p-6 mb-4 border ${colors.summaryBorder}`}>
+      {/* Summary (Always Visible) - Glass Card */}
+      <div className="glass-card-accent rounded-2xl p-5 md:p-7 mb-6 relative z-10">
         {summary}
       </div>
 
       {/* Expand/Collapse Button */}
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-4 relative z-10">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className={`px-6 py-3 rounded-lg font-semibold transition-colors flex items-center gap-2 ${colors.button}`}
+          className={`px-6 py-3 rounded-2xl font-bold transition-all flex items-center gap-2 ${colors.button} hover:scale-105 shadow-lg`}
         >
           <span>{isExpanded ? 'Hide' : 'Show'} Full Analysis</span>
           <svg
-            className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
       </div>
 
-      {/* Full Content (Collapsible) */}
+      {/* Expandable Content */}
       {isExpanded && (
-        <div className="animate-fadeIn">
-          {children}
+        <div className="mt-6 relative z-10 animate-slideUpGlass">
+          <div className="glass-card rounded-2xl p-5 md:p-7">
+            {children}
+          </div>
         </div>
       )}
     </div>

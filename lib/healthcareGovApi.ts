@@ -10,8 +10,17 @@
  * 3. Restart development server
  */
 
+import { logger } from './logger';
+
 const API_BASE_URL = 'https://marketplace.api.healthcare.gov/api/v1';
 const API_KEY = process.env.NEXT_PUBLIC_HEALTHCARE_GOV_API_KEY;
+const API_TIMEOUT_MS = 10000; // 10 second timeout
+const MAX_RETRIES = 2; // Retry failed requests up to 2 times
+const RETRY_DELAY_MS = 1000; // Wait 1 second between retries
+
+// Simple in-memory cache for county lookups (expires after 1 hour)
+const countyCache = new Map<string, { data: County[]; timestamp: number }>();
+const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
 
 export interface County {
   fips: string;
@@ -106,6 +115,95 @@ export interface PlanSearchResponse {
 }
 
 /**
+ * Fetch with timeout support
+ */
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = API_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeoutMs}ms`);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Retry logic for API calls
+ */
+async function fetchWithRetry<T>(
+  fetchFn: () => Promise<T>,
+  retries: number = MAX_RETRIES
+): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fetchFn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      // Don't retry on 4xx errors (client errors)
+      if (lastError.message.includes('API error: 4')) {
+        throw lastError;
+      }
+
+      // Wait before retrying (exponential backoff)
+      if (attempt < retries) {
+        const delay = RETRY_DELAY_MS * Math.pow(2, attempt);
+        logger.warn(`API call failed, retrying in ${delay}ms (attempt ${attempt + 1}/${retries})`, lastError);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw lastError || new Error('API call failed after retries');
+}
+
+/**
+ * Validate API response structure
+ */
+function validateCountyResponse(data: unknown): data is { counties: County[] } {
+  if (!data || typeof data !== 'object') {
+    return false;
+  }
+
+  const response = data as { counties?: unknown };
+
+  if (!Array.isArray(response.counties)) {
+    return false;
+  }
+
+  // Validate first county structure (if exists)
+  if (response.counties.length > 0) {
+    const county = response.counties[0];
+    if (!county || typeof county !== 'object') {
+      return false;
+    }
+
+    const c = county as County;
+    if (typeof c.fips !== 'string' || typeof c.name !== 'string' || typeof c.state !== 'string') {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
  * Check if Healthcare.gov API is configured
  */
 export function isHealthcareGovApiAvailable(): boolean {
@@ -115,39 +213,69 @@ export function isHealthcareGovApiAvailable(): boolean {
 /**
  * Get county FIPS code from ZIP code
  * Required for plan searches
+ * Results are cached for 1 hour to reduce API calls
  */
 export async function getCountyByZip(zipcode: string): Promise<County[] | null> {
   if (!API_KEY) {
-    console.warn('Healthcare.gov API key not configured');
+    logger.warn('Healthcare.gov API key not configured');
     return null;
   }
 
   if (!zipcode || !/^\d{5}$/.test(zipcode)) {
+    logger.warn('Invalid ZIP code format', { zipcode });
     return null;
   }
 
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/counties/by/zip/${zipcode}?apikey=${API_KEY}`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      }
-    );
+  // Check cache first
+  const cached = countyCache.get(zipcode);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION_MS) {
+    logger.info('County lookup cache hit', { zipcode });
+    return cached.data;
+  }
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null; // ZIP not found
+  try {
+    const response = await fetchWithRetry(async () => {
+      const res = await fetchWithTimeout(
+        `${API_BASE_URL}/counties/by/zip/${zipcode}?apikey=${API_KEY}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (!res.ok) {
+        if (res.status === 404) {
+          logger.info('ZIP code not found in Healthcare.gov API', { zipcode });
+          return null;
+        }
+        throw new Error(`API error: ${res.status} ${res.statusText}`);
       }
-      throw new Error(`API error: ${response.status}`);
+
+      return res;
+    });
+
+    if (!response) {
+      return null;
     }
 
-    const data = await response.json();
-    return data.counties || [];
+    const data: unknown = await response.json();
+
+    // Validate response structure
+    if (!validateCountyResponse(data)) {
+      logger.error('Invalid API response structure for county lookup', { zipcode });
+      return null;
+    }
+
+    const counties = data.counties || [];
+
+    // Cache the result
+    countyCache.set(zipcode, { data: counties, timestamp: Date.now() });
+
+    return counties;
   } catch (error) {
-    console.error('County lookup error:', error);
+    logger.error('County lookup error', { zipcode, error });
     return null;
   }
 }
@@ -162,7 +290,7 @@ export async function searchMarketplacePlans(
   params: PlanSearchParams
 ): Promise<PlanSearchResponse | null> {
   if (!API_KEY) {
-    console.warn('Healthcare.gov API key not configured. Request one at: https://developer.cms.gov/marketplace-api/key-request.html');
+    logger.warn('Healthcare.gov API key not configured. Request one at: https://developer.cms.gov/marketplace-api/key-request.html');
     return null;
   }
 
@@ -170,12 +298,17 @@ export async function searchMarketplacePlans(
     // Step 1: Get county FIPS code for the ZIP
     const counties = await getCountyByZip(params.zipcode);
     if (!counties || counties.length === 0) {
-      console.error('No counties found for ZIP code:', params.zipcode);
+      logger.error('No counties found for ZIP code', { zipcode: params.zipcode });
       return null;
     }
 
     // Use first county if multiple (rare)
     const county = counties[0];
+
+    if (!county?.fips || !county?.state) {
+      logger.error('Invalid county data', { county });
+      return null;
+    }
 
     // Step 2: Build request body
     interface RequestBody {
@@ -220,41 +353,65 @@ export async function searchMarketplacePlans(
       requestBody.offset = params.offset;
     }
 
-    // Step 3: Search for plans
-    const response = await fetch(
-      `${API_BASE_URL}/plans/search?apikey=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      }
-    );
+    // Step 3: Search for plans with retry logic
+    const response = await fetchWithRetry(async () => {
+      const res = await fetchWithTimeout(
+        `${API_BASE_URL}/plans/search?apikey=${API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status} ${res.statusText}`);
+      }
+
+      return res;
+    });
+
+    const data: unknown = await response.json();
+
+    // Validate response structure
+    if (!data || typeof data !== 'object') {
+      logger.error('Invalid API response structure for plan search');
+      return null;
     }
 
-    const data = await response.json();
+    const apiResponse = data as {
+      plans?: unknown[];
+      total?: number;
+      facets?: {
+        metal_levels?: Array<{ name: string; count: number }>;
+        type?: Array<{ name: string; count: number }>;
+        issuers?: Array<{ name: string; id: string; count: number }>;
+      };
+      ranges?: {
+        premium?: { min: number; max: number };
+        deductible?: { min: number; max: number };
+      };
+    };
 
-    // Transform response into our format
+    // Transform response into our format with safe defaults
     return {
-      plans: data.plans || [],
-      total: data.total || 0,
+      plans: Array.isArray(apiResponse.plans) ? apiResponse.plans as MarketplacePlan[] : [],
+      total: typeof apiResponse.total === 'number' ? apiResponse.total : 0,
       facets: {
-        metal_levels: data.facets?.metal_levels || [],
-        types: data.facets?.type || [],
-        issuers: data.facets?.issuers || [],
+        metal_levels: Array.isArray(apiResponse.facets?.metal_levels) ? apiResponse.facets.metal_levels : [],
+        types: Array.isArray(apiResponse.facets?.type) ? apiResponse.facets.type : [],
+        issuers: Array.isArray(apiResponse.facets?.issuers) ? apiResponse.facets.issuers : [],
       },
       ranges: {
-        premium: data.ranges?.premium || { min: 0, max: 0 },
-        deductible: data.ranges?.deductible || { min: 0, max: 0 },
+        premium: apiResponse.ranges?.premium || { min: 0, max: 0 },
+        deductible: apiResponse.ranges?.deductible || { min: 0, max: 0 },
       },
     };
   } catch (error) {
-    console.error('Plan search error:', error);
+    logger.error('Plan search error', { params, error });
     return null;
   }
 }
@@ -264,33 +421,55 @@ export async function searchMarketplacePlans(
  */
 export async function getPlanDetails(planId: string, year?: number): Promise<MarketplacePlan | null> {
   if (!API_KEY) {
-    console.warn('Healthcare.gov API key not configured');
+    logger.warn('Healthcare.gov API key not configured');
+    return null;
+  }
+
+  if (!planId) {
+    logger.warn('Plan ID is required for plan details lookup');
     return null;
   }
 
   try {
     const yearParam = year || new Date().getFullYear();
-    const response = await fetch(
-      `${API_BASE_URL}/plans/${planId}?year=${yearParam}&apikey=${API_KEY}`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        },
-      }
-    );
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
+    const response = await fetchWithRetry(async () => {
+      const res = await fetchWithTimeout(
+        `${API_BASE_URL}/plans/${planId}?year=${yearParam}&apikey=${API_KEY}`,
+        {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (!res.ok) {
+        if (res.status === 404) {
+          logger.info('Plan not found', { planId, year: yearParam });
+          return null;
+        }
+        throw new Error(`API error: ${res.status} ${res.statusText}`);
       }
-      throw new Error(`API error: ${response.status}`);
+
+      return res;
+    });
+
+    if (!response) {
+      return null;
     }
 
-    const data = await response.json();
-    return data;
+    const data: unknown = await response.json();
+
+    // Basic validation
+    if (!data || typeof data !== 'object') {
+      logger.error('Invalid API response structure for plan details', { planId });
+      return null;
+    }
+
+    return data as MarketplacePlan;
   } catch (error) {
-    console.error('Plan details error:', error);
+    logger.error('Plan details error', { planId, year, error });
     return null;
   }
 }
@@ -317,7 +496,7 @@ export async function calculateSubsidyEstimates(
   is_medicaid_chip: boolean;
 } | null> {
   if (!API_KEY) {
-    console.warn('Healthcare.gov API key not configured');
+    logger.warn('Healthcare.gov API key not configured');
     return null;
   }
 
@@ -325,44 +504,67 @@ export async function calculateSubsidyEstimates(
     // Get county for ZIP
     const counties = await getCountyByZip(zipcode);
     if (!counties || counties.length === 0) {
+      logger.error('No counties found for subsidy calculation', { zipcode });
       return null;
     }
 
     const county = counties[0];
 
-    const response = await fetch(
-      `${API_BASE_URL}/households/eligibility/estimates?apikey=${API_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          place: {
-            countyfips: county.fips,
-            state: county.state,
-            zipcode: zipcode,
-          },
-          household: household,
-          market: 'Individual',
-          year: year || new Date().getFullYear(),
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+    if (!county?.fips || !county?.state) {
+      logger.error('Invalid county data for subsidy calculation', { county });
+      return null;
     }
 
-    const data = await response.json();
+    const response = await fetchWithRetry(async () => {
+      const res = await fetchWithTimeout(
+        `${API_BASE_URL}/households/eligibility/estimates?apikey=${API_KEY}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({
+            place: {
+              countyfips: county.fips,
+              state: county.state,
+              zipcode: zipcode,
+            },
+            household: household,
+            market: 'Individual',
+            year: year || new Date().getFullYear(),
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error(`API error: ${res.status} ${res.statusText}`);
+      }
+
+      return res;
+    });
+
+    const data: unknown = await response.json();
+
+    // Validate response
+    if (!data || typeof data !== 'object') {
+      logger.error('Invalid API response structure for subsidy estimates', { zipcode });
+      return null;
+    }
+
+    const subsidyData = data as {
+      aptc?: number;
+      csr?: string;
+      is_medicaid_chip?: boolean;
+    };
+
     return {
-      aptc: data.aptc || 0,
-      csr: data.csr || 'None',
-      is_medicaid_chip: data.is_medicaid_chip || false,
+      aptc: typeof subsidyData.aptc === 'number' ? subsidyData.aptc : 0,
+      csr: typeof subsidyData.csr === 'string' ? subsidyData.csr : 'None',
+      is_medicaid_chip: Boolean(subsidyData.is_medicaid_chip),
     };
   } catch (error) {
-    console.error('Subsidy calculation error:', error);
+    logger.error('Subsidy calculation error', { zipcode, error });
     return null;
   }
 }
@@ -379,16 +581,16 @@ export async function getRecommendedPlans(
     limit: 20, // Get more plans to filter from
   });
 
-  if (!results || results.plans.length === 0) {
+  if (!results || !Array.isArray(results.plans) || results.plans.length === 0) {
     return [];
   }
 
   // Sort by value score (quality rating / premium)
   const scoredPlans = results.plans
-    .filter(plan => plan.quality_rating.available)
+    .filter(plan => plan?.quality_rating?.available && plan.premium > 0)
     .map(plan => ({
       plan,
-      score: (plan.quality_rating.global_rating || 3) / (plan.premium || 1),
+      score: (plan.quality_rating.global_rating || 3) / plan.premium,
     }))
     .sort((a, b) => b.score - a.score);
 
@@ -400,6 +602,10 @@ export async function getRecommendedPlans(
  * Format plan premium for display
  */
 export function formatPlanPremium(plan: MarketplacePlan): string {
+  if (!plan || typeof plan.premium !== 'number') {
+    return 'N/A';
+  }
+
   if (plan.premium_w_credit !== undefined && plan.premium_w_credit < plan.premium) {
     return `$${plan.premium_w_credit.toFixed(2)}/mo (After Credit)`;
   }

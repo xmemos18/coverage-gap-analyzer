@@ -87,6 +87,224 @@
 }
 
 @layer utilities {
+  /* ============================================
+     LIQUID GLASS DESIGN SYSTEM (iOS 26 Inspired)
+     ============================================ */
+
+  /* Liquid Glass Card - Primary glassmorphism effect */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+      0 8px 32px 0 rgba(31, 38, 135, 0.15),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  }
+
+  /* Liquid Glass Card - Dark variant */
+  .glass-card-dark {
+    background: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 8px 32px 0 rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  }
+
+  /* Liquid Glass Card - Accent (blue tint) */
+  .glass-card-accent {
+    background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0.15) 0%,
+      rgba(96, 165, 250, 0.1) 100%
+    );
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    box-shadow:
+      0 8px 32px 0 rgba(59, 130, 246, 0.2),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+  }
+
+  /* Liquid Glass Hero - Premium glassmorphism with glow */
+  .glass-hero {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(249, 250, 251, 0.8) 100%
+    );
+    backdrop-filter: blur(30px) saturate(200%);
+    -webkit-backdrop-filter: blur(30px) saturate(200%);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow:
+      0 20px 60px 0 rgba(59, 130, 246, 0.15),
+      0 0 0 1px rgba(255, 255, 255, 0.2) inset,
+      0 0 40px 0 rgba(59, 130, 246, 0.1);
+  }
+
+  /* Liquid Glass Tab - Interactive glassmorphism */
+  .glass-tab {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-tab-active {
+    background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0.9) 0%,
+      rgba(96, 165, 250, 0.9) 100%
+    );
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow:
+      0 4px 20px 0 rgba(59, 130, 246, 0.4),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+  }
+
+  /* Liquid Glass Button */
+  .glass-button {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 24px 0 rgba(31, 38, 135, 0.15);
+    transform: translateY(-2px);
+  }
+
+  /* Liquid Glass Badge */
+  .glass-badge {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.9) 0%,
+      rgba(255, 255, 255, 0.7) 100%
+    );
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow:
+      0 2px 8px 0 rgba(31, 38, 135, 0.1),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.5);
+  }
+
+  /* Animated Liquid Glass Background */
+  .glass-bg {
+    background:
+      radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(96, 165, 250, 0.15) 0%, transparent 50%),
+      radial-gradient(circle at 40% 20%, rgba(147, 197, 253, 0.1) 0%, transparent 50%),
+      linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #bae6fd 100%);
+    animation: glassShift 20s ease infinite;
+  }
+
+  @keyframes glassShift {
+    0%, 100% {
+      background-position: 0% 0%, 100% 100%, 50% 20%, 0% 0%;
+    }
+    50% {
+      background-position: 100% 100%, 0% 0%, 80% 50%, 0% 0%;
+    }
+  }
+
+  /* Liquid Glass Glow Effect */
+  .glass-glow {
+    position: relative;
+  }
+
+  .glass-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0.5),
+      rgba(96, 165, 250, 0.3),
+      rgba(147, 197, 253, 0.2)
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .glass-glow:hover::before {
+    opacity: 1;
+  }
+
+  /* Floating Animation for Glass Elements */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .glass-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Shimmer Effect for Glass Loading States */
+  @keyframes glassShimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .glass-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0.1) 100%
+    );
+    background-size: 1000px 100%;
+    animation: glassShimmer 2s infinite linear;
+  }
+
+  /* Liquid Drop Effect */
+  @keyframes liquidDrop {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .glass-pulse {
+    animation: liquidDrop 3s ease-in-out infinite;
+  }
+
   /* Mobile-specific utility classes */
   .touch-manipulation {
     touch-action: manipulation;
@@ -173,6 +391,22 @@
     animation: fadeIn 0.3s ease-in-out;
   }
 
+  /* Slide up animation with glass effect */
+  @keyframes slideUpGlass {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .animate-slideUpGlass {
+    animation: slideUpGlass 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
   /* Slide up animation */
   @keyframes slideUp {
     from {
@@ -198,6 +432,27 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Custom Glass Scrollbar */
+  .glass-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .glass-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  .glass-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.3);
+    border-radius: 10px;
+    backdrop-filter: blur(10px);
+  }
+
+  .glass-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.5);
+  }
 }
 
 /* Print styles */
@@ -219,6 +474,8 @@
   * {
     box-shadow: none !important;
     text-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
 
   /* Better page breaks */
@@ -271,5 +528,16 @@
   button {
     border: 1px solid #000 !important;
     padding: 0.25rem 0.5rem !important;
+  }
+
+  /* Remove glass effects in print */
+  .glass-card,
+  .glass-card-dark,
+  .glass-card-accent,
+  .glass-hero,
+  .glass-tab,
+  .glass-button {
+    background: white !important;
+    border: 1px solid #ddd !important;
   }
 }

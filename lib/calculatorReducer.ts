@@ -104,6 +104,12 @@ export function calculatorReducer(state: CalculatorState, action: CalculatorActi
         }
       }
 
+      // Bounds checking - ensure we don't exceed maximum step
+      const maxStep = 5; // Total steps in the calculator
+      if (nextStep > maxStep) {
+        nextStep = maxStep;
+      }
+
       return {
         ...state,
         formData: {
@@ -122,6 +128,12 @@ export function calculatorReducer(state: CalculatorState, action: CalculatorActi
         if (state.formData.currentStep === 5) {
           prevStep = 2; // Jump directly to Household
         }
+      }
+
+      // Bounds checking - ensure we don't go below minimum step
+      const minStep = 1; // First step in the calculator
+      if (prevStep < minStep) {
+        prevStep = minStep;
       }
 
       return {

@@ -128,29 +128,31 @@ export default function Calculator() {
         showSuccess('Progress restored from previous session');
       } else {
         // Data is too old, clear it
-        const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
-        if (!clearResult.success) {
-          logger.error('Failed to clear old data', clearResult.error);
-        }
+        clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA).then((clearResult) => {
+          if (!clearResult.success) {
+            logger.error('Failed to clear old data', clearResult.error);
+          }
+        });
       }
     } else if (result.error) {
       // Invalid or corrupted data - log and clear
       logger.error('Failed to load saved calculator data', result.error);
-      const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
-      if (!clearResult.success) {
-        logger.error('Failed to clear corrupted data', clearResult.error);
-      }
+      clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA).then((clearResult) => {
+        if (!clearResult.success) {
+          logger.error('Failed to clear corrupted data', clearResult.error);
+        }
+      });
     }
   }, [showSuccess]);
 
-  // Debounced save to localStorage
-  const saveToLocalStorage = useDebouncedCallback(() => {
+  // Debounced save to localStorage (now async)
+  const saveToLocalStorage = useDebouncedCallback(async () => {
     const hasData = formData.currentStep > CALCULATOR_STEPS.RESIDENCES ||
                     formData.residences.some(r => r.zip || r.state) ||
                     formData.numAdults > 0;
 
     if (hasData) {
-      const result = saveCalculatorData(STORAGE_KEYS.CALCULATOR_DATA, formData, true);
+      const result = await saveCalculatorData(STORAGE_KEYS.CALCULATOR_DATA, formData, true);
       if (!result.success) {
         // Failed to save to localStorage (quota exceeded, private mode, etc.)
         logger.error('Failed to save calculator data', result.error);
@@ -182,10 +184,11 @@ export default function Calculator() {
       // Failed to load or validate data
       logger.error('Failed to resume saved calculator data', result.error);
       // Clear corrupted data and reset form
-      const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
-      if (!clearResult.success) {
-        logger.error('Failed to clear corrupted data', clearResult.error);
-      }
+      clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA).then((clearResult) => {
+        if (!clearResult.success) {
+          logger.error('Failed to clear corrupted data', clearResult.error);
+        }
+      });
       // Reset to initial state
       dispatch({ type: 'RESET_FORM', initialData: INITIAL_FORM_DATA });
     }
@@ -193,8 +196,8 @@ export default function Calculator() {
     dispatch({ type: 'SET_RESUME_PROMPT', show: false });
   };
 
-  const clearSavedData = () => {
-    const result = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+  const clearSavedData = async () => {
+    const result = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
     if (!result.success) {
       logger.error('Failed to clear saved calculator data', result.error);
       // Continue - we'll still reset the form state
@@ -364,6 +367,12 @@ export default function Calculator() {
   };
 
   const handleSubmit = async () => {
+    // Prevent multi-submit - check if already loading
+    if (isLoading) {
+      logger.warn('Form submission already in progress, ignoring duplicate submit');
+      return;
+    }
+
     if (!validateStep5()) {
       return;
     }
@@ -432,7 +441,7 @@ export default function Calculator() {
       params.append('simpleMode', formData.simpleMode.toString());
 
       // Clear saved data on successful submission
-      const clearResult = clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+      const clearResult = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
       if (!clearResult.success) {
         logger.error('Failed to clear saved data', clearResult.error);
         // Continue anyway - this is not critical

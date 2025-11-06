@@ -50,19 +50,19 @@ export function TabNavigation({ tabs, activeTab, onTabChange, children }: TabNav
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-lg mb-8 overflow-hidden">
-      {/* Tab Navigation */}
-      <div className="relative border-b border-gray-200">
+    <div className="glass-card rounded-3xl mb-8 overflow-hidden animate-slideUpGlass">
+      {/* Tab Navigation with Liquid Glass */}
+      <div className="relative border-b border-white/20">
         {/* Left scroll button (mobile) */}
         {showLeftScroll && (
           <button
             onClick={() => scrollTabs('left')}
-            className="md:hidden absolute left-0 top-0 bottom-0 z-10 bg-gradient-to-r from-white to-transparent px-2 flex items-center"
+            className="md:hidden absolute left-0 top-0 bottom-0 z-10 bg-gradient-to-r from-white/90 via-white/70 to-transparent backdrop-blur-sm px-2 flex items-center"
             aria-label="Scroll tabs left"
           >
-            <div className="bg-white rounded-full shadow-md p-1">
-              <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <div className="glass-button rounded-full shadow-lg p-2">
+              <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
               </svg>
             </div>
           </button>
@@ -72,32 +72,39 @@ export function TabNavigation({ tabs, activeTab, onTabChange, children }: TabNav
         <div
           ref={tabsRef}
           onScroll={checkScroll}
-          className="flex overflow-x-auto scrollbar-hide scroll-smooth"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex overflow-x-auto glass-scrollbar scroll-smooth"
         >
-          <div className="flex gap-1 md:gap-2 p-2 min-w-max md:min-w-0 md:w-full md:justify-center">
+          <div className="flex gap-2 md:gap-3 p-3 md:p-4 min-w-max md:min-w-0 md:w-full md:justify-center">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
                 className={`
-                  relative px-4 md:px-6 py-3 rounded-lg font-semibold text-sm md:text-base
-                  transition-all duration-200 whitespace-nowrap flex items-center gap-2
+                  relative px-5 md:px-7 py-3 md:py-4 rounded-2xl font-bold text-sm md:text-base
+                  transition-all duration-300 whitespace-nowrap flex items-center gap-2 md:gap-3
                   ${activeTab === tab.id
-                    ? 'bg-accent text-white shadow-md'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    ? 'glass-tab-active text-white scale-105 shadow-2xl'
+                    : 'glass-tab text-gray-700 hover:scale-105 hover:shadow-lg'
                   }
                 `}
               >
-                <span className="text-lg md:text-xl">{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
+                <span className="text-lg md:text-2xl drop-shadow-sm">{tab.icon}</span>
+                <span className="hidden sm:inline font-semibold">{tab.label}</span>
                 {tab.badge !== undefined && tab.badge > 0 && (
                   <span className={`
-                    ml-1 px-2 py-0.5 rounded-full text-xs font-bold
-                    ${activeTab === tab.id ? 'bg-white text-accent' : 'bg-accent text-white'}
+                    ml-1 px-2.5 py-1 rounded-full text-xs font-bold shadow-md
+                    transition-all duration-300
+                    ${activeTab === tab.id
+                      ? 'glass-badge text-accent scale-110'
+                      : 'bg-gradient-to-r from-blue-500 to-blue-400 text-white'
+                    }
                   `}>
                     {tab.badge}
                   </span>
+                )}
+                {/* Active indicator glow */}
+                {activeTab === tab.id && (
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400/20 to-blue-600/20 blur-xl -z-10"></div>
                 )}
               </button>
             ))}
@@ -108,20 +115,20 @@ export function TabNavigation({ tabs, activeTab, onTabChange, children }: TabNav
         {showRightScroll && (
           <button
             onClick={() => scrollTabs('right')}
-            className="md:hidden absolute right-0 top-0 bottom-0 z-10 bg-gradient-to-l from-white to-transparent px-2 flex items-center"
+            className="md:hidden absolute right-0 top-0 bottom-0 z-10 bg-gradient-to-l from-white/90 via-white/70 to-transparent backdrop-blur-sm px-2 flex items-center"
             aria-label="Scroll tabs right"
           >
-            <div className="bg-white rounded-full shadow-md p-1">
-              <svg className="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <div className="glass-button rounded-full shadow-lg p-2">
+              <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>
             </div>
           </button>
         )}
       </div>
 
-      {/* Tab Content */}
-      <div className="p-4 md:p-6">
+      {/* Tab Content with Glass Background */}
+      <div className="p-4 md:p-6 lg:p-8 bg-gradient-to-br from-white/40 to-blue-50/30">
         {children}
       </div>
     </div>
