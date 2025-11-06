@@ -20,7 +20,7 @@ export default function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center" onClick={closeMobileMenu}>
-            <span className="text-2xl font-bold text-primary">
+            <span className="text-2xl font-bold text-blue-600">
               Key Insurance Matters
             </span>
           </Link>
@@ -29,19 +29,19 @@ export default function Navigation() {
           <div className="hidden md:flex items-center space-x-8">
             <Link
               href="/about"
-              className="text-gray-700 hover:text-primary transition-colors font-medium"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               About
             </Link>
             <Link
               href="/faq"
-              className="text-gray-700 hover:text-primary transition-colors font-medium"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               FAQ
             </Link>
             <Link
               href="/contact"
-              className="text-gray-700 hover:text-primary transition-colors font-medium"
+              className="text-gray-700 hover:text-blue-600 transition-colors font-medium"
             >
               Contact
             </Link>
@@ -51,7 +51,7 @@ export default function Navigation() {
           <div className="md:hidden">
             <button
               onClick={toggleMobileMenu}
-              className="text-gray-700 hover:text-primary p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="text-gray-700 hover:text-blue-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
               aria-label={mobileMenuOpen ? 'Close mobile menu' : 'Open mobile menu'}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-menu"
@@ -82,21 +82,21 @@ export default function Navigation() {
             <Link
               href="/about"
               onClick={closeMobileMenu}
-              className="block px-4 py-3 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors font-medium"
+              className="block px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors font-medium"
             >
               About
             </Link>
             <Link
               href="/faq"
               onClick={closeMobileMenu}
-              className="block px-4 py-3 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors font-medium"
+              className="block px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors font-medium"
             >
               FAQ
             </Link>
             <Link
               href="/contact"
               onClick={closeMobileMenu}
-              className="block px-4 py-3 text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg transition-colors font-medium"
+              className="block px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg transition-colors font-medium"
             >
               Contact
             </Link>

@@ -100,14 +100,14 @@ export default function Tooltip({
         onFocus={showTooltip}
         onBlur={hideTooltip}
         onClick={isMobile ? toggleTooltip : undefined}
-        className="inline-flex items-center gap-1 cursor-help border-b border-dotted border-accent hover:border-solid focus:outline-none focus:border-solid transition-all"
+        className="inline-flex items-center gap-1 cursor-help border-b border-dotted border-blue-600 hover:border-solid focus:outline-none focus:border-solid transition-all"
         tabIndex={0}
         role="button"
         aria-describedby={isVisible ? tooltipId : undefined}
         aria-expanded={isVisible}
       >
         {children}
-        <span className="text-accent text-xs font-bold" aria-hidden="true">
+        <span className="text-blue-600 text-xs font-bold" aria-hidden="true">
           ⓘ
         </span>
       </span>

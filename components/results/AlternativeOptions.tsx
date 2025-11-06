@@ -123,14 +123,14 @@ interface OptionCardProps {
 
 function OptionCard({ option, isExpanded, onToggle }: OptionCardProps) {
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-white rounded-lg border-2 border-gray-200 hover:border-accent transition-all h-full flex flex-col overflow-hidden">
+    <div className="bg-gradient-to-br from-gray-50 to-white rounded-lg border-2 border-gray-200 hover:border-blue-600 transition-all h-full flex flex-col overflow-hidden">
       {/* Header */}
       <div className="p-6 pb-4">
         <h4 className="text-xl font-bold text-gray-900 mb-3">
           <InsuranceText text={option.name} position="bottom" />
         </h4>
         <div className="flex items-baseline gap-2 mb-1">
-          <div className="text-3xl font-bold text-accent">
+          <div className="text-3xl font-bold text-blue-600">
             {formatCost(option.monthlyCost.low, option.monthlyCost.high)}
           </div>
           <div className="text-sm text-gray-600">/month</div>
@@ -139,13 +139,13 @@ function OptionCard({ option, isExpanded, onToggle }: OptionCardProps) {
 
       {/* Pros (Always Visible) */}
       <div className="px-6 pb-4 flex-1">
-        <h5 className="font-semibold text-success mb-2 flex items-center gap-2 text-sm">
+        <h5 className="font-semibold text-green-600 mb-2 flex items-center gap-2 text-sm">
           <span>✓</span> Key Benefits
         </h5>
         <ul className="space-y-1">
           {option.pros.slice(0, 3).map((pro, i) => (
             <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-              <span className="text-success flex-shrink-0 mt-1">•</span>
+              <span className="text-green-600 flex-shrink-0 mt-1">•</span>
               <span><InsuranceText text={pro} position="bottom" /></span>
             </li>
           ))}
@@ -156,7 +156,7 @@ function OptionCard({ option, isExpanded, onToggle }: OptionCardProps) {
           )}
           {isExpanded && option.pros.slice(3).map((pro, i) => (
             <li key={i + 3} className="text-sm text-gray-700 flex items-start gap-2">
-              <span className="text-success flex-shrink-0 mt-1">•</span>
+              <span className="text-green-600 flex-shrink-0 mt-1">•</span>
               <span><InsuranceText text={pro} position="bottom" /></span>
             </li>
           ))}

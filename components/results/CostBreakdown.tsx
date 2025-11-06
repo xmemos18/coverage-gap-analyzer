@@ -22,13 +22,13 @@ function CostBreakdown({ monthlyCost }: CostBreakdownProps) {
           <div className="text-sm font-semibold text-gray-600 mb-2">
             Monthly <InsuranceTerm term="Premium">Cost</InsuranceTerm>
           </div>
-          <div className="text-4xl font-bold text-primary">
+          <div className="text-4xl font-bold text-blue-600">
             {formatCost(monthlyCost.low, monthlyCost.high)}
           </div>
         </div>
         <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-lg border-2 border-green-200">
           <div className="text-sm font-semibold text-gray-600 mb-2">Annual Cost</div>
-          <div className="text-4xl font-bold text-success">
+          <div className="text-4xl font-bold text-green-600">
             {formatCost(annualCost.low, annualCost.high)}
           </div>
         </div>

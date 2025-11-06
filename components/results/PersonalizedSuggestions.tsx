@@ -35,7 +35,7 @@ export default function PersonalizedSuggestions({ suggestions }: PersonalizedSug
               </div>
               <p className="text-gray-700 leading-relaxed mb-2">{suggestion.description}</p>
               {suggestion.potentialSavings && suggestion.potentialSavings > 0 && (
-                <div className="mt-3 inline-block bg-success text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
+                <div className="mt-3 inline-block bg-green-600 text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
                   <span aria-hidden="true">💰</span>
                   Save ${Math.round(suggestion.potentialSavings)}/month
                 </div>

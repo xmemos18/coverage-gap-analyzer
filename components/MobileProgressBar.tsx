@@ -29,7 +29,7 @@ export default function MobileProgressBar({ currentStep }: MobileProgressBarProp
         {/* Progress bar */}
         <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
           <div
-            className="absolute top-0 left-0 h-full bg-accent rounded-full transition-all duration-300 ease-in-out"
+            className="absolute top-0 left-0 h-full bg-blue-600 rounded-full transition-all duration-300 ease-in-out"
             style={{ width: `${progress}%` }}
             role="progressbar"
             aria-valuenow={currentStep}

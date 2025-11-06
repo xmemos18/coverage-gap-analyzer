@@ -68,13 +68,13 @@ export default function CostComparisonChart({
         <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-900 mb-2">{data.name}</p>
           {data.low === data.high ? (
-            <p className="text-primary font-medium">{formatCurrency(data.low)}/month</p>
+            <p className="text-blue-600 font-medium">{formatCurrency(data.low)}/month</p>
           ) : (
             <>
               <p className="text-sm text-gray-600">
                 Range: {formatCurrency(data.low)} - {formatCurrency(data.high)}
               </p>
-              <p className="text-primary font-medium">
+              <p className="text-blue-600 font-medium">
                 Average: {formatCurrency(data.average)}/month
               </p>
             </>

@@ -63,7 +63,7 @@ export default function ShareButtons({ data, summary, filename }: ShareButtonsPr
         {/* Copy Link Button */}
         <button
           onClick={handleCopyLink}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-accent hover:text-accent transition-all"
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-blue-600 hover:text-blue-600 transition-all"
           aria-label="Copy link to results"
         >
           <svg
@@ -87,7 +87,7 @@ export default function ShareButtons({ data, summary, filename }: ShareButtonsPr
         {/* Email Share Button */}
         <button
           onClick={handleEmailShare}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-accent hover:text-accent transition-all"
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:border-blue-600 hover:text-blue-600 transition-all"
           aria-label="Share results via email"
         >
           <svg

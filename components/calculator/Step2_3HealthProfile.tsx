@@ -75,8 +75,8 @@ export default function Step2_3HealthProfile({
               onClick={() => onUpdate('hasChronicConditions', true)}
               className={`flex-1 px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
                 hasChronicConditions
-                  ? 'bg-accent text-white border-accent'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
               }`}
               aria-label="Yes, someone has chronic conditions"
               aria-pressed={hasChronicConditions}
@@ -90,8 +90,8 @@ export default function Step2_3HealthProfile({
               }}
               className={`flex-1 px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
                 !hasChronicConditions
-                  ? 'bg-accent text-white border-accent'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
               }`}
               aria-label="No chronic conditions"
               aria-pressed={!hasChronicConditions}
@@ -111,7 +111,7 @@ export default function Step2_3HealthProfile({
                       type="checkbox"
                       checked={chronicConditions.includes(condition)}
                       onChange={() => toggleCondition(condition)}
-                      className="w-5 h-5 text-accent focus:ring-accent rounded"
+                      className="w-5 h-5 text-blue-600 focus:ring-blue-600 rounded"
                       aria-label={condition}
                     />
                     <span className="text-sm text-gray-700">{condition}</span>
@@ -137,8 +137,8 @@ export default function Step2_3HealthProfile({
                 onClick={() => onUpdate('prescriptionCount', option.value)}
                 className={`w-full px-6 py-3 rounded-lg font-semibold border-2 text-left transition-all ${
                   prescriptionCount === option.value
-                    ? 'bg-accent text-white border-accent'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
                 }`}
                 role="radio"
                 aria-checked={prescriptionCount === option.value}
@@ -182,8 +182,8 @@ export default function Step2_3HealthProfile({
                 onClick={() => onUpdate('providerPreference', option.value)}
                 className={`w-full px-6 py-3 rounded-lg font-semibold border-2 text-left transition-all ${
                   providerPreference === option.value
-                    ? 'bg-accent text-white border-accent'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
                 }`}
                 role="radio"
                 aria-checked={providerPreference === option.value}
@@ -225,7 +225,7 @@ export default function Step2_3HealthProfile({
 
         <button
           onClick={onNext}
-          className="px-8 py-3 flex-1 md:flex-initial bg-accent text-white rounded-lg font-semibold text-lg hover:bg-accent-light shadow-lg transition-all touch-manipulation"
+          className="px-8 py-3 flex-1 md:flex-initial bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-500 shadow-lg transition-all touch-manipulation"
           aria-label="Continue to current insurance information"
         >
           Next

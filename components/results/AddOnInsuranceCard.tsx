@@ -26,7 +26,7 @@ function AddOnInsuranceCard({
 
   // Priority badge styling
   const priorityStyles = {
-    high: 'bg-success/10 text-success border-success',
+    high: 'bg-green-600/10 text-green-600 border-green-600',
     medium: 'bg-warning/10 text-warning border-warning',
     low: 'bg-gray-100 text-gray-700 border-gray-300',
   };
@@ -41,7 +41,7 @@ function AddOnInsuranceCard({
     <div
       className={`bg-gray-50 rounded-lg p-6 border-2 transition-all ${
         priority === 'high'
-          ? 'border-success/30 hover:border-success'
+          ? 'border-green-600/30 hover:border-green-600'
           : priority === 'medium'
           ? 'border-warning/30 hover:border-warning'
           : 'border-gray-200 hover:border-gray-300'
@@ -94,7 +94,7 @@ function AddOnInsuranceCard({
           <div
             className={`h-2 rounded-full transition-all ${
               priority === 'high'
-                ? 'bg-success'
+                ? 'bg-green-600'
                 : priority === 'medium'
                 ? 'bg-warning'
                 : 'bg-gray-400'
@@ -110,13 +110,13 @@ function AddOnInsuranceCard({
           {/* Why Recommended */}
           <div>
             <h5 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-              <span className="text-accent">💡</span>
+              <span className="text-blue-600">💡</span>
               Why Recommended
             </h5>
             <ul className="space-y-1">
               {reasons.map((reason, i) => (
                 <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-                  <span className="text-accent flex-shrink-0 mt-0.5">•</span>
+                  <span className="text-blue-600 flex-shrink-0 mt-0.5">•</span>
                   <span>{reason}</span>
                 </li>
               ))}
@@ -126,13 +126,13 @@ function AddOnInsuranceCard({
           {/* Key Benefits */}
           <div>
             <h5 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-              <span className="text-success">✓</span>
+              <span className="text-green-600">✓</span>
               Key Benefits
             </h5>
             <ul className="space-y-1">
               {insurance.benefits.slice(0, 4).map((benefit, i) => (
                 <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-                  <span className="text-success flex-shrink-0 mt-0.5">•</span>
+                  <span className="text-green-600 flex-shrink-0 mt-0.5">•</span>
                   <span>{benefit}</span>
                 </li>
               ))}
@@ -166,7 +166,7 @@ function AddOnInsuranceCard({
           <div className="pt-3 border-t border-gray-200">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="w-full px-4 py-2 bg-accent/10 hover:bg-accent/20 text-accent font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="w-full px-4 py-2 bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

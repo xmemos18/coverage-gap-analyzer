@@ -57,7 +57,7 @@ export default function InfoTooltip({ content, position = 'top', className = '' 
       <button
         ref={buttonRef}
         type="button"
-        className="inline-flex items-center justify-center w-5 h-5 ml-1.5 text-primary hover:text-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded-full transition-colors"
+        className="inline-flex items-center justify-center w-5 h-5 ml-1.5 text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 rounded-full transition-colors"
         onMouseEnter={() => !isMobile && setIsVisible(true)}
         onMouseLeave={() => !isMobile && setIsVisible(false)}
         onClick={handleToggle}

@@ -64,8 +64,8 @@ export default function Step3Budget({
               onClick={() => onUpdate('budget', option.value)}
               className={`w-full px-6 py-4 rounded-lg font-semibold border-2 text-left transition-all ${
                 budget === option.value
-                  ? 'bg-accent text-white border-accent'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
               }`}
               role="radio"
               aria-checked={budget === option.value}
@@ -109,8 +109,8 @@ export default function Step3Budget({
               onClick={() => onUpdate('incomeRange', option.value)}
               className={`w-full px-6 py-4 rounded-lg font-semibold border-2 text-left transition-all ${
                 incomeRange === option.value
-                  ? 'bg-accent text-white border-accent'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
               }`}
               role="radio"
               aria-checked={incomeRange === option.value}
@@ -151,7 +151,7 @@ export default function Step3Budget({
 
         <button
           onClick={onSubmit}
-          className="px-8 py-3 flex-1 md:flex-initial bg-primary text-white rounded-lg font-semibold text-lg hover:bg-primary-dark shadow-lg transition-all touch-manipulation"
+          className="px-8 py-3 flex-1 md:flex-initial bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-800 shadow-lg transition-all touch-manipulation"
           aria-label="Analyze coverage and view results"
         >
           Analyze Coverage

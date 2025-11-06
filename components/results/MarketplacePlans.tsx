@@ -73,7 +73,7 @@ export default function MarketplacePlans({ plans }: MarketplacePlansProps) {
             id="sort-plans"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
           >
             <option value="premium">💰 Premium (Low to High)</option>
             <option value="deductible">🏥 Deductible (Low to High)</option>
@@ -94,7 +94,7 @@ export default function MarketplacePlans({ plans }: MarketplacePlansProps) {
               key={plan.id}
               className={`
                 border-2 rounded-xl overflow-hidden transition-all cursor-pointer
-                ${isSelected ? 'border-accent shadow-lg scale-[1.02]' : 'border-gray-200 hover:border-gray-300 hover:shadow-md'}
+                ${isSelected ? 'border-blue-600 shadow-lg scale-[1.02]' : 'border-gray-200 hover:border-gray-300 hover:shadow-md'}
               `}
               onClick={() => setSelectedPlan(isSelected ? null : plan.id)}
             >
@@ -132,7 +132,7 @@ export default function MarketplacePlans({ plans }: MarketplacePlansProps) {
                 {/* Premium */}
                 <div>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-accent">
+                    <span className="text-3xl font-bold text-blue-600">
                       ${hasSubsidy ? plan.premiumAfterCredit!.toFixed(2) : plan.premium.toFixed(2)}
                     </span>
                     <span className="text-gray-600">/month</span>
@@ -140,7 +140,7 @@ export default function MarketplacePlans({ plans }: MarketplacePlansProps) {
                   {hasSubsidy && (
                     <div className="mt-1">
                       <span className="text-sm text-gray-500 line-through">${plan.premium.toFixed(2)}</span>
-                      <span className="ml-2 text-sm font-medium text-success">
+                      <span className="ml-2 text-sm font-medium text-green-600">
                         Save ${(plan.premium - plan.premiumAfterCredit!).toFixed(2)}/mo with tax credit
                       </span>
                     </div>
@@ -192,7 +192,7 @@ export default function MarketplacePlans({ plans }: MarketplacePlansProps) {
                       href={`https://www.healthcare.gov/`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block w-full px-4 py-3 bg-accent text-white font-semibold rounded-lg hover:bg-accent-dark transition-colors text-center"
+                      className="block w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-center"
                       onClick={(e) => e.stopPropagation()}
                     >
                       Enroll on Healthcare.gov →

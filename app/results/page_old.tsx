@@ -216,7 +216,7 @@ function ResultsContent() {
 
         {/* Page Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-600 mb-4">
             Your Personalized Recommendations
           </h1>
           <p className="text-xl text-gray-600">
@@ -225,8 +225,8 @@ function ResultsContent() {
 
           {/* Mode Badge */}
           {simpleMode && (
-            <div className="mt-4 inline-flex items-center px-4 py-2 bg-accent/10 border border-accent/30 rounded-lg">
-              <span className="text-sm font-semibold text-accent mr-2">🎯</span>
+            <div className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600/10 border border-blue-600/30 rounded-lg">
+              <span className="text-sm font-semibold text-blue-600 mr-2">🎯</span>
               <span className="text-sm font-semibold text-gray-700">
                 Simple Mode Results
               </span>

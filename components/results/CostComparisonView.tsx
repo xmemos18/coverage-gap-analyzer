@@ -63,7 +63,7 @@ function CostComparisonView({ recommendations, showAll = false }: CostComparison
         {displayRecommendations.map((rec) => {
           const percentage = (rec.householdCostPerMonth / maxCost) * 100;
           const priorityColors = {
-            high: 'bg-success',
+            high: 'bg-green-600',
             medium: 'bg-warning',
             low: 'bg-gray-400',
           };
@@ -72,11 +72,11 @@ function CostComparisonView({ recommendations, showAll = false }: CostComparison
             <div key={rec.insurance.id} className="group">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-900 group-hover:text-accent transition-colors">
+                  <span className="text-sm font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
                     {rec.insurance.shortName}
                   </span>
                   {rec.priority === 'high' && (
-                    <span className="px-2 py-0.5 bg-success/10 text-success text-xs font-semibold rounded">
+                    <span className="px-2 py-0.5 bg-green-600/10 text-green-600 text-xs font-semibold rounded">
                       High Priority
                     </span>
                   )}
@@ -138,7 +138,7 @@ function CostComparisonView({ recommendations, showAll = false }: CostComparison
       {!showAll && (
         <div className="grid grid-cols-3 gap-2 mt-4">
           {recommendations.filter(r => r.priority === 'high').length > 0 && (
-            <div className="bg-success/5 border border-success/20 rounded p-2 text-center">
+            <div className="bg-green-600/5 border border-green-600/20 rounded p-2 text-center">
               <div className="text-xs text-gray-600 mb-0.5">High Priority</div>
               <div className="text-sm font-bold text-gray-900">
                 ${recommendations.filter(r => r.priority === 'high').reduce((sum, r) => sum + r.householdCostPerMonth, 0)}
@@ -168,7 +168,7 @@ function CostComparisonView({ recommendations, showAll = false }: CostComparison
       <div className="mt-4 pt-4 border-t border-gray-200">
         <div className="flex flex-wrap items-center gap-3 text-xs text-gray-600">
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-success"></div>
+            <div className="w-3 h-3 rounded-full bg-green-600"></div>
             <span>High Priority</span>
           </div>
           <div className="flex items-center gap-1.5">

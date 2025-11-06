@@ -472,7 +472,7 @@ export default function Calculator() {
       <div className="max-w-2xl mx-auto">
         {/* Page Header */}
         <div className="text-center mb-8 mt-4 md:mt-0">
-          <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">Coverage Calculator</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2">Coverage Calculator</h1>
           <p className="text-gray-600 text-base md:text-lg">
             {formData.simpleMode
               ? "Answer 3 quick questions to find your ideal insurance"
@@ -491,7 +491,7 @@ export default function Calculator() {
 
         {/* Resume Prompt */}
         {showResumePrompt && (
-          <div className="bg-blue-50 border-2 border-accent rounded-xl p-6 mb-6 shadow-lg">
+          <div className="bg-blue-50 border-2 border-blue-600 rounded-xl p-6 mb-6 shadow-lg">
             <h2 className="text-xl font-bold text-gray-900 mb-2">
               Continue where you left off?
             </h2>
@@ -501,7 +501,7 @@ export default function Calculator() {
             <div className="flex gap-3">
               <button
                 onClick={resumeSavedData}
-                className="px-6 py-2 bg-accent text-white font-semibold rounded-lg hover:bg-accent-light transition-colors"
+                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Resume
               </button>
@@ -529,9 +529,9 @@ export default function Calculator() {
                   <div
                     className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all ${
                       isCurrent
-                        ? 'bg-accent text-white scale-110 ring-2 ring-accent ring-offset-2'
+                        ? 'bg-blue-600 text-white scale-110 ring-2 ring-blue-600 ring-offset-2'
                         : isCompleted
-                        ? 'bg-success text-white'
+                        ? 'bg-green-600 text-white'
                         : 'bg-gray-300 text-gray-600'
                     }`}
                     aria-label={`Step ${step}: ${STEP_NAMES[step - 1]}${isCompleted ? ' - Completed' : isCurrent ? ' - Current' : ' - Pending'}`}
@@ -540,7 +540,7 @@ export default function Calculator() {
                     <span className="sr-only">{isCompleted ? 'Completed' : isCurrent ? 'Current step' : `Step ${step}`}</span>
                   </div>
                   <div className={`text-xs font-semibold mt-2 ${
-                    isCurrent ? 'text-accent font-bold' : 'text-gray-600'
+                    isCurrent ? 'text-blue-600 font-bold' : 'text-gray-600'
                   }`}>
                     {STEP_NAMES[step - 1]}
                   </div>
@@ -548,7 +548,7 @@ export default function Calculator() {
                 {step < CALCULATOR_STEPS.TOTAL_STEPS && (
                   <div
                     className={`w-20 h-1 mb-6 transition-all ${
-                      isCompleted ? 'bg-success' : 'bg-gray-300'
+                      isCompleted ? 'bg-green-600' : 'bg-gray-300'
                     }`}
                     aria-hidden="true"
                   />
@@ -566,7 +566,7 @@ export default function Calculator() {
             <div className="text-center mt-4">
               <button
                 onClick={clearSavedData}
-                className="text-sm text-gray-500 hover:text-accent underline"
+                className="text-sm text-gray-500 hover:text-blue-600 underline"
                 aria-label="Clear form and start over"
               >
                 Clear and start over
@@ -578,7 +578,7 @@ export default function Calculator() {
           {!showResumePrompt && (
             <div className="text-center mt-4">
               <details className="inline-block text-xs text-gray-500">
-                <summary className="cursor-pointer hover:text-accent">
+                <summary className="cursor-pointer hover:text-blue-600">
                   ⌨️ Keyboard shortcuts
                 </summary>
                 <div className="mt-2 text-left bg-gray-50 rounded-lg p-3 shadow-sm">
@@ -609,7 +609,7 @@ export default function Calculator() {
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-6 py-3 bg-accent text-white rounded-lg font-semibold hover:bg-accent-light transition-colors"
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-500 transition-colors"
               >
                 Reload Calculator
               </button>

@@ -147,7 +147,7 @@ function CostAnalysis({
               onClick={() => setActiveTab('glance')}
               className={`px-4 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'glance'
-                  ? 'border-accent text-accent'
+                  ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -158,7 +158,7 @@ function CostAnalysis({
                 onClick={() => setActiveTab('comparison')}
                 className={`px-4 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === 'comparison'
-                    ? 'border-accent text-accent'
+                    ? 'border-blue-600 text-blue-600'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
@@ -169,7 +169,7 @@ function CostAnalysis({
               onClick={() => setActiveTab('savings')}
               className={`px-4 py-3 font-semibold border-b-2 transition-colors whitespace-nowrap ${
                 activeTab === 'savings'
-                  ? 'border-accent text-accent'
+                  ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -189,7 +189,7 @@ function CostAnalysis({
                   <div className="text-sm font-semibold text-gray-600 mb-2">
                     Monthly <InsuranceTerm term="Premium">Cost</InsuranceTerm>
                   </div>
-                  <div className="text-3xl md:text-4xl font-bold text-primary">
+                  <div className="text-3xl md:text-4xl font-bold text-blue-600">
                     {formatCost(monthlyCost.low, monthlyCost.high)}
                   </div>
                   {subsidyAmount > 0 && (
@@ -201,7 +201,7 @@ function CostAnalysis({
 
                 <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-lg border-2 border-green-200">
                   <div className="text-sm font-semibold text-gray-600 mb-2">Annual Cost</div>
-                  <div className="text-3xl md:text-4xl font-bold text-success">
+                  <div className="text-3xl md:text-4xl font-bold text-green-600">
                     {formatCost(annualCost.low, annualCost.high)}
                   </div>
                   <div className="text-sm text-gray-600 mt-2">
@@ -303,13 +303,13 @@ function CostAnalysis({
                 <div>
                   <div className="flex justify-between text-sm mb-2">
                     <span className="font-semibold text-gray-700">Recommended Plan</span>
-                    <span className="font-bold text-accent">
+                    <span className="font-bold text-blue-600">
                       ${monthlyCost.low}-${monthlyCost.high}/month
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-10 md:h-12 relative overflow-hidden">
                     <div
-                      className="bg-accent h-full rounded-full flex items-center justify-end pr-3 transition-all duration-500"
+                      className="bg-blue-600 h-full rounded-full flex items-center justify-end pr-3 transition-all duration-500"
                       style={{ width: `${recommendedCostPercent}%` }}
                     >
                       <span className="text-white text-xs md:text-sm font-bold">Recommended</span>
@@ -387,7 +387,7 @@ function CostAnalysis({
                       onClick={() => setYearsToProject(years)}
                       className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                         yearsToProject === years
-                          ? 'bg-primary text-white'
+                          ? 'bg-blue-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -404,7 +404,7 @@ function CostAnalysis({
                     type="checkbox"
                     checked={showInflation}
                     onChange={(e) => setShowInflation(e.target.checked)}
-                    className="w-4 h-4 text-primary focus:ring-primary"
+                    className="w-4 h-4 text-blue-600 focus:ring-primary"
                   />
                   <span className="text-sm font-medium text-gray-700">
                     Include annual premium increases ({(ANNUAL_INCREASE_RATE * 100).toFixed(0)}% per year)
@@ -429,7 +429,7 @@ function CostAnalysis({
 
                   <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
                     <div className="text-xs text-blue-600 uppercase mb-1">Recommended Plan</div>
-                    <div className="text-2xl font-bold text-primary mb-3">
+                    <div className="text-2xl font-bold text-blue-600 mb-3">
                       ${Math.round(recommendedProjection.total).toLocaleString()}
                     </div>
                     <div className="space-y-1 text-sm text-gray-600">
@@ -443,7 +443,7 @@ function CostAnalysis({
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
                     <div className="text-sm text-gray-600 mb-1">Total Cost Over {yearsToProject} {yearsToProject === 1 ? 'Year' : 'Years'}</div>
-                    <div className="text-3xl font-bold text-primary">
+                    <div className="text-3xl font-bold text-blue-600">
                       ${Math.round(recommendedProjection.total).toLocaleString()}
                     </div>
                     <div className="text-xs text-gray-500 mt-2">

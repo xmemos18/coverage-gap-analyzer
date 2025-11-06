@@ -91,7 +91,7 @@ export default function SavingsCalculator({
                   onClick={() => setYearsToProject(years)}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     yearsToProject === years
-                      ? 'bg-primary text-white'
+                      ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -108,7 +108,7 @@ export default function SavingsCalculator({
                 type="checkbox"
                 checked={showInflation}
                 onChange={(e) => setShowInflation(e.target.checked)}
-                className="w-4 h-4 text-primary focus:ring-primary"
+                className="w-4 h-4 text-blue-600 focus:ring-primary"
               />
               <span className="text-sm font-medium text-gray-700">
                 Include annual premium increases ({(ANNUAL_INCREASE_RATE * 100).toFixed(0)}% per year)
@@ -120,7 +120,7 @@ export default function SavingsCalculator({
           <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
               <div className="text-sm text-gray-600 mb-1">Total Cost Over {yearsToProject} {yearsToProject === 1 ? 'Year' : 'Years'}</div>
-              <div className="text-3xl font-bold text-primary">
+              <div className="text-3xl font-bold text-blue-600">
                 ${Math.round(recommendedProjection.total).toLocaleString()}
               </div>
               <div className="text-xs text-gray-500 mt-2">
@@ -244,7 +244,7 @@ export default function SavingsCalculator({
               onClick={() => setYearsToProject(years)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 yearsToProject === years
-                  ? 'bg-primary text-white'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -261,7 +261,7 @@ export default function SavingsCalculator({
             type="checkbox"
             checked={showInflation}
             onChange={(e) => setShowInflation(e.target.checked)}
-            className="w-4 h-4 text-primary focus:ring-primary"
+            className="w-4 h-4 text-blue-600 focus:ring-primary"
           />
           <span className="text-sm font-medium text-gray-700">
             Include annual premium increases ({(ANNUAL_INCREASE_RATE * 100).toFixed(0)}% per year)
@@ -292,7 +292,7 @@ export default function SavingsCalculator({
         {/* Recommended Plan */}
         <div className="bg-blue-50 p-6 rounded-lg border-2 border-blue-200">
           <div className="text-xs text-blue-600 uppercase mb-1">Recommended Plan</div>
-          <div className="text-2xl font-bold text-primary mb-3">
+          <div className="text-2xl font-bold text-blue-600 mb-3">
             ${Math.round(recommendedTotalCost).toLocaleString()}
           </div>
           <div className="space-y-1 text-sm text-gray-600">

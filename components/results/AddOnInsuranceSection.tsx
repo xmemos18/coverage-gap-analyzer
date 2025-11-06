@@ -133,7 +133,7 @@ function AddOnInsuranceSection({ analysis }: AddOnInsuranceSectionProps) {
                   alert('Failed to export CSV. Please try again.');
                 }
               }}
-              className="px-4 py-2 bg-accent hover:bg-accent-light text-white font-semibold rounded-lg transition-colors flex items-center gap-2 text-sm"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-colors flex items-center gap-2 text-sm"
               title="Export to CSV"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,9 +147,9 @@ function AddOnInsuranceSection({ analysis }: AddOnInsuranceSectionProps) {
 
       {/* Household Age Groups Summary */}
       {householdAgeGroups.length > 0 && (
-        <div className="bg-accent/5 border-l-4 border-accent rounded-r-lg p-4 mb-6">
+        <div className="bg-blue-600/5 border-l-4 border-blue-600 rounded-r-lg p-4 mb-6">
           <div className="flex items-start gap-2">
-            <span className="text-accent text-xl flex-shrink-0">👥</span>
+            <span className="text-blue-600 text-xl flex-shrink-0">👥</span>
             <div>
               <h4 className="font-semibold text-gray-900 mb-1">Your Household</h4>
               <p className="text-sm text-gray-700">
@@ -167,7 +167,7 @@ function AddOnInsuranceSection({ analysis }: AddOnInsuranceSectionProps) {
 
       {/* Cost Summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-success/10 border border-success/30 rounded-lg p-4">
+        <div className="bg-green-600/10 border border-green-600/30 rounded-lg p-4">
           <div className="text-sm text-gray-700 mb-1">High Priority Add-Ons</div>
           <div className="text-2xl font-bold text-gray-900">
             ${totalMonthlyHighPriority}/mo
@@ -195,7 +195,7 @@ function AddOnInsuranceSection({ analysis }: AddOnInsuranceSectionProps) {
           id="category-filter"
           value={filterByCategory}
           onChange={(e) => setFilterByCategory(e.target.value)}
-          className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+          className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
         >
           {categories.map(cat => (
             <option key={cat} value={cat}>
@@ -209,7 +209,7 @@ function AddOnInsuranceSection({ analysis }: AddOnInsuranceSectionProps) {
           id="sort-by"
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as 'priority' | 'cost' | 'score')}
-          className="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent"
+          className="flex-1 sm:flex-none px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
         >
           <option value="priority">⭐ Priority</option>
           <option value="cost">💰 Cost</option>
@@ -235,8 +235,8 @@ function AddOnInsuranceSection({ analysis }: AddOnInsuranceSectionProps) {
           </div>
           <button
             onClick={() => setShowAllOptions(!showAllOptions)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 ${
-              showAllOptions ? 'bg-accent' : 'bg-gray-300'
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 ${
+              showAllOptions ? 'bg-blue-600' : 'bg-gray-300'
             }`}
             aria-label="Toggle show all options"
           >
@@ -261,7 +261,7 @@ function AddOnInsuranceSection({ analysis }: AddOnInsuranceSectionProps) {
       {filteredHighPriority.length > 0 && (
         <div className="mb-6">
           <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <span className="px-3 py-1 bg-success/10 text-success border border-success/30 rounded-full text-sm">
+            <span className="px-3 py-1 bg-green-600/10 text-green-600 border border-green-600/30 rounded-full text-sm">
               High Priority
             </span>
             <span className="text-gray-600 text-base font-normal">
@@ -386,9 +386,9 @@ function AddOnInsuranceSection({ analysis }: AddOnInsuranceSectionProps) {
 
       {/* Bundle Discount Notice */}
       {analysis.recommendations.length >= 3 && (
-        <div className="bg-accent/10 border border-accent/30 rounded-lg p-4 mt-6">
+        <div className="bg-blue-600/10 border border-blue-600/30 rounded-lg p-4 mt-6">
           <div className="flex items-start gap-2">
-            <span className="text-accent text-xl flex-shrink-0">💰</span>
+            <span className="text-blue-600 text-xl flex-shrink-0">💰</span>
             <div>
               <h4 className="font-semibold text-gray-900 mb-1">Bundle Discount Available</h4>
               <p className="text-sm text-gray-700">

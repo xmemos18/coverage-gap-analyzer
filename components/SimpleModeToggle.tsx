@@ -41,7 +41,7 @@ export default function SimpleModeToggle({ simpleMode, onToggle, hasFormData }: 
             onClick={() => handleToggle(true)}
             className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
               simpleMode
-                ? 'bg-accent text-white'
+                ? 'bg-blue-600 text-white'
                 : 'text-gray-700 hover:bg-gray-100'
             }`}
             aria-pressed={simpleMode}
@@ -55,7 +55,7 @@ export default function SimpleModeToggle({ simpleMode, onToggle, hasFormData }: 
             onClick={() => handleToggle(false)}
             className={`px-4 py-2 text-sm font-semibold rounded-md transition-all ${
               !simpleMode
-                ? 'bg-accent text-white'
+                ? 'bg-blue-600 text-white'
                 : 'text-gray-700 hover:bg-gray-100'
             }`}
             aria-pressed={!simpleMode}
@@ -72,11 +72,11 @@ export default function SimpleModeToggle({ simpleMode, onToggle, hasFormData }: 
         <p className="text-sm text-gray-600">
           {simpleMode ? (
             <>
-              <span className="font-semibold text-accent">Simple Mode:</span> Answer 3 quick questions for basic recommendations
+              <span className="font-semibold text-blue-600">Simple Mode:</span> Answer 3 quick questions for basic recommendations
             </>
           ) : (
             <>
-              <span className="font-semibold text-accent">Advanced Mode:</span> Answer detailed questions for personalized recommendations
+              <span className="font-semibold text-blue-600">Advanced Mode:</span> Answer detailed questions for personalized recommendations
             </>
           )}
         </p>
@@ -105,7 +105,7 @@ export default function SimpleModeToggle({ simpleMode, onToggle, hasFormData }: 
             <div className="flex gap-3">
               <button
                 onClick={confirmSwitch}
-                className="flex-1 px-4 py-2 bg-accent text-white font-semibold rounded-lg hover:bg-accent-light transition-colors"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-500 transition-colors"
               >
                 Continue
               </button>

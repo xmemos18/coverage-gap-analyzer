@@ -163,7 +163,7 @@ export default function FAQPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold text-blue-600 mb-4">
             Frequently Asked Questions
           </h1>
           <p className="text-xl text-gray-600">
@@ -178,7 +178,7 @@ export default function FAQPage() {
             placeholder="Search questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none"
           />
         </div>
 
@@ -190,8 +190,8 @@ export default function FAQPage() {
               onClick={() => setSelectedCategory(category)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 selectedCategory === category
-                  ? 'bg-primary text-white'
-                  : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-primary'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-600'
               }`}
             >
               {category}
@@ -224,10 +224,10 @@ export default function FAQPage() {
                 className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
               >
                 <div className="flex-1">
-                  <div className="text-xs text-accent font-semibold mb-1">{faq.category}</div>
+                  <div className="text-xs text-blue-600 font-semibold mb-1">{faq.category}</div>
                   <div className="text-lg font-semibold text-gray-900">{faq.question}</div>
                 </div>
-                <span className="text-2xl text-primary ml-4">
+                <span className="text-2xl text-blue-600 ml-4">
                   {expandedItems.has(index) ? '−' : '+'}
                 </span>
               </button>
@@ -277,7 +277,7 @@ export default function FAQPage() {
           </p>
           <Link
             href="/calculator"
-            className="inline-block px-8 py-3 bg-white text-primary rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+            className="inline-block px-8 py-3 bg-white text-blue-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
           >
             Start Calculator
           </Link>

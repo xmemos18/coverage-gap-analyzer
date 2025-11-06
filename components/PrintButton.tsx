@@ -35,7 +35,7 @@ export default function PrintButton({
     <button
       onClick={handlePrint}
       disabled={isPrinting}
-      className={`flex items-center gap-2 px-6 py-3 bg-white border-2 border-accent text-accent font-semibold rounded-lg hover:bg-accent hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed no-print ${className}`}
+      className={`flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-600 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed no-print ${className}`}
       aria-label={label}
     >
       <svg

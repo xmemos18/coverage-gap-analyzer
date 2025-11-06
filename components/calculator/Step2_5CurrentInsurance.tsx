@@ -72,8 +72,8 @@ export default function Step2_5CurrentInsurance({
               onClick={() => onUpdate('hasCurrentInsurance', true)}
               className={`flex-1 px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
                 hasCurrentInsurance
-                  ? 'bg-accent text-white border-accent'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
               }`}
               aria-label="Yes, I have current health insurance"
               aria-pressed={hasCurrentInsurance}
@@ -84,8 +84,8 @@ export default function Step2_5CurrentInsurance({
               onClick={() => onUpdate('hasCurrentInsurance', false)}
               className={`flex-1 px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
                 !hasCurrentInsurance
-                  ? 'bg-accent text-white border-accent'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
               }`}
               aria-label="No, I don't have current health insurance"
               aria-pressed={!hasCurrentInsurance}
@@ -107,7 +107,7 @@ export default function Step2_5CurrentInsurance({
                 type="text"
                 value={currentInsurance.carrier}
                 onChange={(e) => updateInsuranceField('carrier', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 placeholder="e.g., Blue Cross Blue Shield, UnitedHealthcare, Aetna"
               />
               {errors.carrier && <p className="text-red-600 text-sm mt-2">{errors.carrier}</p>}
@@ -121,7 +121,7 @@ export default function Step2_5CurrentInsurance({
               <select
                 value={currentInsurance.planType}
                 onChange={(e) => updateInsuranceField('planType', e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent bg-white"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600 bg-white"
               >
                 <option value="">Select plan type...</option>
                 {planTypes.map((type) => (
@@ -146,7 +146,7 @@ export default function Step2_5CurrentInsurance({
                   step="0.01"
                   value={currentInsurance.monthlyCost || ''}
                   onChange={(e) => updateInsuranceField('monthlyCost', parseFloat(e.target.value) || 0)}
-                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   placeholder="500"
                 />
               </div>
@@ -166,7 +166,7 @@ export default function Step2_5CurrentInsurance({
                   step="100"
                   value={currentInsurance.deductible || ''}
                   onChange={(e) => updateInsuranceField('deductible', parseFloat(e.target.value) || 0)}
-                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   placeholder="2000"
                 />
               </div>
@@ -186,7 +186,7 @@ export default function Step2_5CurrentInsurance({
                   step="100"
                   value={currentInsurance.outOfPocketMax || ''}
                   onChange={(e) => updateInsuranceField('outOfPocketMax', parseFloat(e.target.value) || 0)}
-                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   placeholder="8000"
                 />
               </div>
@@ -202,7 +202,7 @@ export default function Step2_5CurrentInsurance({
                 value={currentInsurance.coverageNotes}
                 onChange={(e) => updateInsuranceField('coverageNotes', e.target.value)}
                 rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                 placeholder="e.g., Nationwide network, prescription drug coverage, dental included, etc."
               />
               {errors.coverageNotes && <p className="text-red-600 text-sm mt-2">{errors.coverageNotes}</p>}
@@ -222,7 +222,7 @@ export default function Step2_5CurrentInsurance({
 
         <button
           onClick={onNext}
-          className="px-8 py-3 flex-1 md:flex-initial bg-accent text-white rounded-lg font-semibold text-lg hover:bg-accent-light shadow-lg transition-all touch-manipulation"
+          className="px-8 py-3 flex-1 md:flex-initial bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-500 shadow-lg transition-all touch-manipulation"
         >
           Next
         </button>

@@ -36,14 +36,14 @@ export default function MedicarePlanFinderLink({ zipCode, recommendationType }: 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div>
             <div className="font-medium text-gray-700">Part B Premium</div>
-            <div className="text-lg font-bold text-accent">${estimatedCosts.partB.monthlyPremium}/month</div>
+            <div className="text-lg font-bold text-blue-600">${estimatedCosts.partB.monthlyPremium}/month</div>
             <div className="text-xs text-gray-600">Standard 2025 rate</div>
           </div>
 
           {recommendationType === 'medigap' || recommendationType === 'both' ? (
             <div>
               <div className="font-medium text-gray-700">Medigap Plan G</div>
-              <div className="text-lg font-bold text-accent">
+              <div className="text-lg font-bold text-blue-600">
                 ${estimatedCosts.medigapPlanG.monthlyPremium.low} - ${estimatedCosts.medigapPlanG.monthlyPremium.high}/month
               </div>
               <div className="text-xs text-gray-600">{estimatedCosts.medigapPlanG.note}</div>
@@ -53,7 +53,7 @@ export default function MedicarePlanFinderLink({ zipCode, recommendationType }: 
           {recommendationType === 'advantage' || recommendationType === 'both' ? (
             <div>
               <div className="font-medium text-gray-700">Medicare Advantage</div>
-              <div className="text-lg font-bold text-accent">
+              <div className="text-lg font-bold text-blue-600">
                 ${estimatedCosts.medicareAdvantage.monthlyPremium.low} - ${estimatedCosts.medicareAdvantage.monthlyPremium.high}/month
               </div>
               <div className="text-xs text-gray-600">{estimatedCosts.medicareAdvantage.note}</div>
@@ -62,7 +62,7 @@ export default function MedicarePlanFinderLink({ zipCode, recommendationType }: 
 
           <div>
             <div className="font-medium text-gray-700">Part D (Drug Coverage)</div>
-            <div className="text-lg font-bold text-accent">
+            <div className="text-lg font-bold text-blue-600">
               ${estimatedCosts.partD.monthlyPremium.low} - ${estimatedCosts.partD.monthlyPremium.high}/month
             </div>
             <div className="text-xs text-gray-600">{estimatedCosts.partD.note}</div>
@@ -80,7 +80,7 @@ export default function MedicarePlanFinderLink({ zipCode, recommendationType }: 
               href={resources.planFinder}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between px-4 py-3 bg-accent text-white font-semibold rounded-lg hover:bg-accent-dark transition-colors"
+              className="flex items-center justify-between px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
             >
               <span>Medicare Advantage Plans</span>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -94,7 +94,7 @@ export default function MedicarePlanFinderLink({ zipCode, recommendationType }: 
               href={resources.medigapFinder}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-between px-4 py-3 bg-white border-2 border-accent text-accent font-semibold rounded-lg hover:bg-blue-50 transition-colors"
+              className="flex items-center justify-between px-4 py-3 bg-white border-2 border-blue-600 text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors"
             >
               <span>Medigap Plans</span>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

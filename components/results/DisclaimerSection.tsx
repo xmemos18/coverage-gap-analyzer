@@ -14,13 +14,13 @@ export default function DisclaimerSection() {
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
         <Link
           href="/calculator"
-          className="px-8 py-4 border-2 border-accent text-accent font-bold rounded-lg hover:bg-accent hover:text-white transition-colors text-lg w-full sm:w-auto"
+          className="px-8 py-4 border-2 border-blue-600 text-blue-600 font-bold rounded-lg hover:bg-blue-600 hover:text-white transition-colors text-lg w-full sm:w-auto"
         >
           ← Start Over
         </Link>
         <Link
           href="/contact"
-          className="px-8 py-4 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-colors text-lg shadow-lg w-full sm:w-auto"
+          className="px-8 py-4 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-800 transition-colors text-lg shadow-lg w-full sm:w-auto"
         >
           Contact Us →
         </Link>

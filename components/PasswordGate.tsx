@@ -54,9 +54,9 @@ export default function PasswordGate({ children }: PasswordGateProps) {
           <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-200">
             {/* Lock Icon */}
             <div className="flex justify-center mb-6">
-              <div className="bg-primary bg-opacity-10 p-4 rounded-full">
+              <div className="bg-blue-600 bg-opacity-10 p-4 rounded-full">
                 <svg
-                  className="w-12 h-12 text-primary"
+                  className="w-12 h-12 text-blue-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -91,7 +91,7 @@ export default function PasswordGate({ children }: PasswordGateProps) {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-lg ${
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary focus:border-blue-600 text-lg ${
                     error ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Enter password"
@@ -107,7 +107,7 @@ export default function PasswordGate({ children }: PasswordGateProps) {
 
               <button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-lg text-lg"
+                className="w-full bg-blue-600 hover:bg-blue-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-lg text-lg"
               >
                 Enter
               </button>

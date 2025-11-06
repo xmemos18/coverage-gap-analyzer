@@ -57,7 +57,7 @@ export default function CoverageScoreChart({
       return (
         <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
           <p className="font-semibold text-gray-900">{data.category}</p>
-          <p className="text-primary font-medium">{data.score}/100</p>
+          <p className="text-blue-600 font-medium">{data.score}/100</p>
         </div>
       );
     }

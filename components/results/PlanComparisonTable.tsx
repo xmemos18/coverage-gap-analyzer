@@ -65,7 +65,7 @@ export default function PlanComparisonTable({ recommended, alternatives }: PlanC
           <thead>
             <tr className="border-b-2 border-gray-200">
               <th className="text-left p-4 font-semibold text-gray-700">Feature</th>
-              <th className="text-left p-4 font-semibold text-primary bg-blue-50 rounded-t-lg">
+              <th className="text-left p-4 font-semibold text-blue-600 bg-blue-50 rounded-t-lg">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">✅</span>
                   <span>Recommended</span>
@@ -82,7 +82,7 @@ export default function PlanComparisonTable({ recommended, alternatives }: PlanC
             {/* Plan Names */}
             <tr className="border-b border-gray-100">
               <td className="p-4 font-medium text-gray-600">Plan Type</td>
-              <td className="p-4 bg-blue-50 font-semibold text-primary">
+              <td className="p-4 bg-blue-50 font-semibold text-blue-600">
                 {recommended.recommendedInsurance}
               </td>
               {topAlternatives.map((alt, idx) => (

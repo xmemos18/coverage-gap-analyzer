@@ -50,7 +50,7 @@ function RecommendationDetailModal({
 
   // Priority styling
   const priorityStyles = {
-    high: 'bg-success/10 text-success border-success',
+    high: 'bg-green-600/10 text-green-600 border-green-600',
     medium: 'bg-warning/10 text-warning border-warning',
     low: 'bg-gray-100 text-gray-700 border-gray-300',
   };
@@ -99,7 +99,7 @@ function RecommendationDetailModal({
         <div className="p-6 space-y-6">
           {/* Score and Cost */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-accent/5 border border-accent/20 rounded-lg p-4">
+            <div className="bg-blue-600/5 border border-blue-600/20 rounded-lg p-4">
               <div className="text-sm text-gray-600 mb-1">Recommendation Score</div>
               <div className="flex items-baseline gap-2">
                 <div className="text-3xl font-bold text-gray-900">{probabilityScore}%</div>
@@ -108,7 +108,7 @@ function RecommendationDetailModal({
               <div className="mt-3 w-full bg-gray-200 rounded-full h-3">
                 <div
                   className={`h-3 rounded-full transition-all ${
-                    priority === 'high' ? 'bg-success' :
+                    priority === 'high' ? 'bg-green-600' :
                     priority === 'medium' ? 'bg-warning' : 'bg-gray-400'
                   }`}
                   style={{ width: `${probabilityScore}%` }}
@@ -131,15 +131,15 @@ function RecommendationDetailModal({
           </div>
 
           {/* Key Factor */}
-          <div className="bg-accent/10 border-l-4 border-accent rounded-r-lg p-4">
+          <div className="bg-blue-600/10 border-l-4 border-blue-600 rounded-r-lg p-4">
             <h3 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
-              <span className="text-accent text-xl">🎯</span>
+              <span className="text-blue-600 text-xl">🎯</span>
               {insights.keyFactor}
             </h3>
             <div className="space-y-2">
               {insights.insights.map((insight, i) => (
                 <div key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                  <span className="text-accent flex-shrink-0 mt-0.5">•</span>
+                  <span className="text-blue-600 flex-shrink-0 mt-0.5">•</span>
                   <span>{insight}</span>
                 </div>
               ))}
@@ -149,13 +149,13 @@ function RecommendationDetailModal({
           {/* Why Recommended for Your Household */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span className="text-success text-xl">💡</span>
+              <span className="text-green-600 text-xl">💡</span>
               Why Recommended for Your Household
             </h3>
             <ul className="space-y-2">
               {reasons.map((reason, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-gray-700 bg-gray-50 rounded-lg p-3">
-                  <span className="text-success flex-shrink-0 mt-0.5">✓</span>
+                  <span className="text-green-600 flex-shrink-0 mt-0.5">✓</span>
                   <span>{reason}</span>
                 </li>
               ))}
@@ -171,7 +171,7 @@ function RecommendationDetailModal({
             <ul className="space-y-2">
               {insights.statistics.map((stat, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                  <span className="text-accent flex-shrink-0 mt-1">▸</span>
+                  <span className="text-blue-600 flex-shrink-0 mt-1">▸</span>
                   <span>{stat}</span>
                 </li>
               ))}
@@ -186,8 +186,8 @@ function RecommendationDetailModal({
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {insurance.benefits.map((benefit, i) => (
-                <div key={i} className="flex items-start gap-2 text-sm text-gray-700 bg-success/5 rounded-lg p-3 border border-success/20">
-                  <span className="text-success flex-shrink-0 mt-0.5">✓</span>
+                <div key={i} className="flex items-start gap-2 text-sm text-gray-700 bg-green-600/5 rounded-lg p-3 border border-green-600/20">
+                  <span className="text-green-600 flex-shrink-0 mt-0.5">✓</span>
                   <span>{benefit}</span>
                 </div>
               ))}
@@ -207,7 +207,7 @@ function RecommendationDetailModal({
               {insurance.bestFor.map((item, i) => (
                 <span
                   key={i}
-                  className="px-3 py-1 bg-accent/10 text-accent text-xs rounded-full border border-accent/20 font-medium"
+                  className="px-3 py-1 bg-blue-600/10 text-blue-600 text-xs rounded-full border border-blue-600/20 font-medium"
                 >
                   {item}
                 </span>
@@ -223,7 +223,7 @@ function RecommendationDetailModal({
           </div>
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-accent text-white font-semibold rounded-lg hover:bg-accent-light transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+            className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
           >
             Close
           </button>

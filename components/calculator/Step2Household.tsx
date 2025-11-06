@@ -129,8 +129,8 @@ export default function Step2Household({
                 onClick={() => handleAdultCountChange(count)}
                 className={`px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
                   numAdults === count
-                    ? 'bg-accent text-white border-accent'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
                 }`}
                 aria-label={`${count === 4 ? '4 or more' : count} adult${count > 1 ? 's' : ''}`}
                 aria-pressed={numAdults === count}
@@ -169,7 +169,7 @@ export default function Step2Household({
                       value={adultAges[index] || ''}
                       onChange={(e) => updateAdultAge(index, parseInt(e.target.value) || 0)}
                       onBlur={() => validateAdultAge(index)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                       placeholder="e.g., 45"
                       aria-label={`Age of adult ${index + 1}`}
                       aria-required="true"
@@ -197,8 +197,8 @@ export default function Step2Household({
                 onClick={() => handleChildCountChange(count)}
                 className={`px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
                   numChildren === count
-                    ? 'bg-accent text-white border-accent'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
                 }`}
                 aria-label={count === 0 ? 'No children' : `${count === 4 ? '4 or more' : count} child${count > 1 ? 'ren' : ''}`}
                 aria-pressed={numChildren === count}
@@ -229,7 +229,7 @@ export default function Step2Household({
                       value={childAges[index] || ''}
                       onChange={(e) => updateChildAge(index, parseInt(e.target.value) || 0)}
                       onBlur={() => validateChildAge(index)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                       placeholder="e.g., 10"
                       aria-label={`Age of child ${index + 1}`}
                       aria-required="true"
@@ -260,8 +260,8 @@ export default function Step2Household({
               onClick={() => onUpdate('hasMedicareEligible', true)}
               className={`flex-1 px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
                 hasMedicareEligible
-                  ? 'bg-accent text-white border-accent'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
               }`}
               aria-label="Yes, someone is Medicare-eligible"
               aria-pressed={hasMedicareEligible}
@@ -272,8 +272,8 @@ export default function Step2Household({
               onClick={() => onUpdate('hasMedicareEligible', false)}
               className={`flex-1 px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
                 !hasMedicareEligible
-                  ? 'bg-accent text-white border-accent'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
               }`}
               aria-label="No, nobody is Medicare-eligible"
               aria-pressed={!hasMedicareEligible}
@@ -303,8 +303,8 @@ export default function Step2Household({
                 onClick={() => onUpdate('hasEmployerInsurance', true)}
                 className={`flex-1 px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
                   hasEmployerInsurance
-                    ? 'bg-accent text-white border-accent'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
                 }`}
                 aria-label="Yes, have employer insurance"
                 aria-pressed={hasEmployerInsurance}
@@ -315,8 +315,8 @@ export default function Step2Household({
                 onClick={() => onUpdate('hasEmployerInsurance', false)}
                 className={`flex-1 px-6 py-3 rounded-lg font-semibold border-2 transition-all ${
                   !hasEmployerInsurance
-                    ? 'bg-accent text-white border-accent'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-accent'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
                 }`}
                 aria-label="No employer insurance"
                 aria-pressed={!hasEmployerInsurance}
@@ -343,7 +343,7 @@ export default function Step2Household({
                   value={employerContribution || ''}
                   onChange={(e) => onUpdate('employerContribution', parseInt(e.target.value) || 0)}
                   onBlur={validateEmployerContribution}
-                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
                   placeholder="500"
                   aria-label="Monthly employer contribution amount"
                 />
@@ -368,7 +368,7 @@ export default function Step2Household({
 
         <button
           onClick={onNext}
-          className="px-8 py-3 flex-1 md:flex-initial bg-accent text-white rounded-lg font-semibold text-lg hover:bg-accent-light shadow-lg transition-all touch-manipulation"
+          className="px-8 py-3 flex-1 md:flex-initial bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-500 shadow-lg transition-all touch-manipulation"
           aria-label="Continue to current insurance information"
         >
           Next

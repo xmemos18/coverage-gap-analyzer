@@ -181,7 +181,7 @@ export default function ValidationError({ errors, warnings }: ValidationErrorPro
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/calculator"
-                className="flex-1 px-6 py-4 bg-accent text-white rounded-lg font-semibold text-center hover:bg-accent-light shadow-lg transition-all"
+                className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-lg font-semibold text-center hover:bg-blue-500 shadow-lg transition-all"
               >
                 <span className="flex items-center justify-center gap-2">
                   <svg

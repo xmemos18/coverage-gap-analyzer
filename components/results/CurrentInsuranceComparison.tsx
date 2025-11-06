@@ -40,16 +40,16 @@ export default function CurrentInsuranceComparison({
             ${costComparison.current.toLocaleString()}
           </div>
         </div>
-        <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-lg border-2 border-accent">
+        <div className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-lg border-2 border-blue-600">
           <div className="text-sm font-semibold text-gray-600 mb-2">Recommended Monthly Cost</div>
-          <div className="text-3xl font-bold text-accent">
+          <div className="text-3xl font-bold text-blue-600">
             {formatCost(costComparison.recommended.low, costComparison.recommended.high)}
           </div>
         </div>
         {costComparison.monthlySavings && costComparison.monthlySavings > 0 && (
-          <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-lg border-2 border-success">
+          <div className="bg-gradient-to-br from-green-50 to-white p-6 rounded-lg border-2 border-green-600">
             <div className="text-sm font-semibold text-gray-600 mb-2">Potential Savings</div>
-            <div className="text-3xl font-bold text-success">
+            <div className="text-3xl font-bold text-green-600">
               ${Math.round(costComparison.monthlySavings).toLocaleString()}/mo
             </div>
             <div className="text-sm text-gray-600 mt-1">

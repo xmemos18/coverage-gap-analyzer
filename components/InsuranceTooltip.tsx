@@ -65,7 +65,7 @@ export default function InsuranceTooltip({ term, children, className = '' }: Ins
             setIsOpen(false);
           }
         }}
-        className="text-accent font-medium underline decoration-dotted decoration-2 underline-offset-2 cursor-help transition-colors hover:text-accent-light"
+        className="text-blue-600 font-medium underline decoration-dotted decoration-2 underline-offset-2 cursor-help transition-colors hover:text-blue-600-light"
         role="button"
         tabIndex={0}
         aria-label={`Definition of ${glossaryTerm.term}`}
@@ -83,12 +83,12 @@ export default function InsuranceTooltip({ term, children, className = '' }: Ins
       {isOpen && (
         <div
           ref={tooltipRef}
-          className="absolute z-50 mt-2 w-80 max-w-[90vw] bg-white border-2 border-accent rounded-lg shadow-2xl p-4 animate-in fade-in duration-200"
+          className="absolute z-50 mt-2 w-80 max-w-[90vw] bg-white border-2 border-blue-600 rounded-lg shadow-2xl p-4 animate-in fade-in duration-200"
           role="tooltip"
           aria-live="polite"
         >
           {/* Arrow pointer */}
-          <div className="absolute -top-2 left-6 w-4 h-4 bg-white border-l-2 border-t-2 border-accent rotate-45" />
+          <div className="absolute -top-2 left-6 w-4 h-4 bg-white border-l-2 border-t-2 border-blue-600 rotate-45" />
 
           {/* Term name */}
           <div className="flex items-start justify-between mb-2">
@@ -113,7 +113,7 @@ export default function InsuranceTooltip({ term, children, className = '' }: Ins
           {!showFullDefinition ? (
             <button
               onClick={() => setShowFullDefinition(true)}
-              className="text-accent text-sm font-semibold hover:underline"
+              className="text-blue-600 text-sm font-semibold hover:underline"
             >
               Learn more →
             </button>
@@ -126,9 +126,9 @@ export default function InsuranceTooltip({ term, children, className = '' }: Ins
 
               {/* Analogy */}
               {glossaryTerm.analogy && (
-                <div className="bg-blue-50 border-l-4 border-accent p-3 rounded">
+                <div className="bg-blue-50 border-l-4 border-blue-600 p-3 rounded">
                   <p className="text-sm text-gray-700">
-                    <span className="font-semibold text-accent">Think of it like this:</span> {glossaryTerm.analogy}
+                    <span className="font-semibold text-blue-600">Think of it like this:</span> {glossaryTerm.analogy}
                   </p>
                 </div>
               )}
@@ -144,7 +144,7 @@ export default function InsuranceTooltip({ term, children, className = '' }: Ins
 
               <button
                 onClick={() => setShowFullDefinition(false)}
-                className="text-accent text-sm font-semibold hover:underline"
+                className="text-blue-600 text-sm font-semibold hover:underline"
               >
                 ← Show less
               </button>

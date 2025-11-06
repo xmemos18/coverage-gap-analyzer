@@ -8,19 +8,19 @@ export default function Footer() {
         <div className="flex flex-wrap justify-center gap-8 mb-8">
           <Link
             href="/about"
-            className="text-gray-600 hover:text-primary transition-colors"
+            className="text-gray-600 hover:text-blue-600 transition-colors"
           >
             About
           </Link>
           <Link
             href="/contact"
-            className="text-gray-600 hover:text-primary transition-colors"
+            className="text-gray-600 hover:text-blue-600 transition-colors"
           >
             Contact
           </Link>
           <Link
             href="/privacy"
-            className="text-gray-600 hover:text-primary transition-colors"
+            className="text-gray-600 hover:text-blue-600 transition-colors"
           >
             Privacy
           </Link>

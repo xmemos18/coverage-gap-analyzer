@@ -84,7 +84,7 @@ export default function KeyboardShortcutsHelp() {
 
             <button
               onClick={() => setIsOpen(false)}
-              className="mt-4 w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+              className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-800 transition-colors"
             >
               Got it
             </button>

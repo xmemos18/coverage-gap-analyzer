@@ -127,13 +127,13 @@ export default function VisualCostBreakdown({
           <div>
             <div className="flex justify-between text-sm mb-2">
               <span className="font-semibold text-gray-700">Recommended Plan</span>
-              <span className="font-bold text-accent">
+              <span className="font-bold text-blue-600">
                 ${recommendedCost.low}-${recommendedCost.high}/month
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-8 relative overflow-hidden">
               <div
-                className="bg-accent h-full rounded-full flex items-center justify-end pr-3 transition-all duration-500"
+                className="bg-blue-600 h-full rounded-full flex items-center justify-end pr-3 transition-all duration-500"
                 style={{ width: `${recommendedCostPercent}%` }}
               >
                 <span className="text-white text-xs font-bold">Recommended</span>
@@ -232,7 +232,7 @@ export default function VisualCostBreakdown({
           {/* Monthly */}
           <div className="text-center">
             <div className="text-sm font-semibold text-gray-600 mb-2">Monthly</div>
-            <div className="text-3xl font-bold text-accent">
+            <div className="text-3xl font-bold text-blue-600">
               ${Math.round(subsidyAmount > 0 ? avgCostAfterSubsidy : avgRecommendedCost)}
             </div>
             <div className="text-xs text-gray-500 mt-1">per month</div>

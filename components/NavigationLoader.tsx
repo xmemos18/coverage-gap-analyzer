@@ -45,7 +45,7 @@ export default function NavigationLoader() {
       aria-label="Page loading progress"
     >
       <div
-        className="h-full bg-accent transition-all duration-300 ease-out"
+        className="h-full bg-blue-600 transition-all duration-300 ease-out"
         style={{ width: `${progress}%` }}
       />
     </div>
