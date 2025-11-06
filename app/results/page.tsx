@@ -279,26 +279,6 @@ function ResultsContent() {
           </div>
         </div>
 
-        {/* Top CTA Banner */}
-        <div className="cta-banner mb-8 md:mb-10 fade-in" style={{animationDelay: '150ms'}}>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="text-center md:text-left">
-              <h3 className="text-xl md:text-2xl font-bold mb-2">Need Help Choosing?</h3>
-              <p className="text-blue-50 text-sm md:text-base">
-                Talk to a licensed advisor for personalized guidance — completely free, no obligation.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
-              <button className="btn-secondary whitespace-nowrap">
-                📞 Schedule Free Call
-              </button>
-              <button className="btn-tertiary text-white hover:bg-white/10 whitespace-nowrap">
-                📧 Email Results
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Collapsible Hero Summary */}
         <CollapsibleHeroSummary
           coverageGapScore={recommendation.coverageGapScore}

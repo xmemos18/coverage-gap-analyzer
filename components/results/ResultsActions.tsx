@@ -121,7 +121,7 @@ export default function ResultsActions({ recommendation, formData }: ResultsActi
           className={`
             fixed bottom-6 right-4 z-50 w-14 h-14 rounded-full shadow-2xl
             flex items-center justify-center transition-all duration-200
-            ${isFABOpen ? 'bg-gray-700' : 'bg-accent hover:bg-accent-dark'}
+            ${isFABOpen ? 'bg-gray-700' : 'bg-blue-600 hover:bg-blue-700'}
           `}
           aria-label="Quick actions"
         >
