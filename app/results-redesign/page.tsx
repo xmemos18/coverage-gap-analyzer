@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useMemo, useEffect, lazy } from 'react';
+import { Suspense, useMemo, useEffect, lazy, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useInsuranceAnalysis } from '@/hooks/useInsuranceAnalysis';
@@ -9,9 +9,6 @@ import HeroCard from '@/components/results/HeroCard';
 import WhyThisRecommendation from '@/components/results/WhyThisRecommendation';
 import ComparisonSection from '@/components/results/ComparisonSection';
 import QuickComparisonTable from '@/components/results/QuickComparisonTable';
-import ShoppingTips from '@/components/results/ShoppingTips';
-import CostBreakdownSection from '@/components/results/CostBreakdownSection';
-import CTASection from '@/components/results/CTASection';
 import ResultsSkeleton from '@/components/results/ResultsSkeleton';
 import CurrentInsuranceComparison from '@/components/results/CurrentInsuranceComparison';
 import PersonalizedSuggestions from '@/components/results/PersonalizedSuggestions';
@@ -30,6 +27,8 @@ import ResultsActions from '@/components/results/ResultsActions';
 import MarketplacePlans from '@/components/results/MarketplacePlans';
 import MedicarePlanFinderLink from '@/components/results/MedicarePlanFinderLink';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import StickyNavigation from '@/components/results/StickyNavigation';
+import BackToTop from '@/components/results/BackToTop';
 import Link from 'next/link';
 
 // Lazy load heavy components
@@ -38,6 +37,7 @@ const PlanComparisonTable = lazy(() => import('@/components/results/PlanComparis
 function ResultsRedesignContent() {
   const searchParams = useSearchParams();
   const isMobile = useIsMobile();
+  const [showAllAlternatives, setShowAllAlternatives] = useState(false);
 
   // Parse URL parameters (same as production results page)
   const residenceZipsStr = searchParams.get('residenceZips') || '';
@@ -284,65 +284,24 @@ function ResultsRedesignContent() {
     isMobile,
   };
 
-  const shoppingTipsData = {
-    tips: [
-      {
-        title: 'Compare Plans Carefully',
-        description: 'Review coverage details, provider networks, and out-of-pocket costs before making a decision.',
-      },
-      {
-        title: 'Check Enrollment Periods',
-        description: 'Different insurance types have specific enrollment windows. Make sure you know your deadlines.',
-      },
-      {
-        title: 'Consider Total Cost',
-        description: 'Look beyond monthly premiums - factor in deductibles, copays, and out-of-pocket maximums.',
-      },
-    ],
-    insuranceType: recommendation.recommendedInsurance,
-    isMobile,
-  };
-
-  const costBreakdownData = {
-    insuranceType: recommendation.recommendedInsurance,
-    costs: [
-      {
-        name: 'Monthly Premium',
-        amount: {
-          min: recommendation.estimatedMonthlyCost.low,
-          max: recommendation.estimatedMonthlyCost.high,
-        },
-        required: true,
-        note: 'Estimated based on your household and location',
-      },
-    ],
-    userBudget: budget ? {
-      min: parseInt(budget.split('-')[0] || '0'),
-      max: parseInt(budget.split('-')[1]?.replace('plus', '999999') || '999999'),
-    } : undefined,
-  };
-
-  const ctaData = {
-    insuranceType: recommendation.recommendedInsurance,
-    userState: state,
-    primaryCTA: {
-      text: 'Find Plans',
-      url: recommendation.recommendedInsurance.includes('Medicare')
-        ? 'https://www.medicare.gov/plan-compare/'
-        : 'https://www.healthcare.gov/',
-    },
-    secondaryCTAs: [
-      {
-        text: 'Get Local Help',
-        url: 'https://www.healthcare.gov/find-assistance/',
-        description: 'Find local assistance',
-      },
-    ],
-    isMobile,
-  };
+  // Build navigation sections dynamically
+  const navigationSections = [
+    { id: 'recommendation', label: 'Recommendation', icon: '⭐' },
+    { id: 'costs', label: 'Costs', icon: '💰' },
+    recommendation.alternativeOptions.length > 0 && { id: 'alternatives', label: 'Alternatives', icon: '🔍' },
+    (medicareAdvantageAnalysis || cobraAnalysis || hsaAnalysis) && { id: 'specialized', label: 'Specialized', icon: '🏥' },
+    recommendation.addOnInsuranceAnalysis && { id: 'addons', label: 'Add-Ons', icon: '➕' },
+    { id: 'next-steps', label: 'Next Steps', icon: '✅' },
+  ].filter(Boolean) as Array<{ id: string; label: string; icon: string }>;
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Sticky Navigation */}
+      <StickyNavigation sections={navigationSections} />
+
+      {/* Back to Top Button */}
+      <BackToTop />
+
       {/* Beta Badge */}
       <div className="bg-blue-600 text-white py-2 px-4 text-center text-sm print:hidden">
         <span className="font-semibold">🎨 Redesign Preview</span> - This is the new mobile-first design.{' '}
@@ -407,11 +366,15 @@ function ResultsRedesignContent() {
             </div>
           </div>
         </div>
-        {/* Hero Card */}
-        <HeroCard {...heroData} />
 
-        {/* Why This Recommendation */}
-        <WhyThisRecommendation {...whyData} />
+        {/* Recommendation Section */}
+        <section id="recommendation">
+          {/* Hero Card */}
+          <HeroCard {...heroData} />
+
+          {/* Why This Recommendation */}
+          <WhyThisRecommendation {...whyData} />
+        </section>
 
         {/* Current Insurance Comparison (if provided) */}
         {recommendation.currentInsuranceSummary && recommendation.costComparison && (
@@ -431,10 +394,14 @@ function ResultsRedesignContent() {
           </div>
         )}
 
-        {/* Cost Comparison Chart */}
-        {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
-          <div className="mt-8 md:mt-12 bg-white rounded-2xl shadow-lg p-6 md:p-8">
-            <CostComparisonChart
+        {/* Costs Section */}
+        <section id="costs" className="mt-8 md:mt-12">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Cost Analysis</h2>
+
+          {/* Cost Comparison Chart */}
+          {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6">
+              <CostComparisonChart
               data={[
                 {
                   name: 'Recommended',
@@ -453,45 +420,6 @@ function ResultsRedesignContent() {
             <p className="text-sm text-gray-600 text-center mt-4">
               * Costs shown are estimates. Actual premiums may vary.
             </p>
-          </div>
-        )}
-
-        {/* Comparison Section */}
-        {comparisonData.options.length > 0 && (
-          <ComparisonSection {...comparisonData} />
-        )}
-
-        {/* Quick Comparison Table */}
-        {recommendation.alternativeOptions.length > 0 && (
-          <QuickComparisonTable {...quickComparisonData} />
-        )}
-
-        {/* Alternative Options with Plan Comparison Table */}
-        {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
-          <div className="mt-8 md:mt-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">All Your Options</h2>
-            <AlternativeOptions options={recommendation.alternativeOptions} />
-
-            {/* Plan Comparison Table */}
-            <div className="mt-6">
-              <ErrorBoundary
-                fallback={
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-                    <h4 className="font-semibold text-yellow-900 mb-2">⚠️ Unable to load plan comparison</h4>
-                    <p className="text-sm text-yellow-800">
-                      The detailed plan comparison table could not be loaded. You can still view alternative options above.
-                    </p>
-                  </div>
-                }
-              >
-                <Suspense fallback={<div className="bg-white rounded-xl shadow-lg p-8 animate-pulse h-96" />}>
-                  <PlanComparisonTable
-                    recommended={recommendation}
-                    alternatives={recommendation.alternativeOptions}
-                  />
-                </Suspense>
-              </ErrorBoundary>
-            </div>
           </div>
         )}
 
@@ -537,19 +465,85 @@ function ResultsRedesignContent() {
             </div>
           )}
         </div>
+        </section>
 
-        {/* Shopping Tips */}
-        <ShoppingTips {...shoppingTipsData} />
+        {/* Alternatives Section */}
+        {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
+          <section id="alternatives" className="mt-8 md:mt-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Compare Your Options</h2>
 
-        {/* Cost Breakdown */}
-        <CostBreakdownSection {...costBreakdownData} />
+            {/* Comparison Section */}
+            {comparisonData.options.length > 0 && (
+              <ComparisonSection {...comparisonData} />
+            )}
 
-        {/* CTA Section */}
-        <CTASection {...ctaData} />
+            {/* Quick Comparison Table */}
+            <QuickComparisonTable {...quickComparisonData} />
+
+            {/* Alternative Options */}
+            <div className="mt-8 md:mt-12">
+              <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">All Your Options</h3>
+              <AlternativeOptions
+                options={
+                  showAllAlternatives
+                    ? recommendation.alternativeOptions
+                    : recommendation.alternativeOptions.slice(0, 3)
+                }
+              />
+
+              {/* Show More Button */}
+              {recommendation.alternativeOptions.length > 3 && (
+                <div className="mt-6 text-center">
+                  <button
+                    onClick={() => setShowAllAlternatives(!showAllAlternatives)}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+                  >
+                    {showAllAlternatives ? (
+                      <>
+                        <span>Show Less</span>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </>
+                    ) : (
+                      <>
+                        <span>Show {recommendation.alternativeOptions.length - 3} More Options</span>
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Plan Comparison Table */}
+            <div className="mt-8">
+              <ErrorBoundary
+                fallback={
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                    <h4 className="font-semibold text-yellow-900 mb-2">⚠️ Unable to load plan comparison</h4>
+                    <p className="text-sm text-yellow-800">
+                      The detailed plan comparison table could not be loaded. You can still view alternative options above.
+                    </p>
+                  </div>
+                }
+              >
+                <Suspense fallback={<div className="bg-white rounded-xl shadow-lg p-8 animate-pulse h-96" />}>
+                  <PlanComparisonTable
+                    recommended={recommendation}
+                    alternatives={recommendation.alternativeOptions}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+            </div>
+          </section>
+        )}
 
         {/* Specialized Analyses: Medicare, COBRA, HSA */}
         {(medicareAdvantageAnalysis || cobraAnalysis || hsaAnalysis) && (
-          <div className="mt-8 md:mt-12">
+          <section id="specialized" className="mt-8 md:mt-12">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Specialized Analysis</h2>
 
             {/* Medicare Advantage Analysis */}
@@ -658,22 +652,22 @@ function ResultsRedesignContent() {
                 </CollapsibleSection>
               </div>
             )}
-          </div>
+          </section>
         )}
 
         {/* Add-On Insurance Section */}
         {recommendation.addOnInsuranceAnalysis && (
-          <div className="mt-8 md:mt-12">
+          <section id="addons" className="mt-8 md:mt-12">
             <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Supplemental Insurance Options</h2>
             <AddOnInsuranceSection analysis={recommendation.addOnInsuranceAnalysis} />
-          </div>
+          </section>
         )}
 
         {/* Next Steps Section */}
-        <div className="mt-8 md:mt-12">
+        <section id="next-steps" className="mt-8 md:mt-12">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">What You Should Do Next</h2>
           <NextStepsSection actionItems={recommendation.actionItems} />
-        </div>
+        </section>
 
         {/* Disclaimer Section */}
         <div className="mt-8 md:mt-12">
