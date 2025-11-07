@@ -96,7 +96,6 @@ export default function ComparisonSection({
               <ComparisonCard
                 key={option.id}
                 option={option}
-                isMobile={isMobile}
                 expandedBenefits={expandedBenefits}
                 expandedDrawbacks={expandedDrawbacks}
                 toggleBenefits={toggleBenefits}
@@ -113,7 +112,6 @@ export default function ComparisonSection({
             <ComparisonCard
               key={option.id}
               option={option}
-              isMobile={false}
               expandedBenefits={expandedBenefits}
               expandedDrawbacks={expandedDrawbacks}
               toggleBenefits={toggleBenefits}
@@ -131,7 +129,6 @@ export default function ComparisonSection({
 // Comparison Card Component
 interface ComparisonCardProps {
   option: ComparisonOption;
-  isMobile: boolean;
   expandedBenefits: string[];
   expandedDrawbacks: string[];
   toggleBenefits: (id: string) => void;
@@ -142,7 +139,6 @@ interface ComparisonCardProps {
 
 function ComparisonCard({
   option,
-  isMobile: _isMobile,
   expandedBenefits,
   expandedDrawbacks,
   toggleBenefits,
