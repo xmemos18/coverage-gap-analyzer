@@ -17,6 +17,8 @@ import ValidationError from '@/components/results/ValidationError';
 import { trackEvent, trackCalculatorCompleted } from '@/lib/analytics';
 import { validateURLParameters, getValidationSummary } from '@/lib/urlValidation';
 import { logger, devLogger } from '@/lib/logger';
+import { safeParseInt, safeParseFloat, getAverageCost } from '@/lib/urlUtils';
+import { ANIMATION_DELAYS, CHART_CONFIG, DATE_FORMAT_LOCALE } from '@/lib/resultsConstants';
 import CostComparisonChart from '@/components/charts/CostComparisonChart';
 import CollapsibleSection from '@/components/results/CollapsibleSection';
 import ResultsActions from '@/components/results/ResultsActions';
@@ -27,28 +29,32 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 // Lazy load heavy components
 const PlanComparisonTable = lazy(() => import('@/components/results/PlanComparisonTable'));
+const MedicareAdvantageDetails = lazy(() => import('@/components/results/specialized/MedicareAdvantageDetails'));
+const COBRADetails = lazy(() => import('@/components/results/specialized/COBRADetails'));
+const HSADetails = lazy(() => import('@/components/results/specialized/HSADetails'));
 
 function ResultsContent() {
   const searchParams = useSearchParams();
-  const [activeTab, setActiveTab] = useState<TabId>('summary');
+  const tabParam = searchParams.get('tab') || 'summary';
+  const [activeTab, setActiveTab] = useState<TabId>(tabParam as TabId);
 
   // Parse URL parameters
   const residenceZipsStr = searchParams.get('residenceZips') || '';
   const residenceStatesStr = searchParams.get('residenceStates') || '';
+  const adultAgesStr = searchParams.get('adultAges') || '';
+  const childAgesStr = searchParams.get('childAges') || '';
+  const chronicConditionsStr = searchParams.get('chronicConditions') || '';
 
   const parsedParams = useMemo(() => {
     const residenceZips = residenceZipsStr ? residenceZipsStr.split(',') : [];
     const residenceStates = residenceStatesStr ? residenceStatesStr.split(',') : [];
-    const adultAgesStr = searchParams.get('adultAges') || '';
     const adultAges = adultAgesStr ? adultAgesStr.split(',').map(Number).filter(n => !isNaN(n)) : [];
-    const childAgesStr = searchParams.get('childAges') || '';
     const childAges = childAgesStr ? childAgesStr.split(',').map(Number).filter(n => !isNaN(n)) : [];
-    const chronicConditionsStr = searchParams.get('chronicConditions') || '';
     const chronicConditions = chronicConditionsStr ? chronicConditionsStr.split(',') : [];
 
     const residences = residenceZips.map((zip, index) => ({
       zip: zip || '',
-      state: residenceStates[index] || '',
+      state: residenceStates[index] || residenceStates[0] || '',
       isPrimary: index === 0,
       monthsPerYear: 0,
     }));
@@ -61,23 +67,9 @@ function ResultsContent() {
       childAges,
       chronicConditions,
     };
-  }, [residenceZipsStr, residenceStatesStr, searchParams]);
+  }, [residenceZipsStr, residenceStatesStr, adultAgesStr, childAgesStr, chronicConditionsStr]);
 
   const { residenceZips, residenceStates, residences, adultAges, childAges, chronicConditions } = parsedParams;
-
-  // Helper function to safely parse integers with NaN checks
-  const safeParseInt = (value: string | null, defaultValue: number = 0): number => {
-    if (!value) return defaultValue;
-    const parsed = parseInt(value, 10);
-    return isNaN(parsed) ? defaultValue : Math.max(0, parsed); // Ensure non-negative
-  };
-
-  // Helper function to safely parse floats with NaN checks
-  const safeParseFloat = (value: string | null, defaultValue: number = 0): number => {
-    if (!value) return defaultValue;
-    const parsed = parseFloat(value);
-    return isNaN(parsed) ? defaultValue : Math.max(0, parsed); // Ensure non-negative
-  };
 
   // Parse other parameters with proper NaN handling
   const numAdults = safeParseInt(searchParams.get('numAdults'), 0);
@@ -162,7 +154,7 @@ function ResultsContent() {
   }), [residences, numAdults, adultAges, numChildren, childAges, hasMedicareEligible, hasEmployerInsurance, employerContribution, hasChronicConditions, chronicConditions, prescriptionCount, providerPreference, hasCurrentInsurance, currentCarrier, currentPlanType, currentMonthlyCost, currentDeductible, currentOutOfPocketMax, currentCoverageNotes, budget, incomeRange, simpleMode]);
 
   // Get insurance analysis
-  const { recommendation, medicareAdvantageAnalysis, cobraAnalysis, hsaAnalysis } = useInsuranceAnalysis({
+  const { recommendation, medicareAdvantageAnalysis, cobraAnalysis, hsaAnalysis, isLoading } = useInsuranceAnalysis({
     formData,
     adultAges,
     numAdults,
@@ -190,31 +182,37 @@ function ResultsContent() {
     }
   }, [hasRequiredData, recommendation, numAdults, adultAges, numChildren, hasMedicareEligible]);
 
-  // Error state
+  // Loading state
+  if (isLoading) {
+    return <ResultsSkeleton />;
+  }
+
+  // Validation errors
   if (!hasRequiredData) {
     return <ValidationError errors={validationResult.errors} warnings={validationResult.warnings} />;
   }
 
+  // No recommendation available
   if (!recommendation) return null;
 
   // Count specialized analyses
-  const specializedCount = [medicareAdvantageAnalysis, cobraAnalysis, hsaAnalysis].filter(Boolean).length;
+  const specializedCount = [medicareAdvantageAnalysis, cobraAnalysis, hsaAnalysis].reduce((count, item) => count + (item ? 1 : 0), 0);
 
   // Build tabs dynamically
   const tabs = [
-    { id: 'summary' as TabId, label: 'Summary', icon: '📋' },
-    { id: 'costs' as TabId, label: 'Costs', icon: '💰' },
+    { id: 'summary' as TabId, label: 'Summary', icon: '📋', ariaLabel: 'View summary of your insurance recommendations' },
+    { id: 'costs' as TabId, label: 'Costs', icon: '💰', ariaLabel: 'View detailed cost analysis and marketplace plans' },
     recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0
-      ? { id: 'alternatives' as TabId, label: 'Alternatives', icon: '🔍', badge: recommendation.alternativeOptions.length }
+      ? { id: 'alternatives' as TabId, label: 'Alternatives', icon: '🔍', badge: recommendation.alternativeOptions.length, ariaLabel: 'View alternative insurance options' }
       : null,
     specializedCount > 0
-      ? { id: 'specialized' as TabId, label: 'Specialized', icon: '🏥', badge: specializedCount }
+      ? { id: 'specialized' as TabId, label: 'Specialized', icon: '🏥', badge: specializedCount, ariaLabel: 'View specialized insurance analysis (Medicare, COBRA, HSA)' }
       : null,
     recommendation.addOnInsuranceAnalysis
-      ? { id: 'addons' as TabId, label: 'Add-Ons', icon: '➕', badge: recommendation.addOnInsuranceAnalysis.highPriority.length }
+      ? { id: 'addons' as TabId, label: 'Add-Ons', icon: '➕', badge: recommendation.addOnInsuranceAnalysis.highPriority.length, ariaLabel: 'View add-on insurance options' }
       : null,
-    { id: 'steps' as TabId, label: 'Next Steps', icon: '✅' },
-  ].filter(Boolean) as Array<{ id: TabId; label: string; icon: string; badge?: number }>;
+    { id: 'steps' as TabId, label: 'Next Steps', icon: '✅', ariaLabel: 'View next steps to enroll in coverage' },
+  ].filter(Boolean) as Array<{ id: TabId; label: string; icon: string; badge?: number; ariaLabel: string }>;
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 md:py-12 px-4">
@@ -224,6 +222,7 @@ function ResultsContent() {
         <a
           href={`/results-redesign?${searchParams.toString()}`}
           className="underline hover:text-purple-100 font-medium"
+          aria-label="Preview the new mobile-first design for results page"
         >
           Preview the redesign →
         </a>
@@ -235,7 +234,7 @@ function ResultsContent() {
           <div className="border-b-2 border-gray-300 pb-4 mb-4">
             <h1 className="text-2xl font-bold">Key Insurance Matters Results</h1>
             <p className="text-sm text-gray-600">
-              Generated on {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+              Generated on {new Date().toLocaleDateString(DATE_FORMAT_LOCALE)} at {new Date().toLocaleTimeString(DATE_FORMAT_LOCALE)}
             </p>
           </div>
         </div>
@@ -259,7 +258,7 @@ function ResultsContent() {
           <h1 className="heading-1 mb-3">
             Your Personalized Insurance Recommendations
           </h1>
-          <p className="body-text text-gray-600" style={{animationDelay: '100ms'}}>
+          <p className="body-text text-gray-600" style={{animationDelay: ANIMATION_DELAYS.HEADER}}>
             Based on your household situation and coverage needs
           </p>
 
@@ -272,7 +271,7 @@ function ResultsContent() {
         </div>
 
         {/* Trust Signals Bar */}
-        <div className="card mb-6 md:mb-8 fade-in" style={{animationDelay: '100ms'}}>
+        <div className="card mb-6 md:mb-8 fade-in" style={{animationDelay: ANIMATION_DELAYS.TRUST_BAR}}>
           <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-sm">
             <div className="flex items-center gap-2">
               <span className="text-blue-600 text-xl">🔒</span>
@@ -322,16 +321,16 @@ function ResultsContent() {
                       {
                         name: 'Recommended',
                         cost: recommendation.estimatedMonthlyCost,
-                        color: '#3b82f6',
+                        color: CHART_CONFIG.COLORS.RECOMMENDED,
                       },
                       ...recommendation.alternativeOptions.slice(0, 3).map((alt, idx) => ({
                         name: alt.name,
-                        cost: alt.monthlyCost,
-                        color: ['#10b981', '#f59e0b', '#ef4444'][idx] || '#6b7280',
+                        cost: getAverageCost(alt.monthlyCost),
+                        color: [CHART_CONFIG.COLORS.ALTERNATIVE_1, CHART_CONFIG.COLORS.ALTERNATIVE_2, CHART_CONFIG.COLORS.ALTERNATIVE_3][idx] || CHART_CONFIG.COLORS.FALLBACK,
                       })),
                     ]}
                     title="Monthly Premium Comparison"
-                    height={300}
+                    height={CHART_CONFIG.HEIGHT}
                   />
                   <p className="text-sm text-gray-600 text-center mt-4">
                     * Costs shown are estimates. Actual premiums may vary.
@@ -444,12 +443,25 @@ function ResultsContent() {
                       </div>
                     }
                   >
-                    <MedicareAdvantageDetails analysis={medicareAdvantageAnalysis} />
+                    <ErrorBoundary
+                      fallback={
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                          <h4 className="font-semibold text-yellow-900 mb-2">Unable to load Medicare Advantage details</h4>
+                          <p className="text-sm text-yellow-800">
+                            The detailed Medicare Advantage analysis could not be loaded. Please try refreshing the page.
+                          </p>
+                        </div>
+                      }
+                    >
+                      <Suspense fallback={<div className="animate-pulse bg-gray-100 rounded-xl h-64" />}>
+                        <MedicareAdvantageDetails analysis={medicareAdvantageAnalysis} />
+                      </Suspense>
+                    </ErrorBoundary>
                   </CollapsibleSection>
 
                   {/* Medicare Plan Finder Link */}
                   <MedicarePlanFinderLink
-                    zipCode={residenceZipsStr.split(',')[0] || ''}
+                    zipCode={residenceZipsStr?.split(',')[0] || ''}
                     recommendationType={medicareAdvantageAnalysis.analysis.isGoodFit ? 'both' : 'medigap'}
                   />
                 </>
@@ -479,7 +491,20 @@ function ResultsContent() {
                     </div>
                   }
                 >
-                  <COBRADetails analysis={cobraAnalysis} />
+                  <ErrorBoundary
+                    fallback={
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                        <h4 className="font-semibold text-yellow-900 mb-2">Unable to load COBRA details</h4>
+                        <p className="text-sm text-yellow-800">
+                          The detailed COBRA analysis could not be loaded. Please try refreshing the page.
+                        </p>
+                      </div>
+                    }
+                  >
+                    <Suspense fallback={<div className="animate-pulse bg-gray-100 rounded-xl h-64" />}>
+                      <COBRADetails analysis={cobraAnalysis} />
+                    </Suspense>
+                  </ErrorBoundary>
                 </CollapsibleSection>
               )}
 
@@ -511,7 +536,20 @@ function ResultsContent() {
                     </div>
                   }
                 >
-                  <HSADetails analysis={hsaAnalysis} />
+                  <ErrorBoundary
+                    fallback={
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
+                        <h4 className="font-semibold text-yellow-900 mb-2">Unable to load HSA details</h4>
+                        <p className="text-sm text-yellow-800">
+                          The detailed HSA analysis could not be loaded. Please try refreshing the page.
+                        </p>
+                      </div>
+                    }
+                  >
+                    <Suspense fallback={<div className="animate-pulse bg-gray-100 rounded-xl h-64" />}>
+                      <HSADetails analysis={hsaAnalysis} />
+                    </Suspense>
+                  </ErrorBoundary>
                 </CollapsibleSection>
               )}
             </div>
@@ -547,372 +585,6 @@ function ResultsContent() {
             plan selection, carrier underwriting, and enrollment timing. Always verify details with carriers
             before enrolling.
           </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Helper components for specialized sections
-interface MedicareAdvantageAnalysis {
-  analysis: {
-    isGoodFit: boolean;
-    confidenceLevel: string;
-    reasoning: string[];
-    pros: string[];
-    cons: string[];
-    redFlags: string[];
-  };
-  comparison: {
-    medigapAdvantages: string[];
-    medicareAdvantageAdvantages: string[];
-    recommendation: string;
-  };
-  shoppingTips: string[];
-}
-
-function MedicareAdvantageDetails({ analysis }: { analysis: MedicareAdvantageAnalysis }) {
-  return (
-    <div className="space-y-6">
-      {/* Pros and Cons */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h5 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
-            <span>✅</span> Benefits
-          </h5>
-          <ul className="space-y-2 text-sm text-gray-700">
-            {analysis.analysis.pros.map((pro: string, idx: number) => (
-              <li key={idx} className="flex gap-2">
-                <span className="text-green-600 flex-shrink-0">•</span>
-                <span>{pro}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-          <h5 className="font-semibold text-orange-900 mb-3 flex items-center gap-2">
-            <span>⚠️</span> Drawbacks
-          </h5>
-          <ul className="space-y-2 text-sm text-gray-700">
-            {analysis.analysis.cons.map((con: string, idx: number) => (
-              <li key={idx} className="flex gap-2">
-                <span className="text-orange-600 flex-shrink-0">•</span>
-                <span>{con}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Red Flags */}
-      {analysis.analysis.redFlags.length > 0 && (
-        <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
-          <h5 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
-            <span>🚨</span> Important Considerations
-          </h5>
-          <ul className="space-y-2 text-sm text-gray-800">
-            {analysis.analysis.redFlags.map((flag: string, idx: number) => (
-              <li key={idx} className="flex gap-2">
-                <span className="text-red-600 flex-shrink-0">•</span>
-                <span className="font-medium">{flag}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Comparison */}
-      <div className="bg-white rounded-lg p-6 border border-blue-200">
-        <h5 className="font-semibold text-lg text-gray-900 mb-4">Quick Comparison</h5>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <h6 className="font-semibold text-blue-900 mb-2">Original Medicare + Medigap</h6>
-            <ul className="space-y-1 text-sm text-gray-700">
-              {analysis.comparison.medigapAdvantages.map((adv: string, idx: number) => (
-                <li key={idx}>• {adv}</li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h6 className="font-semibold text-indigo-900 mb-2">Medicare Advantage</h6>
-            <ul className="space-y-1 text-sm text-gray-700">
-              {analysis.comparison.medicareAdvantageAdvantages.map((adv: string, idx: number) => (
-                <li key={idx}>• {adv}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-        <p className="mt-4 text-gray-800 bg-blue-50 p-3 rounded border border-blue-200">
-          <strong>Recommendation:</strong> {analysis.comparison.recommendation}
-        </p>
-      </div>
-
-      {/* Shopping Tips */}
-      <div className="bg-white rounded-lg p-6 border border-blue-200">
-        <h5 className="font-semibold text-lg text-gray-900 mb-4">💡 Shopping Tips</h5>
-        <ul className="space-y-2 text-sm text-gray-700">
-          {analysis.shoppingTips.map((tip: string, idx: number) => (
-            <li key={idx}>{tip}</li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-interface COBRAAnalysis {
-  analysis: {
-    isWorthIt: boolean;
-    recommendation: string;
-    warnings: string[];
-    estimatedMonthlyCost: { low: number; high: number };
-    monthsRemaining: number;
-    pros: string[];
-    cons: string[];
-    alternatives: string[];
-  };
-  flowchart: Array<{
-    question: string;
-    yesPath: string;
-    noPath: string;
-  }>;
-}
-
-function COBRADetails({ analysis }: { analysis: COBRAAnalysis }) {
-  return (
-    <div className="space-y-6">
-      {/* Warnings */}
-      {analysis.analysis.warnings.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          {analysis.analysis.warnings.map((warning: string, idx: number) => (
-            <p key={idx} className="text-red-800 font-semibold">{warning}</p>
-          ))}
-        </div>
-      )}
-
-      {/* Pros and Cons Grid */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-green-50 rounded-lg p-5 border border-green-200">
-          <h5 className="font-semibold text-lg text-green-900 mb-3">✅ Pros of COBRA</h5>
-          <ul className="space-y-2">
-            {analysis.analysis.pros.map((pro: string, idx: number) => (
-              <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                <span className="text-green-600 mt-0.5">•</span>
-                <span>{pro}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="bg-red-50 rounded-lg p-5 border border-red-200">
-          <h5 className="font-semibold text-lg text-red-900 mb-3">❌ Cons of COBRA</h5>
-          <ul className="space-y-2">
-            {analysis.analysis.cons.map((con: string, idx: number) => (
-              <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                <span className="text-red-600 mt-0.5">•</span>
-                <span>{con}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* Decision Flowchart */}
-      <div className="bg-blue-50 rounded-lg p-5 border border-blue-200">
-        <h5 className="font-semibold text-lg text-blue-900 mb-4">🗺️ COBRA Decision Guide</h5>
-        <div className="space-y-4">
-          {analysis.flowchart.map((step, idx: number) => (
-            <div key={idx} className="bg-white rounded p-4 border border-blue-200">
-              <p className="font-semibold text-gray-900 mb-2">{step.question}</p>
-              <div className="grid md:grid-cols-2 gap-3 mt-2 text-sm">
-                <div className="text-green-700 bg-green-50 rounded p-2">
-                  <strong>Yes:</strong> {step.yesPath}
-                </div>
-                <div className="text-gray-700 bg-gray-50 rounded p-2">
-                  <strong>No:</strong> {step.noPath}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Alternatives */}
-      <div className="bg-purple-50 rounded-lg p-5 border border-purple-200">
-        <h5 className="font-semibold text-lg text-purple-900 mb-3">🔄 Alternatives to COBRA</h5>
-        <ul className="space-y-2">
-          {analysis.analysis.alternatives.map((alt: string, idx: number) => (
-            <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-              <span className="text-purple-600 mt-0.5">→</span>
-              <span>{alt}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}
-
-interface HSAAnalysis {
-  analysis: {
-    tripleTaxAdvantage: string[];
-    contributionLimits: {
-      individual: number;
-      family: number;
-      catchUp: number;
-    };
-    maxContribution: number;
-    taxSavings: {
-      federal: number;
-      fica: number;
-      state: number;
-      total: number;
-    };
-    projections: {
-      year1: number;
-      year5: number;
-      year10: number;
-      retirement: number;
-    };
-    recommendation: string;
-    benefits: string[];
-    considerations: string[];
-  };
-  strategies: Array<{
-    strategy: string;
-    description: string;
-    bestFor: string;
-  }>;
-}
-
-function HSADetails({ analysis }: { analysis: HSAAnalysis }) {
-  return (
-    <div className="space-y-6">
-      {/* Triple Tax Advantage */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-5 border border-blue-200">
-        <h4 className="font-bold text-lg mb-3">🎯 Triple Tax Advantage</h4>
-        <div className="space-y-2">
-          {analysis.analysis.tripleTaxAdvantage.map((advantage: string, idx: number) => (
-            <div key={idx} className="flex items-start gap-2">
-              <span className="text-blue-600 font-bold">{advantage.split(' ')[0]}</span>
-              <span className="text-gray-800">{advantage.substring(advantage.indexOf(' ') + 1)}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Contribution Limits & Tax Savings */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-blue-50 rounded-lg p-5 border border-blue-200">
-          <h5 className="font-semibold text-lg text-blue-900 mb-3">📊 2024 Contribution Limits</h5>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-gray-600">Individual Coverage</p>
-              <p className="text-2xl font-bold text-blue-600">${analysis.analysis.contributionLimits.individual.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Family Coverage</p>
-              <p className="text-2xl font-bold text-blue-600">${analysis.analysis.contributionLimits.family.toLocaleString()}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-green-50 rounded-lg p-5 border border-green-200">
-          <h5 className="font-semibold text-lg text-green-900 mb-3">💵 Your Annual Tax Savings</h5>
-          <div className="space-y-2 mb-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Federal Tax:</span>
-              <span className="font-semibold">${analysis.analysis.taxSavings.federal.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">FICA Tax:</span>
-              <span className="font-semibold">${analysis.analysis.taxSavings.fica.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">State Tax:</span>
-              <span className="font-semibold">${analysis.analysis.taxSavings.state.toLocaleString()}</span>
-            </div>
-            <div className="border-t-2 border-green-300 pt-2 mt-2">
-              <div className="flex justify-between">
-                <span className="font-bold text-gray-900">Total Savings:</span>
-                <span className="text-2xl font-bold text-green-600">${analysis.analysis.taxSavings.total.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Growth Projections */}
-      <div className="bg-purple-50 rounded-lg p-5 border border-purple-200">
-        <h5 className="font-semibold text-lg text-purple-900 mb-4">📈 Long-Term Growth Potential</h5>
-        <p className="text-sm text-gray-600 mb-4">
-          If you invest your HSA contributions (7% annual return):
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">Year 1</p>
-            <p className="text-lg font-bold text-purple-600">${analysis.analysis.projections.year1.toLocaleString()}</p>
-          </div>
-          <div className="bg-white rounded p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">Year 5</p>
-            <p className="text-lg font-bold text-purple-600">${analysis.analysis.projections.year5.toLocaleString()}</p>
-          </div>
-          <div className="bg-white rounded p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">Year 10</p>
-            <p className="text-lg font-bold text-purple-600">${analysis.analysis.projections.year10.toLocaleString()}</p>
-          </div>
-          <div className="bg-white rounded p-3 text-center border-2 border-purple-300">
-            <p className="text-xs text-gray-600 mb-1">Retirement</p>
-            <p className="text-lg font-bold text-purple-600">${analysis.analysis.projections.retirement.toLocaleString()}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Recommendation */}
-      <div className="bg-yellow-50 rounded-lg p-5 border-2 border-yellow-300">
-        <h5 className="font-bold text-lg mb-2">💡 Recommendation for You</h5>
-        <p className="text-gray-800">{analysis.analysis.recommendation}</p>
-      </div>
-
-      {/* Benefits and Considerations */}
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-green-50 rounded-lg p-5 border border-green-200">
-          <h5 className="font-semibold text-lg text-green-900 mb-3">✅ HSA Benefits</h5>
-          <ul className="space-y-2">
-            {analysis.analysis.benefits.map((benefit: string, idx: number) => (
-              <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                <span className="text-green-600 mt-0.5">✓</span>
-                <span>{benefit}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="bg-orange-50 rounded-lg p-5 border border-orange-200">
-          <h5 className="font-semibold text-lg text-orange-900 mb-3">⚠️ Important Considerations</h5>
-          <ul className="space-y-2">
-            {analysis.analysis.considerations.map((consideration: string, idx: number) => (
-              <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                <span className="text-orange-600 mt-0.5">→</span>
-                <span>{consideration}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-
-      {/* HSA Strategies */}
-      <div className="bg-indigo-50 rounded-lg p-5 border border-indigo-200">
-        <h5 className="font-semibold text-lg text-indigo-900 mb-4">🎯 HSA Usage Strategies</h5>
-        <div className="space-y-4">
-          {analysis.strategies.map((strategy, idx: number) => (
-            <div key={idx} className="bg-white rounded p-4 border border-indigo-200">
-              <h6 className="font-semibold text-gray-900 mb-1">{strategy.strategy}</h6>
-              <p className="text-sm text-gray-700 mb-2">{strategy.description}</p>
-              <p className="text-xs text-indigo-600 font-semibold">Best for: {strategy.bestFor}</p>
-            </div>
-          ))}
         </div>
       </div>
     </div>
