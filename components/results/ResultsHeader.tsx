@@ -2,19 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { InsuranceRecommendation } from '@/types';
+import Link from 'next/link';
 
 interface ResultsHeaderProps {
-  recommendation?: InsuranceRecommendation;
-  formData?: any;
   onShare?: () => void;
   onPrint?: () => void;
   onExport?: () => void;
 }
 
 export default function ResultsHeader({
-  recommendation,
-  formData,
   onShare,
   onPrint,
   onExport,
@@ -71,11 +67,11 @@ export default function ResultsHeader({
 
             {/* Center: Breadcrumb (Desktop Only) */}
             <nav className="hidden md:flex items-center gap-2 text-sm text-gray-600" aria-label="Breadcrumb">
-              <a href="/" className="hover:text-blue-600 transition-colors">Home</a>
+              <Link href="/" className="hover:text-blue-600 transition-colors">Home</Link>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
-              <a href="/calculator" className="hover:text-blue-600 transition-colors">Coverage Tool</a>
+              <Link href="/calculator" className="hover:text-blue-600 transition-colors">Coverage Tool</Link>
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
@@ -83,13 +79,13 @@ export default function ResultsHeader({
             </nav>
 
             {/* Center: Logo (Mobile Only) */}
-            <a
+            <Link
               href="/"
               className="md:hidden text-xl font-bold text-blue-600"
               aria-label="Key Insurance Matters home"
             >
               KIM
-            </a>
+            </Link>
 
             {/* Right: Action Buttons */}
             <div className="flex items-center gap-2 md:gap-3">

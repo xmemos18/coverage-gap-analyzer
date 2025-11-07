@@ -20,11 +20,9 @@ interface CTASectionProps {
 
 export default function CTASection({
   insuranceType,
-  userState,
   primaryCTA,
   secondaryCTAs = [],
   enrollmentWarning,
-  isMobile = false,
 }: CTASectionProps) {
   const [showMoreOptions, setShowMoreOptions] = useState(false);
 

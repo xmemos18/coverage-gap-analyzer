@@ -60,7 +60,7 @@ interface AccordionGroupProps {
   className?: string;
 }
 
-export function AccordionGroup({ children, allowMultiple = true, className = '' }: AccordionGroupProps) {
+export function AccordionGroup({ children, className = '' }: AccordionGroupProps) {
   return (
     <div className={`divide-y divide-gray-200 border-y border-gray-200 ${className}`}>
       {children}

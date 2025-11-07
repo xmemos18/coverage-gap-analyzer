@@ -29,7 +29,6 @@ export default function QuickComparisonTable({
   alternativeOption,
   features,
   recommendation,
-  isMobile = false,
 }: QuickComparisonTableProps) {
   const getIcon = (icon: string) => {
     switch (icon) {

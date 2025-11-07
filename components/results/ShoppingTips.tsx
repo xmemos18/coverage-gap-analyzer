@@ -18,7 +18,7 @@ interface ShoppingTipsProps {
   isMobile?: boolean;
 }
 
-export default function ShoppingTips({ tips, insuranceType, isMobile = false }: ShoppingTipsProps) {
+export default function ShoppingTips({ tips, insuranceType }: ShoppingTipsProps) {
   const [expandedTip, setExpandedTip] = useState<number | null>(null);
 
   const defaultIcon = (

@@ -294,7 +294,6 @@ export function getSubsidyMessage(result: RecommendationResult): string | null {
  */
 export function generateShareableSummary(result: RecommendationResult): string {
   const { recommendation, user } = result;
-  const totalCost = getTotalMonthlyCost(result);
 
   const costText =
     typeof recommendation.priceRange === 'string'
@@ -308,7 +307,7 @@ export function generateShareableSummary(result: RecommendationResult): string {
  * Generate email body for sharing results
  */
 export function generateEmailBody(result: RecommendationResult): string {
-  const { recommendation, user } = result;
+  const { recommendation } = result;
   const summary = generateShareableSummary(result);
 
   return encodeURIComponent(`${summary}

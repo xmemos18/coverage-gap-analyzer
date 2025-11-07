@@ -114,7 +114,7 @@ export function ImprovedTabNavigation({
             aria-label="Insurance recommendation sections"
           >
             <div className="flex gap-1 md:gap-2 p-2 min-w-max md:justify-center">
-              {tabs.map((tab, index) => {
+              {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
                   <button

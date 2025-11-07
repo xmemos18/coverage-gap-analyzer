@@ -142,7 +142,7 @@ interface ComparisonCardProps {
 
 function ComparisonCard({
   option,
-  isMobile,
+  isMobile: _isMobile,
   expandedBenefits,
   expandedDrawbacks,
   toggleBenefits,
