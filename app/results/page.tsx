@@ -218,6 +218,17 @@ function ResultsContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-6 md:py-12 px-4">
+      {/* Redesign Preview Banner */}
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 px-4 text-center text-sm shadow-lg print:hidden">
+        <span className="font-semibold">✨ New Mobile-First Design Available!</span>{' '}
+        <a
+          href={`/results-redesign?${searchParams.toString()}`}
+          className="underline hover:text-purple-100 font-medium"
+        >
+          Preview the redesign →
+        </a>
+      </div>
+
       <div className="container-max">
         {/* Print-only header */}
         <div className="hidden print:block mb-8">
