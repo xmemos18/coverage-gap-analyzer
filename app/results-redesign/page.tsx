@@ -4,7 +4,7 @@ import { Suspense, useMemo, useEffect, lazy, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useInsuranceAnalysis } from '@/hooks/useInsuranceAnalysis';
-import { AlternativeOption, CalculatorFormData } from '@/types';
+import { AlternativeOption } from '@/types';
 import HeroCard from '@/components/results/HeroCard';
 import WhyThisRecommendation from '@/components/results/WhyThisRecommendation';
 import ComparisonSection from '@/components/results/ComparisonSection';
