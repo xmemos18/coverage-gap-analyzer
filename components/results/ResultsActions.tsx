@@ -4,6 +4,7 @@ import { useState } from 'react';
 import ShareButtons from '@/components/ShareButtons';
 import { PDFDownloadButton } from '@/components/PDFReport';
 import { InsuranceRecommendation } from '@/types';
+import { useToast } from '@/hooks/useToast';
 
 interface ResultsActionsProps {
   recommendation: InsuranceRecommendation;
@@ -20,10 +21,15 @@ interface ResultsActionsProps {
 
 export default function ResultsActions({ recommendation, formData }: ResultsActionsProps) {
   const [isFABOpen, setIsFABOpen] = useState(false);
+  const { showError } = useToast();
 
   const handlePrint = () => {
     window.print();
     setIsFABOpen(false);
+  };
+
+  const handlePDFError = (error: Error) => {
+    showError('Failed to generate PDF: ' + error.message + '. Please try using the Print button instead.');
   };
 
   const summary = `${recommendation.recommendedInsurance} - Estimated Cost: $${recommendation.estimatedMonthlyCost.low}-${recommendation.estimatedMonthlyCost.high}/month`;
@@ -50,6 +56,7 @@ export default function ResultsActions({ recommendation, formData }: ResultsActi
               <PDFDownloadButton
                 recommendation={recommendation}
                 formData={formData}
+                onError={handlePDFError}
               />
               <button
                 onClick={handlePrint}
@@ -97,6 +104,7 @@ export default function ResultsActions({ recommendation, formData }: ResultsActi
                 <PDFDownloadButton
                   recommendation={recommendation}
                   formData={formData}
+                  onError={handlePDFError}
                 />
               </div>
 
