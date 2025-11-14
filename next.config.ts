@@ -2,32 +2,19 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async headers() {
-    // Tighter CSP for production - remove unsafe-eval and unsafe-inline
-    const isDevelopment = process.env.NODE_ENV === 'development';
-
-    // Script directives - only allow unsafe-eval in development (needed for Next.js HMR)
-    const scriptSrc = isDevelopment
-      ? "'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://plausible.io"
-      : "'self' https://www.googletagmanager.com https://plausible.io";
-
-    // Style directives - use unsafe-inline only in development
-    // In production, Tailwind CSS is pre-compiled so unsafe-inline is not needed
-    const styleSrc = isDevelopment
-      ? "'self' 'unsafe-inline'"
-      : "'self'";
-
     return [
       {
         // Apply security headers to all routes
         source: '/:path*',
         headers: [
           // Content Security Policy - prevents XSS attacks
+          // Note: Next.js requires 'unsafe-inline' and 'unsafe-eval' for inline scripts and webpack
           {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              `script-src ${scriptSrc}`,
-              `style-src ${styleSrc}`,
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://plausible.io",
+              "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https:",
               "font-src 'self' data:",
               "connect-src 'self' https://www.google-analytics.com https://plausible.io https://api.zippopotam.us https://marketplace.api.healthcare.gov",

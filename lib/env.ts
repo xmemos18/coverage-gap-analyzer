@@ -99,12 +99,16 @@ export const env = {
 
 /**
  * Validate all required environment variables on startup
- * This runs once when the module is imported
+ * This runs once when the module is imported (server-side only)
  */
 export function validateEnv(): void {
+  // Only run validation on the server side
+  if (typeof window !== 'undefined') {
+    return;
+  }
+
   const requiredVars: string[] = [
-    'NODE_ENV',
-    // Add more required variables as needed:
+    // Add server-side required variables here:
     // 'HEALTHCARE_GOV_API_KEY', // Uncomment when API key is required for production
   ];
 
@@ -117,8 +121,8 @@ export function validateEnv(): void {
   }
 }
 
-// Validate on module load (only in production)
-if (process.env.NODE_ENV === 'production') {
+// Validate on module load (only in production and server-side)
+if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
   validateEnv();
 }
 
