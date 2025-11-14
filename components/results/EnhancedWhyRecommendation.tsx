@@ -11,6 +11,11 @@ interface EnhancedWhyRecommendationProps {
   currentInsuranceCost?: number;
 }
 
+interface ActionItem {
+  id: string;
+  text: string;
+}
+
 export default function EnhancedWhyRecommendation({
   recommendation,
   formData,
@@ -36,6 +41,12 @@ export default function EnhancedWhyRecommendation({
 
   // Get alternative plans for comparison
   const topAlternative = recommendation.alternativeOptions?.[0];
+
+  // Prepare action items for display
+  const actionItems: ActionItem[] = recommendation.actionItems.map((item, i) => ({
+    id: `action-${i}`,
+    text: item,
+  }));
 
   return (
     <section className="mt-6 md:mt-8">
@@ -128,8 +139,55 @@ export default function EnhancedWhyRecommendation({
 
       {/* Main Content Area (White Background) */}
       <div className="rounded-b-3xl bg-white px-6 py-8 md:px-12 md:py-12 shadow-lg">
+        {/* Full Explanation Section */}
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-1 w-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
+            <h3 className="text-2xl font-bold text-gray-900">Why We Chose This</h3>
+          </div>
+          <div className="prose prose-lg max-w-none">
+            <p className="text-lg leading-relaxed text-gray-700">
+              {recommendation.reasoning}
+            </p>
+          </div>
+        </div>
+
+        {/* Action Items - Key Features */}
+        {actionItems.length > 0 && (
+          <div className="mb-12">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="h-1 w-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full"></div>
+              <h3 className="text-2xl font-bold text-gray-900">What You Need to Know</h3>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {actionItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-start gap-4 rounded-xl border-2 border-gray-100 bg-gradient-to-br from-white to-gray-50 p-5 transition-all duration-200 hover:border-green-200 hover:shadow-md"
+                >
+                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-green-400 to-green-600 shadow-sm">
+                    <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <p className="flex-1 text-base leading-relaxed text-gray-700">{item.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Three-Column Benefits Grid */}
-        <div className="grid gap-6 md:grid-cols-3 mb-12">
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-1 w-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full"></div>
+            <h3 className="text-2xl font-bold text-gray-900">Score Breakdown</h3>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
           {scoreBreakdown.categories.map((category) => (
             <div
               key={category.name}
@@ -160,6 +218,7 @@ export default function EnhancedWhyRecommendation({
               <p className="text-sm text-gray-600 leading-relaxed">{category.description}</p>
             </div>
           ))}
+          </div>
         </div>
 
         {/* Comparison Cards Section */}
