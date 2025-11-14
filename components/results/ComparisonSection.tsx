@@ -45,9 +45,24 @@ export default function ComparisonSection({
   };
 
   const getConfidenceColor = (level: 'high' | 'medium' | 'low') => {
-    if (level === 'high') return 'bg-green-100 text-green-700 border-green-300';
-    if (level === 'medium') return 'bg-blue-100 text-blue-700 border-blue-300';
-    return 'bg-amber-100 text-amber-700 border-amber-300';
+    if (level === 'high') return {
+      gradient: 'from-green-500 to-emerald-600',
+      bgLight: 'bg-green-50',
+      text: 'text-green-700',
+      border: 'border-green-200',
+    };
+    if (level === 'medium') return {
+      gradient: 'from-blue-500 to-indigo-600',
+      bgLight: 'bg-blue-50',
+      text: 'text-blue-700',
+      border: 'border-blue-200',
+    };
+    return {
+      gradient: 'from-amber-500 to-yellow-600',
+      bgLight: 'bg-amber-50',
+      text: 'text-amber-700',
+      border: 'border-amber-200',
+    };
   };
 
   const getConfidenceLabel = (level: 'high' | 'medium' | 'low') => {
@@ -57,33 +72,43 @@ export default function ComparisonSection({
   };
 
   return (
-    <section className="mt-8 md:mt-12">
-      {/* Section Header */}
-      <div className="mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{title}</h2>
-        {subtitle && <p className="text-base md:text-lg text-gray-600">{subtitle}</p>}
+    <section className="mb-12 md:mb-16 animate-fadeIn">
+      {/* Premium Section Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+          🔄
+        </div>
+        <div>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{title}</h2>
+          {subtitle && <p className="text-base md:text-lg text-gray-600 font-medium">{subtitle}</p>}
+        </div>
       </div>
 
-      {/* Mobile: Tab Interface */}
+      {/* Mobile: Premium Tab Interface */}
       {isMobile ? (
         <div>
-          {/* Tab Buttons */}
-          <div className="flex overflow-x-auto gap-2 mb-6 pb-2 no-scrollbar">
+          {/* Premium Tab Buttons */}
+          <div className="flex overflow-x-auto gap-3 mb-6 pb-2 no-scrollbar">
             {options.map((option) => (
               <button
                 key={option.id}
                 onClick={() => setActiveTab(option.id)}
                 className={`
-                  flex-shrink-0 px-4 py-2 rounded-lg font-semibold text-sm transition-all
+                  group relative flex-shrink-0 px-5 py-3 rounded-xl font-bold text-sm transition-all duration-300
                   ${activeTab === option.id
-                    ? 'bg-blue-600 text-white shadow-lg'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-xl scale-105'
+                    : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:shadow-md'
                   }
                 `}
               >
-                {option.name}
-                {option.isRecommended && (
-                  <span className="ml-2 text-xs">⭐</span>
+                <span className="relative z-10 flex items-center gap-2">
+                  {option.name}
+                  {option.isRecommended && (
+                    <span className={`text-base ${activeTab === option.id ? 'rotate-12' : 'rotate-0'} transition-transform duration-300`}>⭐</span>
+                  )}
+                </span>
+                {activeTab === option.id && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                 )}
               </button>
             ))}
@@ -133,7 +158,12 @@ interface ComparisonCardProps {
   expandedDrawbacks: string[];
   toggleBenefits: (id: string) => void;
   toggleDrawbacks: (id: string) => void;
-  getConfidenceColor: (level: 'high' | 'medium' | 'low') => string;
+  getConfidenceColor: (level: 'high' | 'medium' | 'low') => {
+    gradient: string;
+    bgLight: string;
+    text: string;
+    border: string;
+  };
   getConfidenceLabel: (level: 'high' | 'medium' | 'low') => string;
 }
 
@@ -151,162 +181,212 @@ function ComparisonCard({
   return (
     <div
       className={`
-        bg-white rounded-2xl shadow-lg overflow-hidden
-        ${option.isRecommended ? 'ring-2 ring-blue-500 ring-offset-2' : 'border border-gray-200'}
+        group relative bg-white rounded-2xl overflow-hidden transition-all duration-300
+        ${option.isRecommended
+          ? 'ring-4 ring-blue-500 ring-offset-4 shadow-2xl'
+          : 'border-2 border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-1'
+        }
       `}
     >
-      {/* Card Header */}
+      {/* Premium Card Header with Gradient */}
       <div
         className={`
-          p-6
+          relative overflow-hidden p-6 md:p-8
           ${option.isRecommended
-            ? 'bg-gradient-to-r from-blue-500 to-blue-600'
-            : 'bg-gradient-to-r from-gray-100 to-gray-200'
+            ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700'
+            : 'bg-gradient-to-br from-gray-100 via-slate-100 to-gray-100'
           }
         `}
       >
-        {/* Recommended Badge */}
-        {option.isRecommended && (
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full mb-3">
-            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <span className="text-white text-xs font-bold uppercase">Recommended</span>
-          </div>
-        )}
+        {/* Background pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, ${option.isRecommended ? 'white' : '#64748b'} 1px, transparent 0)`,
+            backgroundSize: '30px 30px'
+          }}
+        ></div>
 
-        {/* Option Name */}
-        <h3
-          className={`text-xl md:text-2xl font-bold mb-2 ${
-            option.isRecommended ? 'text-white' : 'text-gray-900'
-          }`}
-        >
-          {option.name}
-        </h3>
+        <div className="relative">
+          {/* Premium Recommended Badge */}
+          {option.isRecommended && (
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/30 backdrop-blur-md border-2 border-white/40 rounded-xl mb-4 shadow-lg">
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white/30 rotate-12 transition-transform duration-300 group-hover:rotate-0">
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </div>
+              <span className="text-white text-sm font-bold uppercase tracking-wide drop-shadow-md">Recommended</span>
+            </div>
+          )}
 
-        {/* Description */}
-        <p
-          className={`text-sm md:text-base mb-4 ${
-            option.isRecommended ? 'text-blue-50' : 'text-gray-600'
-          }`}
-        >
-          {option.description}
-        </p>
-
-        {/* Monthly Estimate */}
-        <div className="flex items-baseline gap-2">
-          <span
-            className={`text-3xl md:text-4xl font-bold ${
-              option.isRecommended ? 'text-white' : 'text-gray-900'
+          {/* Option Name */}
+          <h3
+            className={`text-2xl md:text-3xl font-bold mb-3 ${
+              option.isRecommended ? 'text-white drop-shadow-md' : 'text-gray-900'
             }`}
           >
-            {option.monthlyEstimate}
-          </span>
-          <span
-            className={`text-base ${option.isRecommended ? 'text-blue-100' : 'text-gray-600'}`}
+            {option.name}
+          </h3>
+
+          {/* Description */}
+          <p
+            className={`text-sm md:text-base mb-5 leading-relaxed ${
+              option.isRecommended ? 'text-white/90' : 'text-gray-600'
+            }`}
           >
-            /month
-          </span>
+            {option.description}
+          </p>
+
+          {/* Premium Monthly Estimate */}
+          <div className="flex items-baseline gap-2">
+            <span
+              className={`text-4xl md:text-5xl font-bold ${
+                option.isRecommended ? 'text-white drop-shadow-lg' : 'bg-gradient-to-br from-blue-600 to-indigo-700 bg-clip-text text-transparent'
+              }`}
+            >
+              {option.monthlyEstimate}
+            </span>
+            <span
+              className={`text-lg font-medium ${option.isRecommended ? 'text-white/80' : 'text-gray-600'}`}
+            >
+              /month
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Card Body */}
-      <div className="p-6 space-y-6">
-        {/* Confidence Level */}
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border ${getConfidenceColor(option.confidenceLevel)}`}>
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-          </svg>
-          <span className="text-xs font-semibold">{getConfidenceLabel(option.confidenceLevel)}</span>
+      {/* Premium Card Body */}
+      <div className="p-6 md:p-8 space-y-6">
+        {/* Premium Confidence Level Badge */}
+        <div className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 bg-gradient-to-r ${getConfidenceColor(option.confidenceLevel).gradient} ${getConfidenceColor(option.confidenceLevel).border} shadow-md`}>
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/30 backdrop-blur-sm">
+            <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <span className="text-sm font-bold text-white drop-shadow-md">{getConfidenceLabel(option.confidenceLevel)}</span>
         </div>
 
-        {/* Benefits - Collapsible */}
-        <div>
+        {/* Premium Benefits - Collapsible */}
+        <div className="rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4">
           <button
             onClick={() => toggleBenefits(option.id)}
-            className="flex items-center justify-between w-full text-left"
+            className="flex items-center justify-between w-full text-left group/btn"
           >
-            <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              <span className="text-green-500">✓</span>
-              Benefits ({option.benefits.length})
-            </h4>
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white text-lg shadow-md rotate-3 group-hover/btn:rotate-6 transition-transform duration-300">
+                ✓
+              </div>
+              <h4 className="text-base md:text-lg font-bold text-green-900">
+                Benefits ({option.benefits.length})
+              </h4>
+            </div>
             <svg
-              className={`w-5 h-5 text-gray-500 transition-transform ${
+              className={`w-6 h-6 text-green-700 transition-transform duration-300 ${
                 isExpanded(expandedBenefits, option.id) ? 'rotate-180' : ''
               }`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
           {isExpanded(expandedBenefits, option.id) && (
-            <ul className="mt-3 space-y-2">
+            <ul className="mt-4 space-y-3 animate-fadeIn">
               {option.benefits.map((benefit, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
-                  <span className="text-green-500 flex-shrink-0 mt-0.5">•</span>
-                  <span>{benefit}</span>
+                <li key={idx} className="flex items-start gap-3 text-sm md:text-base text-gray-800">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-600 text-white text-xs font-bold flex-shrink-0 mt-0.5 shadow-sm">
+                    {idx + 1}
+                  </span>
+                  <span className="flex-1 leading-relaxed">{benefit}</span>
                 </li>
               ))}
             </ul>
           )}
         </div>
 
-        {/* Drawbacks - Collapsible */}
-        <div>
+        {/* Premium Drawbacks - Collapsible */}
+        <div className="rounded-xl border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4">
           <button
             onClick={() => toggleDrawbacks(option.id)}
-            className="flex items-center justify-between w-full text-left"
+            className="flex items-center justify-between w-full text-left group/btn"
           >
-            <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
-              <span className="text-orange-500">⚠</span>
-              Drawbacks ({option.drawbacks.length})
-            </h4>
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 text-white text-lg shadow-md rotate-3 group-hover/btn:rotate-6 transition-transform duration-300">
+                ⚠
+              </div>
+              <h4 className="text-base md:text-lg font-bold text-orange-900">
+                Drawbacks ({option.drawbacks.length})
+              </h4>
+            </div>
             <svg
-              className={`w-5 h-5 text-gray-500 transition-transform ${
+              className={`w-6 h-6 text-orange-700 transition-transform duration-300 ${
                 isExpanded(expandedDrawbacks, option.id) ? 'rotate-180' : ''
               }`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
 
           {isExpanded(expandedDrawbacks, option.id) && (
-            <ul className="mt-3 space-y-2">
+            <ul className="mt-4 space-y-3 animate-fadeIn">
               {option.drawbacks.map((drawback, idx) => (
-                <li key={idx} className="flex items-start gap-2 text-sm text-gray-700">
-                  <span className="text-orange-500 flex-shrink-0 mt-0.5">•</span>
-                  <span>{drawback}</span>
+                <li key={idx} className="flex items-start gap-3 text-sm md:text-base text-gray-800">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-600 text-white text-xs font-bold flex-shrink-0 mt-0.5 shadow-sm">
+                    {idx + 1}
+                  </span>
+                  <span className="flex-1 leading-relaxed">{drawback}</span>
                 </li>
               ))}
             </ul>
           )}
         </div>
 
-        {/* Best For */}
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm font-semibold text-gray-700 mb-2">Best For:</p>
-          <p className="text-sm text-gray-600">{option.bestFor}</p>
+        {/* Premium Best For Section */}
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 border-2 border-blue-200 p-5 shadow-sm">
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, #3b82f6 1px, transparent 0)`,
+              backgroundSize: '20px 20px'
+            }}
+          ></div>
+          <div className="relative flex items-start gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg shadow-md rotate-3">
+              🎯
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-blue-900 mb-2">Best For:</p>
+              <p className="text-sm md:text-base text-gray-800 leading-relaxed">{option.bestFor}</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Card Footer */}
-      <div className="p-6 bg-gray-50 border-t border-gray-200">
+      {/* Premium Card Footer */}
+      <div className="p-6 md:p-8 bg-gradient-to-br from-gray-50 to-slate-50 border-t-2 border-gray-200">
         <button
           className={`
-            w-full py-3 px-6 rounded-lg font-semibold text-base transition-all
+            group/btn relative w-full py-4 px-6 rounded-xl font-bold text-base md:text-lg transition-all duration-300 overflow-hidden
             ${option.isRecommended
-              ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg'
-              : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-gray-400'
+              ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white shadow-xl hover:shadow-2xl hover:scale-[1.02]'
+              : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-400 hover:shadow-lg'
             }
           `}
         >
-          {option.actionLabel}
+          {option.isRecommended && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+          )}
+          <span className="relative flex items-center justify-center gap-2">
+            {option.actionLabel}
+            <span className="text-xl transition-transform duration-300 group-hover/btn:translate-x-1">→</span>
+          </span>
         </button>
       </div>
     </div>
