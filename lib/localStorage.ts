@@ -123,36 +123,36 @@ export function validateCalculatorFormData(data: unknown): data is CalculatorFor
  * Safely parse and validate localStorage data
  * Now with race condition protection
  */
-export function loadCalculatorData(storageKey: string): {
+export async function loadCalculatorData(storageKey: string): Promise<{
   success: boolean;
   data?: CalculatorFormData & { timestamp?: number };
   error?: string;
-} {
-  // Note: We use synchronous localStorage API but wrap in lock for safety
-  // This prevents concurrent reads during writes
-  try {
-    const saved = localStorage.getItem(storageKey);
-    if (!saved) {
-      return { success: false, error: 'No saved data found' };
-    }
+}> {
+  return withLock(storageKey, () => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (!saved) {
+        return { success: false, error: 'No saved data found' };
+      }
 
-    const parsed = JSON.parse(saved);
+      const parsed = JSON.parse(saved);
 
-    // Validate the structure
-    if (!validateCalculatorFormData(parsed)) {
-      logger.warn('Invalid calculator data structure in localStorage', { storageKey });
-      return { success: false, error: 'Invalid data structure' };
-    }
+      // Validate the structure
+      if (!validateCalculatorFormData(parsed)) {
+        logger.warn('Invalid calculator data structure in localStorage', { storageKey });
+        return { success: false, error: 'Invalid data structure' };
+      }
 
-    return { success: true, data: parsed };
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      logger.error('Corrupted localStorage data (invalid JSON)', { storageKey, error });
-      return { success: false, error: 'Corrupted data (invalid JSON)' };
+      return { success: true, data: parsed };
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        logger.error('Corrupted localStorage data (invalid JSON)', { storageKey, error });
+        return { success: false, error: 'Corrupted data (invalid JSON)' };
+      }
+      logger.error('Failed to load calculator data from localStorage', { storageKey, error });
+      return { success: false, error: 'Failed to load data' };
     }
-    logger.error('Failed to load calculator data from localStorage', { storageKey, error });
-    return { success: false, error: 'Failed to load data' };
-  }
+  });
 }
 
 /**

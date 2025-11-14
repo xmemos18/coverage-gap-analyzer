@@ -9,6 +9,7 @@ import { analyzeInsurance } from '@/lib/calculator';
 import { analyzeMedicareAdvantageFit, getMedicareAdvantageShoppingTips, compareToMedigap } from '@/lib/calculator/medicareAdvantageHelper';
 import { analyzeCOBRA, getCOBRADecisionFlowchart } from '@/lib/calculator/cobraHelper';
 import { calculateHSABenefits, getHSAStrategies } from '@/lib/calculator/hsaCalculator';
+import { logger } from '@/lib/logger';
 
 interface UseInsuranceAnalysisProps {
   formData: CalculatorFormData;
@@ -60,7 +61,7 @@ export function useInsuranceAnalysis({
           setRecommendation(result);
         }
       } catch (error) {
-        console.error('Error analyzing insurance:', error);
+        logger.error('Error analyzing insurance:', error);
         if (!cancelled) {
           setRecommendation(null);
         }
@@ -71,7 +72,12 @@ export function useInsuranceAnalysis({
       }
     };
 
-    fetchRecommendation();
+    fetchRecommendation().catch(err => {
+      // Additional safety catch for any errors not caught above
+      if (!cancelled) {
+        logger.error('Uncaught error in fetchRecommendation:', err);
+      }
+    });
 
     return () => {
       cancelled = true;
@@ -140,7 +146,7 @@ export function useInsuranceAnalysis({
         case '50k-75k': return 62500;
         case '75k-100k': return 87500;
         case '100k-150k': return 125000;
-        case 'over-150k': return 175000;
+        case '150k-plus': return 175000;
         case 'prefer-not-say': return 75000; // Use median US household income
         default: return 75000;
       }

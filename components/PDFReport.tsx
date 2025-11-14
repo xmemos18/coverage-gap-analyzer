@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { InsuranceRecommendation } from '@/types';
+import { logger } from '@/lib/logger';
 
 // Note: This will use dynamic import to avoid SSR issues with @react-pdf/renderer
 // The actual PDF generation happens client-side only
@@ -26,10 +27,10 @@ interface PDFReportProps {
 export async function generatePDF(props: PDFReportProps): Promise<Blob> {
   try {
     // Dynamic import to avoid SSR issues
-    console.log('Importing @react-pdf/renderer...');
+    logger.debug('Importing @react-pdf/renderer...');
     const ReactPDF = await import('@react-pdf/renderer');
     const { Document, Page, Text, View, StyleSheet, pdf } = ReactPDF;
-    console.log('Successfully imported @react-pdf/renderer');
+    logger.debug('Successfully imported @react-pdf/renderer');
 
     if (!Document || !Page || !Text || !View || !StyleSheet || !pdf) {
       throw new Error('Failed to load PDF components from @react-pdf/renderer');
@@ -264,12 +265,12 @@ export async function generatePDF(props: PDFReportProps): Promise<Blob> {
     </Document>
   );
 
-    console.log('Rendering PDF document...');
+    logger.debug('Rendering PDF document...');
     const blob = await pdf(<MyDocument />).toBlob();
-    console.log('PDF blob created successfully');
+    logger.debug('PDF blob created successfully');
     return blob;
   } catch (error) {
-    console.error('Error in generatePDF:', error);
+    logger.error('Error in generatePDF:', error);
     throw new Error(`Failed to generate PDF document: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -284,9 +285,9 @@ export async function downloadPDF(props: PDFReportProps): Promise<void> {
   }
 
   try {
-    console.log('Starting PDF generation...');
+    logger.debug('Starting PDF generation...');
     const blob = await generatePDF(props);
-    console.log('PDF blob generated, creating download link...');
+    logger.debug('PDF blob generated, creating download link...');
 
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -301,9 +302,9 @@ export async function downloadPDF(props: PDFReportProps): Promise<void> {
       URL.revokeObjectURL(url);
     }, 100);
 
-    console.log('PDF download triggered successfully');
+    logger.debug('PDF download triggered successfully');
   } catch (error) {
-    console.error('Failed to generate PDF:', error);
+    logger.error('Failed to generate PDF:', error);
     throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -324,7 +325,7 @@ export function PDFDownloadButton({ className = '', onError, ...pdfProps }: PDFD
     try {
       await downloadPDF(pdfProps);
     } catch (error) {
-      console.error('PDF generation error:', error);
+      logger.error('PDF generation error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate PDF';
       if (onError) {
         onError(error as Error);

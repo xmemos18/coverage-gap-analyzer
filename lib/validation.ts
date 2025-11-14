@@ -47,7 +47,7 @@ export function validateZipCode(zip: string): { isValid: boolean; sanitized: str
 
   // Reject ZIP codes with all same digits (likely invalid)
   if (/^(\d)\1{4}$/.test(sanitized) && sanitized !== '11111') {
-    // 11111 is a valid ZIP in Massachusetts
+    // 11111 is a valid ZIP code (Massapequa, NY)
     return { isValid: false, sanitized, error: 'Invalid ZIP code' };
   }
 
@@ -78,11 +78,13 @@ export function sanitizeNumericInput(input: string | number, min = 0, max = Numb
     return null;
   }
 
-  // Clamp to range
-  const clamped = Math.max(min, Math.min(max, num));
+  // Reject values outside range instead of clamping
+  if (num < min || num > max) {
+    return null;
+  }
 
   // Round to 2 decimal places for currency
-  return Math.round(clamped * 100) / 100;
+  return Math.round(num * 100) / 100;
 }
 
 /**

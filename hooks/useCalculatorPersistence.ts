@@ -33,10 +33,10 @@ export function useCalculatorPersistence({
 }: UseCalculatorPersistenceProps = {}) {
 
   /**
-   * Load saved calculator data (synchronous read, async cleanup)
+   * Load saved calculator data (async with race condition protection)
    */
   const loadData = useCallback(async () => {
-    const result = loadCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+    const result = await loadCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
 
     if (result.success && result.data) {
       // Check if data is recent (within 24 hours)

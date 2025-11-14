@@ -28,7 +28,7 @@ const INCOME_RANGE_OPTIONS = [
   { value: '50k-75k', label: '$50,000 - $75,000' },
   { value: '75k-100k', label: '$75,000 - $100,000' },
   { value: '100k-150k', label: '$100,000 - $150,000' },
-  { value: 'over-150k', label: 'Over $150,000' },
+  { value: '150k-plus', label: 'Over $150,000' },
   { value: 'prefer-not-say', label: 'Prefer not to say' },
 ];
 

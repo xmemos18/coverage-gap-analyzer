@@ -46,11 +46,11 @@ function ResultsContent() {
   const chronicConditionsStr = searchParams.get('chronicConditions') || '';
 
   const parsedParams = useMemo(() => {
-    const residenceZips = residenceZipsStr ? residenceZipsStr.split(',') : [];
-    const residenceStates = residenceStatesStr ? residenceStatesStr.split(',') : [];
-    const adultAges = adultAgesStr ? adultAgesStr.split(',').map(Number).filter(n => !isNaN(n)) : [];
-    const childAges = childAgesStr ? childAgesStr.split(',').map(Number).filter(n => !isNaN(n)) : [];
-    const chronicConditions = chronicConditionsStr ? chronicConditionsStr.split(',') : [];
+    const residenceZips = residenceZipsStr ? residenceZipsStr.split(',').filter(s => s.trim() !== '') : [];
+    const residenceStates = residenceStatesStr ? residenceStatesStr.split(',').filter(s => s.trim() !== '') : [];
+    const adultAges = adultAgesStr ? adultAgesStr.split(',').filter(s => s.trim() !== '').map(Number).filter(n => !isNaN(n) && n > 0) : [];
+    const childAges = childAgesStr ? childAgesStr.split(',').filter(s => s.trim() !== '').map(Number).filter(n => !isNaN(n) && n >= 0) : [];
+    const chronicConditions = chronicConditionsStr ? chronicConditionsStr.split(',').filter(s => s.trim() !== '') : [];
 
     const residences = residenceZips.map((zip, index) => ({
       zip: zip || '',

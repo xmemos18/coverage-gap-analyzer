@@ -70,7 +70,7 @@ export default function Calculator() {
   const router = useRouter();
   const [state, dispatch] = useReducer(calculatorReducer, createInitialState(INITIAL_FORM_DATA));
   const hasTrackedStart = useRef(false);
-  const { showSuccess } = useToast();
+  const { showSuccess, showError } = useToast();
 
   const { formData, errors, isLoading, showResumePrompt } = state;
 
@@ -119,31 +119,35 @@ export default function Calculator() {
 
   // Load saved data on mount
   useEffect(() => {
-    const result = loadCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+    const loadData = async () => {
+      const result = await loadCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
 
-    if (result.success && result.data) {
-      // Check if data is recent
-      if (isDataRecent(result.data, THRESHOLDS.DATA_EXPIRY_HOURS)) {
-        dispatch({ type: 'SET_RESUME_PROMPT', show: true });
-        showSuccess('Progress restored from previous session');
-      } else {
-        // Data is too old, clear it
-        clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA).then((clearResult) => {
+      if (result.success && result.data) {
+        // Check if data is recent
+        if (isDataRecent(result.data, THRESHOLDS.DATA_EXPIRY_HOURS)) {
+          dispatch({ type: 'SET_RESUME_PROMPT', show: true });
+          showSuccess('Progress restored from previous session');
+        } else {
+          // Data is too old, clear it
+          const clearResult = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
           if (!clearResult.success) {
             logger.error('Failed to clear old data', clearResult.error);
           }
-        });
-      }
-    } else if (result.error) {
-      // Invalid or corrupted data - log and clear
-      logger.error('Failed to load saved calculator data', result.error);
-      clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA).then((clearResult) => {
+        }
+      } else if (result.error) {
+        // Invalid or corrupted data - log and clear
+        logger.error('Failed to load saved calculator data', result.error);
+        const clearResult = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
         if (!clearResult.success) {
           logger.error('Failed to clear corrupted data', clearResult.error);
         }
-      });
-    }
-  }, [showSuccess]);
+      }
+    };
+
+    loadData().catch(err => {
+      logger.error('Error loading calculator data on mount', err);
+    });
+  }, [showSuccess, showError]);
 
   // Debounced save to localStorage (now async)
   const saveToLocalStorage = useDebouncedCallback(async () => {
@@ -166,8 +170,8 @@ export default function Calculator() {
     saveToLocalStorage();
   }, [formData, saveToLocalStorage]);
 
-  const resumeSavedData = () => {
-    const result = loadCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+  const resumeSavedData = async () => {
+    const result = await loadCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
 
     if (result.success && result.data) {
       // Remove timestamp before setting form data (if it exists)
@@ -184,11 +188,10 @@ export default function Calculator() {
       // Failed to load or validate data
       logger.error('Failed to resume saved calculator data', result.error);
       // Clear corrupted data and reset form
-      clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA).then((clearResult) => {
-        if (!clearResult.success) {
-          logger.error('Failed to clear corrupted data', clearResult.error);
-        }
-      });
+      const clearResult = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+      if (!clearResult.success) {
+        logger.error('Failed to clear corrupted data', clearResult.error);
+      }
       // Reset to initial state
       dispatch({ type: 'RESET_FORM', initialData: INITIAL_FORM_DATA });
     }
@@ -451,8 +454,7 @@ export default function Calculator() {
     } catch (error) {
       logger.error('Error submitting calculator form', error);
       dispatch({ type: 'SET_LOADING', isLoading: false });
-      // Could set an error state here to show user feedback
-      // For now, just stop the loading spinner so user can try again
+      showError('Failed to submit form. Please try again or contact support if the issue persists.');
     }
   };
 

@@ -94,8 +94,8 @@ export function getStateFromZip(zipCode: string): string | null {
 
   const zipNum = parseInt(zipCode, 10);
 
-  // Invalid ZIP
-  if (isNaN(zipNum) || zipNum < 1 || zipNum > 99999) {
+  // Invalid ZIP - minimum valid ZIP in our ranges is 1001
+  if (isNaN(zipNum) || zipNum < 1000 || zipNum > 99999) {
     return null;
   }
 

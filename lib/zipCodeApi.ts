@@ -13,6 +13,31 @@ const RETRY_DELAY_MS = 500;
 const zipCache = new Map<string, { data: ZipCodeLocation; timestamp: number }>();
 const CACHE_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
 
+/**
+ * Clean up expired entries from the cache to prevent memory leaks
+ */
+function cleanupExpiredCacheEntries() {
+  const now = Date.now();
+  const expiredKeys: string[] = [];
+
+  for (const [key, value] of zipCache.entries()) {
+    if (now - value.timestamp > CACHE_DURATION_MS) {
+      expiredKeys.push(key);
+    }
+  }
+
+  expiredKeys.forEach(key => zipCache.delete(key));
+
+  if (expiredKeys.length > 0) {
+    logger.debug(`Cleaned up ${expiredKeys.length} expired ZIP code cache entries`);
+  }
+}
+
+// Run cleanup every hour to prevent memory leaks
+if (typeof window !== 'undefined') {
+  setInterval(cleanupExpiredCacheEntries, 60 * 60 * 1000); // Every hour
+}
+
 export interface ZipCodeLocation {
   zip: string;
   city: string;

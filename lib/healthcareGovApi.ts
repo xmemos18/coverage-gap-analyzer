@@ -22,6 +22,9 @@ const RETRY_DELAY_MS = 1000; // Wait 1 second between retries
 const countyCache = new Map<string, { data: County[]; timestamp: number }>();
 const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
 
+// Lock mechanism to prevent race conditions when fetching the same ZIP simultaneously
+const pendingRequests = new Map<string, Promise<County[] | null>>();
+
 export interface County {
   fips: string;
   name: string;
@@ -233,51 +236,69 @@ export async function getCountyByZip(zipcode: string): Promise<County[] | null> 
     return cached.data;
   }
 
-  try {
-    const response = await fetchWithRetry(async () => {
-      const res = await fetchWithTimeout(
-        `${API_BASE_URL}/counties/by/zip/${zipcode}?apikey=${API_KEY}`,
-        {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-        }
-      );
+  // Check if there's already a pending request for this ZIP code
+  const existingRequest = pendingRequests.get(zipcode);
+  if (existingRequest) {
+    logger.info('Reusing pending county lookup request', { zipcode });
+    return existingRequest;
+  }
 
-      if (!res.ok) {
-        if (res.status === 404) {
-          logger.info('ZIP code not found in Healthcare.gov API', { zipcode });
-          return null;
+  // Create new request and store it in pending requests
+  const requestPromise = (async (): Promise<County[] | null> => {
+    try {
+      const response = await fetchWithRetry(async () => {
+        const res = await fetchWithTimeout(
+          `${API_BASE_URL}/counties/by/zip/${zipcode}?apikey=${API_KEY}`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            },
+          }
+        );
+
+        if (!res.ok) {
+          if (res.status === 404) {
+            logger.info('ZIP code not found in Healthcare.gov API', { zipcode });
+            return null;
+          }
+          throw new Error(`API error: ${res.status} ${res.statusText}`);
         }
-        throw new Error(`API error: ${res.status} ${res.statusText}`);
+
+        return res;
+      });
+
+      if (!response) {
+        return null;
       }
 
-      return res;
-    });
+      const data: unknown = await response.json();
 
-    if (!response) {
+      // Validate response structure
+      if (!validateCountyResponse(data)) {
+        logger.error('Invalid API response structure for county lookup', { zipcode });
+        return null;
+      }
+
+      const counties = data.counties || [];
+
+      // Cache the result
+      countyCache.set(zipcode, { data: counties, timestamp: Date.now() });
+
+      return counties;
+    } catch (error) {
+      logger.error('County lookup error', { zipcode, error });
       return null;
+    } finally {
+      // Remove from pending requests when done
+      pendingRequests.delete(zipcode);
     }
+  })();
 
-    const data: unknown = await response.json();
+  // Store the promise
+  pendingRequests.set(zipcode, requestPromise);
 
-    // Validate response structure
-    if (!validateCountyResponse(data)) {
-      logger.error('Invalid API response structure for county lookup', { zipcode });
-      return null;
-    }
-
-    const counties = data.counties || [];
-
-    // Cache the result
-    countyCache.set(zipcode, { data: counties, timestamp: Date.now() });
-
-    return counties;
-  } catch (error) {
-    logger.error('County lookup error', { zipcode, error });
-    return null;
-  }
+  return requestPromise;
 }
 
 /**
@@ -590,7 +611,7 @@ export async function getRecommendedPlans(
     .filter(plan => plan?.quality_rating?.available && plan.premium > 0)
     .map(plan => ({
       plan,
-      score: (plan.quality_rating.global_rating || 3) / plan.premium,
+      score: plan.premium > 0 ? (plan.quality_rating.global_rating || 3) / plan.premium : 0,
     }))
     .sort((a, b) => b.score - a.score);
 
