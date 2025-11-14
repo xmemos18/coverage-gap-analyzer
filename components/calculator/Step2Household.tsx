@@ -7,8 +7,10 @@ import InfoTooltip from '@/components/InfoTooltip';
 interface Step2Props {
   numAdults: number;
   adultAges: number[];
+  adultsUseTobacco: boolean[];
   numChildren: number;
   childAges: number[];
+  childrenUseTobacco: boolean[];
   hasMedicareEligible: boolean;
   hasEmployerInsurance: boolean;
   employerContribution: number;
@@ -21,8 +23,10 @@ interface Step2Props {
 export default function Step2Household({
   numAdults,
   adultAges,
+  adultsUseTobacco,
   numChildren,
   childAges,
+  childrenUseTobacco,
   hasMedicareEligible,
   hasEmployerInsurance,
   employerContribution,
@@ -36,6 +40,9 @@ export default function Step2Household({
     // Initialize or trim adult ages array
     const newAges = Array(count).fill(0).map((_, i) => adultAges[i] || 0);
     onUpdate('adultAges', newAges);
+    // Initialize or trim tobacco usage array
+    const newTobacco = Array(count).fill(false).map((_, i) => adultsUseTobacco[i] || false);
+    onUpdate('adultsUseTobacco', newTobacco);
   };
 
   const handleChildCountChange = (count: number) => {
@@ -43,6 +50,9 @@ export default function Step2Household({
     // Initialize or trim child ages array
     const newAges = Array(count).fill(0).map((_, i) => childAges[i] || 0);
     onUpdate('childAges', newAges);
+    // Initialize or trim tobacco usage array
+    const newTobacco = Array(count).fill(false).map((_, i) => childrenUseTobacco[i] || false);
+    onUpdate('childrenUseTobacco', newTobacco);
   };
 
   const updateAdultAge = (index: number, age: number) => {
@@ -92,6 +102,18 @@ export default function Step2Household({
       newAges[index] = validAge;
       onUpdate('childAges', newAges);
     }
+  };
+
+  const updateAdultTobacco = (index: number, usesTobacco: boolean) => {
+    const newTobacco = [...adultsUseTobacco];
+    newTobacco[index] = usesTobacco;
+    onUpdate('adultsUseTobacco', newTobacco);
+  };
+
+  const updateChildTobacco = (index: number, usesTobacco: boolean) => {
+    const newTobacco = [...childrenUseTobacco];
+    newTobacco[index] = usesTobacco;
+    onUpdate('childrenUseTobacco', newTobacco);
   };
 
   const validateEmployerContribution = () => {
@@ -157,7 +179,7 @@ export default function Step2Household({
               {Array(numAdults)
                 .fill(0)
                 .map((_, index) => (
-                  <div key={index}>
+                  <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
                     <label htmlFor={`adult-age-${index}`} className="block text-sm font-medium text-gray-700 mb-2">
                       Adult {index + 1} Age (18-120)
                     </label>
@@ -181,6 +203,44 @@ export default function Step2Household({
                         {errors[`adultAge${index}`]}
                       </p>
                     )}
+
+                    {/* Tobacco Usage */}
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Does this adult use tobacco?
+                      </label>
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={() => updateAdultTobacco(index, true)}
+                          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${
+                            adultsUseTobacco[index]
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
+                          }`}
+                          aria-label={`Adult ${index + 1} uses tobacco`}
+                          aria-pressed={adultsUseTobacco[index]}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateAdultTobacco(index, false)}
+                          className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${
+                            !adultsUseTobacco[index]
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
+                          }`}
+                          aria-label={`Adult ${index + 1} does not use tobacco`}
+                          aria-pressed={!adultsUseTobacco[index]}
+                        >
+                          No
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Tobacco users may pay higher premiums
+                      </p>
+                    </div>
                   </div>
                 ))}
             </div>
@@ -217,7 +277,7 @@ export default function Step2Household({
               {Array(numChildren)
                 .fill(0)
                 .map((_, index) => (
-                  <div key={index}>
+                  <div key={index} className="bg-white p-4 rounded-lg border border-gray-200">
                     <label htmlFor={`child-age-${index}`} className="block text-sm font-medium text-gray-700 mb-2">
                       Child {index + 1} Age (0-17)
                     </label>
@@ -240,6 +300,46 @@ export default function Step2Household({
                       <p id={`child-age-${index}-error`} className="text-red-600 text-sm mt-1" role="alert" aria-live="polite">
                         {errors[`childAge${index}`]}
                       </p>
+                    )}
+
+                    {/* Tobacco Usage - Only show for teens (13+) */}
+                    {childAges[index] >= 13 && (
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Does this child use tobacco?
+                        </label>
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={() => updateChildTobacco(index, true)}
+                            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${
+                              childrenUseTobacco[index]
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
+                            }`}
+                            aria-label={`Child ${index + 1} uses tobacco`}
+                            aria-pressed={childrenUseTobacco[index]}
+                          >
+                            Yes
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateChildTobacco(index, false)}
+                            className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all ${
+                              !childrenUseTobacco[index]
+                                ? 'bg-blue-600 text-white border-blue-600'
+                                : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
+                            }`}
+                            aria-label={`Child ${index + 1} does not use tobacco`}
+                            aria-pressed={!childrenUseTobacco[index]}
+                          >
+                            No
+                          </button>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Tobacco users may pay higher premiums
+                        </p>
+                      </div>
                     )}
                   </div>
                 ))}

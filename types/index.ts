@@ -39,8 +39,10 @@ export interface CalculatorFormData {
   // Step 2: Household
   numAdults: number;
   adultAges: number[];
+  adultsUseTobacco: boolean[]; // Tobacco usage for each adult
   numChildren: number;
   childAges: number[];
+  childrenUseTobacco: boolean[]; // Tobacco usage for each child
   hasMedicareEligible: boolean;
 
   // Step 2.1: Employment & Coverage (NEW - Phase 1)

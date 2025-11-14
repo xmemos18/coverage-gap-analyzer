@@ -41,8 +41,10 @@ const INITIAL_FORM_DATA: CalculatorFormData = {
   ],
   numAdults: 0,
   adultAges: [],
+  adultsUseTobacco: [],
   numChildren: 0,
   childAges: [],
+  childrenUseTobacco: [],
   hasMedicareEligible: false,
   hasEmployerInsurance: false,
   employerContribution: 0,
@@ -644,8 +646,10 @@ export default function Calculator() {
               <Step2Household
                 numAdults={formData.numAdults}
                 adultAges={formData.adultAges}
+                adultsUseTobacco={formData.adultsUseTobacco}
                 numChildren={formData.numChildren}
                 childAges={formData.childAges}
+                childrenUseTobacco={formData.childrenUseTobacco}
                 hasMedicareEligible={formData.hasMedicareEligible}
                 hasEmployerInsurance={formData.hasEmployerInsurance}
                 employerContribution={formData.employerContribution}

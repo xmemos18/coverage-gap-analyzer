@@ -1,4 +1,5 @@
 import { VALIDATION } from './constants';
+import DOMPurify from 'dompurify';
 
 /**
  * Input validation and sanitization utilities
@@ -7,22 +8,17 @@ import { VALIDATION } from './constants';
 
 /**
  * Sanitize text input to prevent XSS attacks
- * Removes potentially dangerous characters while preserving valid input
+ * Uses DOMPurify to remove all potentially dangerous content
  */
 export function sanitizeTextInput(input: string): string {
   if (!input) return '';
 
-  // Remove control characters and potentially dangerous patterns
-  const sanitized = input
-    .replace(/[<>]/g, '') // Remove angle brackets to prevent HTML injection
-    .replace(/&lt;/gi, '') // Remove HTML entity for <
-    .replace(/&gt;/gi, '') // Remove HTML entity for >
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
-    .replace(/data:/gi, '') // Remove data: protocol
-    .replace(/vbscript:/gi, '') // Remove vbscript: protocol
-    .replace(/on\w+=/gi, '') // Remove inline event handlers
-    .replace(/&#/g, '') // Remove HTML entity encoding attempts
-    .trim();
+  // Use DOMPurify to sanitize - strips all HTML tags and dangerous content
+  const sanitized = DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [], // Remove all HTML tags
+    ALLOWED_ATTR: [], // Remove all attributes
+    KEEP_CONTENT: true, // Keep text content
+  }).trim();
 
   // Limit length to prevent DoS
   return sanitized.slice(0, 200);
@@ -103,16 +99,20 @@ export function validateChildAge(age: number): boolean {
 
 /**
  * Sanitize coverage notes (prevent XSS in textarea)
+ * Uses DOMPurify to remove all potentially dangerous content
  */
 export function sanitizeCoverageNotes(notes: string): string {
   if (!notes) return '';
 
-  return notes
-    .replace(/[<>]/g, '') // Remove angle brackets
-    .replace(/javascript:/gi, '')
-    .replace(/on\w+=/gi, '')
-    .trim()
-    .slice(0, 1000); // Limit to 1000 characters
+  // Use DOMPurify to sanitize - strips all HTML tags and dangerous content
+  const sanitized = DOMPurify.sanitize(notes, {
+    ALLOWED_TAGS: [], // Remove all HTML tags
+    ALLOWED_ATTR: [], // Remove all attributes
+    KEEP_CONTENT: true, // Keep text content
+  }).trim();
+
+  // Limit to 1000 characters
+  return sanitized.slice(0, 1000);
 }
 
 /**

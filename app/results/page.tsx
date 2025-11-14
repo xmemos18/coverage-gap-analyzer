@@ -128,8 +128,10 @@ function ResultsContent() {
     residences,
     numAdults,
     adultAges,
+    adultsUseTobacco: Array(adultAges.length).fill(false), // Default: no tobacco use
     numChildren,
     childAges,
+    childrenUseTobacco: Array(childAges.length).fill(false), // Default: no tobacco use
     hasMedicareEligible,
     hasEmployerInsurance,
     employerContribution,

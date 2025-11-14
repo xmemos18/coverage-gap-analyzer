@@ -6,25 +6,17 @@
  *
  * To use this API:
  * 1. Request an API key from CMS
- * 2. Add to .env.local: NEXT_PUBLIC_HEALTHCARE_GOV_API_KEY=your_key_here
+ * 2. Add to .env.local: HEALTHCARE_GOV_API_KEY=your_key_here (server-side only)
  * 3. Restart development server
+ *
+ * NOTE: This client-side module now uses server-side API routes to protect the API key.
+ * The API key is never exposed to the client.
  */
 
 import { logger } from './logger';
-import { API_CONFIG } from './constants';
 
-const API_BASE_URL = 'https://marketplace.api.healthcare.gov/api/v1';
-const API_KEY = process.env.NEXT_PUBLIC_HEALTHCARE_GOV_API_KEY;
-const API_TIMEOUT_MS = API_CONFIG.HEALTHCARE_GOV_TIMEOUT_MS;
-const MAX_RETRIES = API_CONFIG.HEALTHCARE_GOV_MAX_RETRIES;
-const RETRY_DELAY_MS = API_CONFIG.HEALTHCARE_GOV_RETRY_DELAY_MS;
-
-// Simple in-memory cache for county lookups (expires after 1 hour)
-const countyCache = new Map<string, { data: County[]; timestamp: number }>();
-const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
-
-// Lock mechanism to prevent race conditions when fetching the same ZIP simultaneously
-const pendingRequests = new Map<string, Promise<County[] | null>>();
+// Client-side API calls now go through our Next.js API routes
+const API_BASE_URL = '/api';
 
 export interface County {
   fips: string;
@@ -119,191 +111,59 @@ export interface PlanSearchResponse {
 }
 
 /**
- * Fetch with timeout support
- */
-async function fetchWithTimeout(
-  url: string,
-  options: RequestInit = {},
-  timeoutMs: number = API_TIMEOUT_MS
-): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error(`Request timeout after ${timeoutMs}ms`);
-    }
-    throw error;
-  }
-}
-
-/**
- * Retry logic for API calls
- */
-async function fetchWithRetry<T>(
-  fetchFn: () => Promise<T>,
-  retries: number = MAX_RETRIES
-): Promise<T> {
-  let lastError: Error | null = null;
-
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      return await fetchFn();
-    } catch (error) {
-      lastError = error instanceof Error ? error : new Error(String(error));
-
-      // Don't retry on 4xx errors (client errors)
-      if (lastError.message.includes('API error: 4')) {
-        throw lastError;
-      }
-
-      // Wait before retrying (exponential backoff)
-      if (attempt < retries) {
-        const delay = RETRY_DELAY_MS * Math.pow(2, attempt);
-        logger.warn(`API call failed, retrying in ${delay}ms (attempt ${attempt + 1}/${retries})`, lastError);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-    }
-  }
-
-  throw lastError || new Error('API call failed after retries');
-}
-
-/**
- * Validate API response structure
- */
-function validateCountyResponse(data: unknown): data is { counties: County[] } {
-  if (!data || typeof data !== 'object') {
-    return false;
-  }
-
-  const response = data as { counties?: unknown };
-
-  if (!Array.isArray(response.counties)) {
-    return false;
-  }
-
-  // Validate first county structure (if exists)
-  if (response.counties.length > 0) {
-    const county = response.counties[0];
-    if (!county || typeof county !== 'object') {
-      return false;
-    }
-
-    const c = county as County;
-    if (typeof c.fips !== 'string' || typeof c.name !== 'string' || typeof c.state !== 'string') {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
  * Check if Healthcare.gov API is configured
+ * This is now always true since we use server-side API routes
  */
 export function isHealthcareGovApiAvailable(): boolean {
-  return !!API_KEY;
+  return true; // Server-side API routes handle availability
 }
 
 /**
  * Get county FIPS code from ZIP code
  * Required for plan searches
- * Results are cached for 1 hour to reduce API calls
+ * Now uses server-side API route to protect API key
  */
 export async function getCountyByZip(zipcode: string): Promise<County[] | null> {
-  if (!API_KEY) {
-    logger.warn('Healthcare.gov API key not configured');
-    return null;
-  }
-
   if (!zipcode || !/^\d{5}$/.test(zipcode)) {
     logger.warn('Invalid ZIP code format', { zipcode });
     return null;
   }
 
-  // Check cache first
-  const cached = countyCache.get(zipcode);
-  if (cached && Date.now() - cached.timestamp < CACHE_DURATION_MS) {
-    logger.info('County lookup cache hit', { zipcode });
-    return cached.data;
-  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/counties/${zipcode}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
 
-  // Check if there's already a pending request for this ZIP code
-  const existingRequest = pendingRequests.get(zipcode);
-  if (existingRequest) {
-    logger.info('Reusing pending county lookup request', { zipcode });
-    return existingRequest;
-  }
-
-  // Create new request and store it in pending requests
-  const requestPromise = (async (): Promise<County[] | null> => {
-    try {
-      const response = await fetchWithRetry(async () => {
-        const res = await fetchWithTimeout(
-          `${API_BASE_URL}/counties/by/zip/${zipcode}?apikey=${API_KEY}`,
-          {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-            },
-          }
-        );
-
-        if (!res.ok) {
-          if (res.status === 404) {
-            logger.info('ZIP code not found in Healthcare.gov API', { zipcode });
-            return null;
-          }
-          throw new Error(`API error: ${res.status} ${res.statusText}`);
-        }
-
-        return res;
-      });
-
-      if (!response) {
+    if (!response.ok) {
+      if (response.status === 404) {
+        logger.info('ZIP code not found', { zipcode });
         return null;
       }
-
-      const data: unknown = await response.json();
-
-      // Validate response structure
-      if (!validateCountyResponse(data)) {
-        logger.error('Invalid API response structure for county lookup', { zipcode });
-        return null;
-      }
-
-      const counties = data.counties || [];
-
-      // Cache the result
-      countyCache.set(zipcode, { data: counties, timestamp: Date.now() });
-
-      return counties;
-    } catch (error) {
-      logger.error('County lookup error', { zipcode, error });
+      logger.error('County lookup failed', { zipcode, status: response.status });
       return null;
-    } finally {
-      // Remove from pending requests when done
-      pendingRequests.delete(zipcode);
     }
-  })();
 
-  // Store the promise
-  pendingRequests.set(zipcode, requestPromise);
+    const data = await response.json();
 
-  return requestPromise;
+    if (!data || typeof data !== 'object') {
+      logger.error('Invalid API response structure for county lookup', { zipcode });
+      return null;
+    }
+
+    const countyResponse = data as { counties?: County[] };
+    return countyResponse.counties || [];
+  } catch (error) {
+    logger.error('County lookup error', { zipcode, error });
+    return null;
+  }
 }
 
 /**
  * Search for marketplace health insurance plans
+ * Now uses server-side API route to protect API key
  *
  * @param params - Search parameters including ZIP, household info, filters
  * @returns Array of matching plans with pricing and coverage details
@@ -311,90 +171,20 @@ export async function getCountyByZip(zipcode: string): Promise<County[] | null> 
 export async function searchMarketplacePlans(
   params: PlanSearchParams
 ): Promise<PlanSearchResponse | null> {
-  if (!API_KEY) {
-    logger.warn('Healthcare.gov API key not configured. Request one at: https://developer.cms.gov/marketplace-api/key-request.html');
-    return null;
-  }
-
   try {
-    // Step 1: Get county FIPS code for the ZIP
-    const counties = await getCountyByZip(params.zipcode);
-    if (!counties || counties.length === 0) {
-      logger.error('No counties found for ZIP code', { zipcode: params.zipcode });
-      return null;
-    }
-
-    // Use first county if multiple (rare)
-    const county = counties[0];
-
-    if (!county?.fips || !county?.state) {
-      logger.error('Invalid county data', { county });
-      return null;
-    }
-
-    // Step 2: Build request body
-    interface RequestBody {
-      place: {
-        countyfips: string;
-        state: string;
-        zipcode: string;
-      };
-      market: string;
-      year: number;
-      household?: typeof params.household;
-      filter?: typeof params.filter;
-      limit?: number;
-      offset?: number;
-    }
-
-    const requestBody: RequestBody = {
-      place: {
-        countyfips: county.fips,
-        state: params.state || county.state,
-        zipcode: params.zipcode,
+    const response = await fetch(`${API_BASE_URL}/marketplace-plans/search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
-      market: params.market || 'Individual',
-      year: params.year || new Date().getFullYear(),
-    };
-
-    // Add household data if provided
-    if (params.household) {
-      requestBody.household = params.household;
-    }
-
-    // Add filters if provided
-    if (params.filter) {
-      requestBody.filter = params.filter;
-    }
-
-    // Add pagination
-    if (params.limit) {
-      requestBody.limit = Math.min(params.limit, 100);
-    }
-    if (params.offset) {
-      requestBody.offset = params.offset;
-    }
-
-    // Step 3: Search for plans with retry logic
-    const response = await fetchWithRetry(async () => {
-      const res = await fetchWithTimeout(
-        `${API_BASE_URL}/plans/search?apikey=${API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error(`API error: ${res.status} ${res.statusText}`);
-      }
-
-      return res;
+      body: JSON.stringify(params),
     });
+
+    if (!response.ok) {
+      logger.error('Plan search failed', { status: response.status });
+      return null;
+    }
 
     const data: unknown = await response.json();
 
@@ -440,13 +230,9 @@ export async function searchMarketplacePlans(
 
 /**
  * Get detailed information for a specific plan
+ * Now uses server-side API route to protect API key
  */
 export async function getPlanDetails(planId: string, year?: number): Promise<MarketplacePlan | null> {
-  if (!API_KEY) {
-    logger.warn('Healthcare.gov API key not configured');
-    return null;
-  }
-
   if (!planId) {
     logger.warn('Plan ID is required for plan details lookup');
     return null;
@@ -455,29 +241,22 @@ export async function getPlanDetails(planId: string, year?: number): Promise<Mar
   try {
     const yearParam = year || new Date().getFullYear();
 
-    const response = await fetchWithRetry(async () => {
-      const res = await fetchWithTimeout(
-        `${API_BASE_URL}/plans/${planId}?year=${yearParam}&apikey=${API_KEY}`,
-        {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-          },
-        }
-      );
-
-      if (!res.ok) {
-        if (res.status === 404) {
-          logger.info('Plan not found', { planId, year: yearParam });
-          return null;
-        }
-        throw new Error(`API error: ${res.status} ${res.statusText}`);
+    const response = await fetch(
+      `${API_BASE_URL}/marketplace-plans/details?planId=${planId}&year=${yearParam}`,
+      {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        },
       }
+    );
 
-      return res;
-    });
-
-    if (!response) {
+    if (!response.ok) {
+      if (response.status === 404) {
+        logger.info('Plan not found', { planId, year: yearParam });
+        return null;
+      }
+      logger.error('Plan details lookup failed', { planId, status: response.status });
       return null;
     }
 
@@ -499,6 +278,7 @@ export async function getPlanDetails(planId: string, year?: number): Promise<Mar
 /**
  * Calculate subsidy eligibility estimates
  * Premium Tax Credit (APTC) and Cost-Sharing Reductions (CSR)
+ * Now uses server-side API route to protect API key
  */
 export async function calculateSubsidyEstimates(
   zipcode: string,
@@ -517,54 +297,24 @@ export async function calculateSubsidyEstimates(
   csr: string; // Cost-Sharing Reduction level
   is_medicaid_chip: boolean;
 } | null> {
-  if (!API_KEY) {
-    logger.warn('Healthcare.gov API key not configured');
-    return null;
-  }
-
   try {
-    // Get county for ZIP
-    const counties = await getCountyByZip(zipcode);
-    if (!counties || counties.length === 0) {
-      logger.error('No counties found for subsidy calculation', { zipcode });
-      return null;
-    }
-
-    const county = counties[0];
-
-    if (!county?.fips || !county?.state) {
-      logger.error('Invalid county data for subsidy calculation', { county });
-      return null;
-    }
-
-    const response = await fetchWithRetry(async () => {
-      const res = await fetchWithTimeout(
-        `${API_BASE_URL}/households/eligibility/estimates?apikey=${API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({
-            place: {
-              countyfips: county.fips,
-              state: county.state,
-              zipcode: zipcode,
-            },
-            household: household,
-            market: 'Individual',
-            year: year || new Date().getFullYear(),
-          }),
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error(`API error: ${res.status} ${res.statusText}`);
-      }
-
-      return res;
+    const response = await fetch(`${API_BASE_URL}/subsidies`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        zipcode,
+        household,
+        year: year || new Date().getFullYear(),
+      }),
     });
+
+    if (!response.ok) {
+      logger.error('Subsidy calculation failed', { zipcode, status: response.status });
+      return null;
+    }
 
     const data: unknown = await response.json();
 
