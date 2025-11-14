@@ -6,7 +6,7 @@ import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useInsuranceAnalysis } from '@/hooks/useInsuranceAnalysis';
 import { AlternativeOption } from '@/types';
 import HeroCard from '@/components/results/HeroCard';
-import WhyThisRecommendation from '@/components/results/WhyThisRecommendation';
+import EnhancedWhyRecommendation from '@/components/results/EnhancedWhyRecommendation';
 import ComparisonSection from '@/components/results/ComparisonSection';
 import QuickComparisonTable from '@/components/results/QuickComparisonTable';
 import ResultsSkeleton from '@/components/results/ResultsSkeleton';
@@ -227,15 +227,10 @@ function ResultsContent() {
     eligibilityDescription: `${numAdults} adult${numAdults !== 1 ? 's' : ''}${numChildren > 0 ? `, ${numChildren} child${numChildren !== 1 ? 'ren' : ''}` : ''} • ${state}`,
   };
 
-  const whyData = {
-    explanation: recommendation.reasoning,
-    features: recommendation.actionItems.slice(0, 4).map((item, i) => ({
-      id: `${i}`,
-      text: item,
-    })),
-    bestForDescription: 'Based on your household size, location, and stated preferences',
-    isMobile,
-  };
+  // Get current insurance cost if available
+  const currentInsuranceCost = formData.hasCurrentInsurance && formData.currentInsurance
+    ? formData.currentInsurance.monthlyCost
+    : undefined;
 
   const comparisonData = {
     title: 'Compare Your Options',
@@ -365,8 +360,12 @@ function ResultsContent() {
           {/* Hero Card */}
           <HeroCard {...heroData} />
 
-          {/* Why This Recommendation */}
-          <WhyThisRecommendation {...whyData} />
+          {/* Why This Recommendation - Enhanced with Data Visualization */}
+          <EnhancedWhyRecommendation
+            recommendation={recommendation}
+            formData={formData}
+            currentInsuranceCost={currentInsuranceCost}
+          />
         </section>
 
         {/* Current Insurance Comparison (if provided) */}
