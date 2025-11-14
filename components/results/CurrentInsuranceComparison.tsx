@@ -357,7 +357,7 @@ export default function CurrentInsuranceComparison({
               <div className="flex-1">
                 <h5 className="font-bold text-gray-900 text-2xl mb-3">Key Insight</h5>
                 <p className="text-lg text-gray-800 leading-relaxed">
-                  By switching to our recommended plan, you could save <span className="font-bold text-blue-600">${Math.round(costComparison.monthlySavings!).toLocaleString()}/month</span> while maintaining or improving your coverage. That's <span className="font-bold text-green-600">${Math.round(costComparison.annualSavings || 0).toLocaleString()}</span> back in your pocket each year.
+                  By switching to our recommended plan, you could save <span className="font-bold text-blue-600">${Math.round(costComparison.monthlySavings!).toLocaleString()}/month</span> while maintaining or improving your coverage. That&apos;s <span className="font-bold text-green-600">${Math.round(costComparison.annualSavings || 0).toLocaleString()}</span> back in your pocket each year.
                 </p>
               </div>
             </div>
