@@ -59,6 +59,26 @@ function ResultsContent() {
       monthsPerYear: 0,
     }));
 
+    // Parse all search params in one useMemo to prevent unnecessary re-renders
+    const numAdults = safeParseInt(searchParams.get('numAdults'), 0);
+    const numChildren = safeParseInt(searchParams.get('numChildren'), 0);
+    const hasMedicareEligible = searchParams.get('hasMedicareEligible') === 'true';
+    const hasEmployerInsurance = searchParams.get('hasEmployerInsurance') === 'true';
+    const employerContribution = safeParseInt(searchParams.get('employerContribution'), 0);
+    const hasChronicConditions = searchParams.get('hasChronicConditions') === 'true';
+    const prescriptionCount = searchParams.get('prescriptionCount') || '';
+    const providerPreference = searchParams.get('providerPreference') || '';
+    const budget = searchParams.get('budget') || '';
+    const incomeRange = searchParams.get('incomeRange') || '';
+    const simpleMode = searchParams.get('simpleMode') === 'true';
+    const hasCurrentInsurance = searchParams.get('hasCurrentInsurance') === 'true';
+    const currentCarrier = searchParams.get('currentCarrier') || '';
+    const currentPlanType = searchParams.get('currentPlanType') || '';
+    const currentMonthlyCost = safeParseFloat(searchParams.get('currentMonthlyCost'), 0);
+    const currentDeductible = safeParseFloat(searchParams.get('currentDeductible'), 0);
+    const currentOutOfPocketMax = safeParseFloat(searchParams.get('currentOutOfPocketMax'), 0);
+    const currentCoverageNotes = searchParams.get('currentCoverageNotes') || '';
+
     return {
       residenceZips,
       residenceStates,
@@ -66,32 +86,55 @@ function ResultsContent() {
       adultAges,
       childAges,
       chronicConditions,
+      numAdults,
+      numChildren,
+      hasMedicareEligible,
+      hasEmployerInsurance,
+      employerContribution,
+      hasChronicConditions,
+      prescriptionCount,
+      providerPreference,
+      budget,
+      incomeRange,
+      simpleMode,
+      hasCurrentInsurance,
+      currentCarrier,
+      currentPlanType,
+      currentMonthlyCost,
+      currentDeductible,
+      currentOutOfPocketMax,
+      currentCoverageNotes,
     };
-  }, [residenceZipsStr, residenceStatesStr, adultAgesStr, childAgesStr, chronicConditionsStr]);
+  }, [residenceZipsStr, residenceStatesStr, adultAgesStr, childAgesStr, chronicConditionsStr, searchParams]);
 
-  const { residenceZips, residenceStates, residences, adultAges, childAges, chronicConditions } = parsedParams;
+  const {
+    residenceZips,
+    residenceStates,
+    residences,
+    adultAges,
+    childAges,
+    chronicConditions,
+    numAdults,
+    numChildren,
+    hasMedicareEligible,
+    hasEmployerInsurance,
+    employerContribution,
+    hasChronicConditions,
+    prescriptionCount,
+    providerPreference,
+    budget,
+    incomeRange,
+    simpleMode,
+    hasCurrentInsurance,
+    currentCarrier,
+    currentPlanType,
+    currentMonthlyCost,
+    currentDeductible,
+    currentOutOfPocketMax,
+    currentCoverageNotes,
+  } = parsedParams;
 
-  // Parse other parameters with proper NaN handling
-  const numAdults = safeParseInt(searchParams.get('numAdults'), 0);
-  const numChildren = safeParseInt(searchParams.get('numChildren'), 0);
-  const hasMedicareEligible = searchParams.get('hasMedicareEligible') === 'true';
-  const hasEmployerInsurance = searchParams.get('hasEmployerInsurance') === 'true';
-  const employerContribution = safeParseInt(searchParams.get('employerContribution'), 0);
-  const hasChronicConditions = searchParams.get('hasChronicConditions') === 'true';
-  const prescriptionCount = searchParams.get('prescriptionCount') || '';
-  const providerPreference = searchParams.get('providerPreference') || '';
-  const budget = searchParams.get('budget') || '';
-  const incomeRange = searchParams.get('incomeRange') || '';
-  const simpleMode = searchParams.get('simpleMode') === 'true';
-  const hasCurrentInsurance = searchParams.get('hasCurrentInsurance') === 'true';
-  const currentCarrier = searchParams.get('currentCarrier') || '';
-  const currentPlanType = searchParams.get('currentPlanType') || '';
-  const currentMonthlyCost = safeParseFloat(searchParams.get('currentMonthlyCost'), 0);
-  const currentDeductible = safeParseFloat(searchParams.get('currentDeductible'), 0);
-  const currentOutOfPocketMax = safeParseFloat(searchParams.get('currentOutOfPocketMax'), 0);
-  const currentCoverageNotes = searchParams.get('currentCoverageNotes') || '';
-
-  // Validate URL parameters
+  // Validate URL parameters - optimized to use parsedParams
   const validationResult = useMemo(() => {
     return validateURLParameters({
       residenceZips,
@@ -104,7 +147,8 @@ function ResultsContent() {
       hasCurrentInsurance,
       budget,
     });
-  }, [residenceZips, residenceStates, numAdults, adultAges, numChildren, childAges, hasMedicareEligible, hasCurrentInsurance, budget]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parsedParams]); // Optimized: single dependency instead of 9 individual fields (all values derived from parsedParams)
 
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
@@ -123,7 +167,7 @@ function ResultsContent() {
 
   const hasRequiredData = validationResult.isValid;
 
-  // Reconstruct form data
+  // Reconstruct form data - optimized to use parsedParams to reduce re-renders
   const formData: CalculatorFormData = useMemo(() => ({
     residences,
     numAdults,
@@ -153,7 +197,8 @@ function ResultsContent() {
     currentStep: 5,
     simpleMode,
     interestedInAddOns: true,
-  }), [residences, numAdults, adultAges, numChildren, childAges, hasMedicareEligible, hasEmployerInsurance, employerContribution, hasChronicConditions, chronicConditions, prescriptionCount, providerPreference, hasCurrentInsurance, currentCarrier, currentPlanType, currentMonthlyCost, currentDeductible, currentOutOfPocketMax, currentCoverageNotes, budget, incomeRange, simpleMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [parsedParams]); // Optimized: single dependency instead of 20+ individual fields (all values derived from parsedParams)
 
   // Get insurance analysis
   const { recommendation, medicareAdvantageAnalysis, cobraAnalysis, hsaAnalysis, isLoading } = useInsuranceAnalysis({
