@@ -68,36 +68,55 @@ export default function QuickComparisonTable({
   };
 
   return (
-    <section className="mt-8 md:mt-12">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Comparison</h2>
+    <section className="mb-12 md:mb-16 animate-fadeIn">
+      {/* Premium Section Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+          ⚖️
+        </div>
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Quick Comparison</h2>
+      </div>
 
-      {/* Desktop Table */}
-      <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+      {/* Premium Desktop Table */}
+      <div className="hidden md:block overflow-hidden rounded-2xl border-2 border-gray-200 shadow-xl">
         <table className="w-full">
-          <thead className="bg-gray-100">
+          <thead className="bg-gradient-to-r from-gray-50 via-slate-50 to-gray-50">
             <tr>
-              <th className="text-left p-4 font-semibold text-gray-900">Feature</th>
-              <th className="text-left p-4 font-semibold text-blue-600">{primaryOption.name}</th>
-              <th className="text-left p-4 font-semibold text-gray-700">{alternativeOption.name}</th>
+              <th className="text-left p-5 font-bold text-gray-900 text-base border-b-2 border-gray-200">
+                Feature
+              </th>
+              <th className="text-left p-5 border-b-2 border-gray-200">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl shadow-md">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white/30 rotate-12">
+                    ⭐
+                  </div>
+                  <span className="font-bold text-base">{primaryOption.name}</span>
+                </div>
+              </th>
+              <th className="text-left p-5 font-bold text-gray-700 text-base border-b-2 border-gray-200">
+                {alternativeOption.name}
+              </th>
             </tr>
           </thead>
           <tbody>
             {features.map((feature, idx) => (
               <tr
                 key={idx}
-                className={`border-t border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}
+                className={`border-t border-gray-200 transition-colors hover:bg-blue-50/50 ${
+                  idx % 2 === 0 ? 'bg-white' : 'bg-gradient-to-r from-gray-50/50 to-slate-50/50'
+                }`}
               >
-                <td className="p-4 font-medium text-gray-900">{feature.name}</td>
-                <td className="p-4">
+                <td className="p-5 font-bold text-gray-900">{feature.name}</td>
+                <td className="p-5">
                   <div className="flex items-center gap-3">
                     {getIcon(feature.primary.icon)}
-                    <span className="text-gray-700">{feature.primary.value}</span>
+                    <span className="text-gray-800 font-medium">{feature.primary.value}</span>
                   </div>
                 </td>
-                <td className="p-4">
+                <td className="p-5">
                   <div className="flex items-center gap-3">
                     {getIcon(feature.alternative.icon)}
-                    <span className="text-gray-700">{feature.alternative.value}</span>
+                    <span className="text-gray-800 font-medium">{feature.alternative.value}</span>
                   </div>
                 </td>
               </tr>
@@ -106,28 +125,51 @@ export default function QuickComparisonTable({
         </table>
       </div>
 
-      {/* Mobile Cards */}
+      {/* Premium Mobile Cards */}
       <div className="md:hidden space-y-4">
         {features.map((feature, idx) => (
-          <div key={idx} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <h4 className="font-semibold text-gray-900 mb-4 text-base">{feature.name}</h4>
+          <div key={idx} className="relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl p-5 shadow-lg">
+            {/* Subtle background pattern */}
+            <div
+              className="absolute inset-0 opacity-[0.02]"
+              style={{
+                backgroundImage: `radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)`,
+                backgroundSize: '20px 20px'
+              }}
+            ></div>
 
-            <div className="space-y-4">
-              {/* Primary Option */}
-              <div className="flex items-start gap-3">
-                <div className="flex-shrink-0 w-6 h-6">{getIcon(feature.primary.icon)}</div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 mb-1">{primaryOption.name}</p>
-                  <p className="font-medium text-sm text-gray-900">{feature.primary.value}</p>
+            <div className="relative">
+              <h4 className="font-bold text-gray-900 mb-5 text-lg flex items-center gap-2">
+                <span className="text-blue-600">•</span>
+                {feature.name}
+              </h4>
+
+              <div className="space-y-4">
+                {/* Premium Primary Option */}
+                <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-0.5">{getIcon(feature.primary.icon)}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-blue-700">{primaryOption.name}</span>
+                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-white text-xs rotate-12">
+                          ⭐
+                        </div>
+                      </div>
+                      <p className="font-bold text-base text-gray-900">{feature.primary.value}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* Alternative Option */}
-              <div className="flex items-start gap-3 pt-4 border-t border-gray-200">
-                <div className="flex-shrink-0 w-6 h-6">{getIcon(feature.alternative.icon)}</div>
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 mb-1">{alternativeOption.name}</p>
-                  <p className="font-medium text-sm text-gray-900">{feature.alternative.value}</p>
+                {/* Premium Alternative Option */}
+                <div className="rounded-xl bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-0.5">{getIcon(feature.alternative.icon)}</div>
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-gray-600 mb-1">{alternativeOption.name}</p>
+                      <p className="font-bold text-base text-gray-900">{feature.alternative.value}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -135,23 +177,23 @@ export default function QuickComparisonTable({
         ))}
       </div>
 
-      {/* Recommendation Callout */}
-      <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-4 md:p-5">
-        <div className="flex items-start gap-3">
-          <svg
-            className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-              clipRule="evenodd"
-            />
-          </svg>
+      {/* Premium Recommendation Callout */}
+      <div className="mt-8 relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 border-2 border-blue-200 rounded-2xl p-6 md:p-8 shadow-xl">
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, #3b82f6 1px, transparent 0)`,
+            backgroundSize: '30px 30px'
+          }}
+        ></div>
+
+        <div className="relative flex items-start gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-2xl shadow-lg rotate-3 flex-shrink-0">
+            💡
+          </div>
           <div className="flex-1">
-            <p className="font-semibold text-blue-900 mb-1">Our Recommendation:</p>
-            <p className="text-sm text-blue-800 leading-relaxed">{recommendation}</p>
+            <p className="font-bold text-blue-900 mb-2 text-lg">Our Recommendation:</p>
+            <p className="text-base text-gray-800 leading-relaxed">{recommendation}</p>
           </div>
         </div>
       </div>
