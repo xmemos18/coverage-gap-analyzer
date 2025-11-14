@@ -12,7 +12,7 @@
  * Helps users make informed decisions about where to live for optimal coverage.
  */
 
-import { STATE_METADATA, getAdjacentStates, compareStates } from '../data/state-constants';
+import { STATE_METADATA, getAdjacentStates } from '../data/state-constants';
 import { calculatePremiumForState } from './age-rating';
 import { calculatePremiumTaxCredit, calculateFPL } from './advanced-subsidy';
 import { analyzeTotalCostOfCare } from './total-cost-of-care';
@@ -315,7 +315,7 @@ export function compareMultipleStates(
 /**
  * Generate insights from multi-state analysis
  */
-function generateInsights(analyses: StateCoverageAnalysis[], input: StateComparisonInput): string[] {
+function generateInsights(analyses: StateCoverageAnalysis[], _input: StateComparisonInput): string[] {
   const insights: string[] = [];
 
   // Coverage gap insights
@@ -373,7 +373,7 @@ function generateInsights(analyses: StateCoverageAnalysis[], input: StateCompari
 /**
  * Generate recommendations from multi-state analysis
  */
-function generateRecommendations(analyses: StateCoverageAnalysis[], input: StateComparisonInput): string[] {
+function generateRecommendations(analyses: StateCoverageAnalysis[], _input: StateComparisonInput): string[] {
   const recommendations: string[] = [];
 
   const best = analyses[0];
@@ -651,7 +651,7 @@ export function compareTwoStates(
   const annualDifference = Math.abs(analysis1.totalAnnualCost - analysis2.totalAnnualCost);
 
   const better = betterState === state1 ? analysis1 : analysis2;
-  const worse = betterState === state1 ? analysis2 : analysis1;
+  const _worse = betterState === state1 ? analysis2 : analysis1;
 
   const recommendation =
     `${better.stateName} is the better choice, saving $${Math.round(annualDifference).toLocaleString()}/year. ` +

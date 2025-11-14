@@ -12,7 +12,6 @@ import {
   analyzeFamilyGlitch,
   getTaxReconciliationWarning,
   estimateMAGIFromRange,
-  MEDICAID_EXPANSION_STATES,
   FPL_2025,
 } from '../advanced-subsidy';
 
@@ -331,9 +330,9 @@ describe('Advanced Subsidy Calculator', () => {
         800   // Unaffordable family ($800/month)
       );
 
-      const threshold = (magi / 12) * 0.0839; // ~$419/month
+      const _threshold = (magi / 12) * 0.0839; // ~$419/month (for reference)
 
-      expect(result.employerSelfOnlyAffordable).toBe(true);  // $250 < $419
+      expect(result.employerSelfOnlyAffordable).toBe(true);  // $250 < threshold
       expect(result.employerFamilyAffordable).toBe(false);   // $800 > $419
       expect(result.familyCanGetSubsidies).toBe(true);       // Family glitch fixed!
       expect(result.explanation).toContain('family glitch');

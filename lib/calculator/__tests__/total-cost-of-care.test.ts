@@ -10,7 +10,6 @@ import {
   analyzeTotalCostOfCare,
   determineUtilizationScenario,
   generateTCCRecommendations,
-  EXPECTED_UTILIZATION_BY_AGE,
   ACTUARIAL_VALUES,
   TYPICAL_COST_SHARING,
 } from '../total-cost-of-care';

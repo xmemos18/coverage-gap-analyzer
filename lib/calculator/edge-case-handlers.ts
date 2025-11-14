@@ -136,9 +136,6 @@ export function calculateSpecialEnrollmentPeriod(
   let instructions: string[] = [];
   let requiredDocumentation: string[] = [];
 
-  const eventMonth = eventDate.getMonth();
-  const eventDay = eventDate.getDate();
-
   switch (reason) {
     case 'loss_of_coverage':
       // 60 days before to 60 days after loss of coverage
@@ -492,8 +489,8 @@ export function analyzeIncomeVolatility(params: {
     currentIncome,
     projectedIncome,
     householdSize,
-    state,
-    currentMonthlyPremium,
+    state: _state,
+    currentMonthlyPremium: _currentMonthlyPremium,
     currentMonthlyPTC,
     monthsRemaining,
   } = params;

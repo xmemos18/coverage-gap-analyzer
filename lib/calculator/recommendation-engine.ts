@@ -11,17 +11,43 @@
  * - Contextual explanations
  */
 
-import { calculateHouseholdPremium, getHouseholdPremiumRange, MetalTier } from './age-rating';
+import { getHouseholdPremiumRange, MetalTier } from './age-rating';
 import { calculatePremiumTaxCredit, calculateFPL, calculateMAGI, MAGIComponents } from './advanced-subsidy';
 import { analyzeTotalCostOfCare, determineUtilizationScenario, UtilizationScenario } from './total-cost-of-care';
-import { assessActuarialRisk, generateCostScenarios } from './actuarial-models';
+import { assessActuarialRisk } from './actuarial-models';
 import { STATE_METADATA, isInCoverageGap, isMedicaidEligible } from '../data/state-constants';
-import { analyzeBorderStates, analyzeRelocationOpportunity } from './multi-state-analysis';
+import { analyzeRelocationOpportunity } from './multi-state-analysis';
 import { analyzeAgeTransitions, calculateSpecialEnrollmentPeriod, isOpenEnrollmentPeriod, getNextOpenEnrollment, SpecialEnrollmentReason } from './edge-case-handlers';
 
 // ============================================================================
 // TYPES
 // ============================================================================
+
+// Internal types for module return values
+interface EligibilityResult {
+  medicaid: boolean;
+  premiumTaxCredit: boolean;
+  monthlyPTC: number;
+  inCoverageGap: boolean;
+}
+
+interface CostSummary {
+  lowestTotalCost: number;
+  highestTotalCost: number;
+  recommendedTotalCost: number;
+}
+
+interface RiskAssessment {
+  category: 'low' | 'moderate' | 'high' | 'very-high';
+  recommendedReserve: number;
+}
+
+interface RecommendedPlan {
+  metalTier: MetalTier;
+  monthlyPremium: number;
+  estimatedAnnualCost: number;
+  reasoning: string;
+}
 
 export interface RecommendationInput {
   // Demographics
@@ -180,7 +206,7 @@ export function generateRecommendations(input: RecommendationInput): Comprehensi
 /**
  * Module 1: Life Event Analysis
  */
-function analyzeLifeEvents(input: RecommendationInput, magi: number) {
+function analyzeLifeEvents(input: RecommendationInput, _magi: number) {
   const recommendations: Recommendation[] = [];
   const warnings: string[] = [];
   const nextSteps: Array<{ step: string; deadline?: Date; priority: 'low' | 'moderate' | 'high' | 'critical' }> = [];
@@ -370,18 +396,18 @@ function analyzeEligibility(input: RecommendationInput, magi: number) {
 /**
  * Module 3: Cost & Coverage Analysis
  */
-function analyzeCostsAndCoverage(input: RecommendationInput, magi: number, eligibility: any) {
+function analyzeCostsAndCoverage(input: RecommendationInput, magi: number, eligibility: EligibilityResult) {
   const recommendations: Recommendation[] = [];
 
   // Get premium range
-  const baseRate = STATE_METADATA[input.state]?.baseMonthlyPremium ?? 400;
   const adults = input.adults ?? [input.age];
   const children = input.children ?? [];
 
   const premiumRange = getHouseholdPremiumRange(adults, children, input.state);
 
-  // Apply subsidies
+  // Apply subsidies (Catastrophic doesn't qualify for subsidies, so use bronze * 0.8 as estimate)
   const adjustedRange = {
+    Catastrophic: premiumRange.bronze * 0.8, // Catastrophic is ~20% cheaper than Bronze
     Bronze: Math.max(0, premiumRange.bronze - eligibility.monthlyPTC),
     Silver: Math.max(0, premiumRange.silver - eligibility.monthlyPTC),
     Gold: Math.max(0, premiumRange.gold - eligibility.monthlyPTC),
@@ -538,9 +564,9 @@ function analyzePlanningOpportunities(input: RecommendationInput, magi: number) 
 
 function generatePrimaryRecommendation(
   input: RecommendationInput,
-  eligibility: any,
-  recommendedPlan: any
-): { message: string; plan: any } {
+  eligibility: EligibilityResult,
+  recommendedPlan: RecommendedPlan
+): { message: string; plan: RecommendedPlan } {
   let message = '';
 
   if (eligibility.medicaid) {

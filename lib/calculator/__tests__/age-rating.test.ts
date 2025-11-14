@@ -11,7 +11,6 @@ import {
   getStateBaseRate,
   calculatePremiumForState,
   getHouseholdPremiumRange,
-  ACA_AGE_CURVE,
   GEOGRAPHIC_COST_INDEX,
 } from '../age-rating';
 
