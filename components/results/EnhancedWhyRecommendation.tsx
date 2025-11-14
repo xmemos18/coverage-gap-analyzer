@@ -11,11 +11,6 @@ interface EnhancedWhyRecommendationProps {
   currentInsuranceCost?: number;
 }
 
-interface ActionItem {
-  id: string;
-  text: string;
-}
-
 export default function EnhancedWhyRecommendation({
   recommendation,
   formData,
@@ -41,31 +36,6 @@ export default function EnhancedWhyRecommendation({
 
   // Get alternative plans for comparison
   const topAlternative = recommendation.alternativeOptions?.[0];
-
-  // Prepare action items for display with priority detection
-  const actionItems: ActionItem[] = recommendation.actionItems.map((item, i) => ({
-    id: `action-${i}`,
-    text: item,
-  }));
-
-  // Categorize action items by keywords
-  const categorizeAction = (text: string): { category: string; icon: string; priority: 'high' | 'medium' | 'low' } => {
-    const lowerText = text.toLowerCase();
-
-    if (lowerText.includes('enroll') || lowerText.includes('sign up') || lowerText.includes('apply')) {
-      return { category: 'Enrollment', icon: '📝', priority: 'high' };
-    } else if (lowerText.includes('shop') || lowerText.includes('compare') || lowerText.includes('research')) {
-      return { category: 'Research', icon: '🔍', priority: 'high' };
-    } else if (lowerText.includes('consider') || lowerText.includes('look into') || lowerText.includes('explore')) {
-      return { category: 'Consider', icon: '💡', priority: 'medium' };
-    } else if (lowerText.includes('review') || lowerText.includes('check') || lowerText.includes('verify')) {
-      return { category: 'Review', icon: '✓', priority: 'medium' };
-    } else if (lowerText.includes('deadline') || lowerText.includes('before') || lowerText.includes('by')) {
-      return { category: 'Deadline', icon: '⏰', priority: 'high' };
-    } else {
-      return { category: 'Action', icon: '→', priority: 'medium' };
-    }
-  };
 
   return (
     <section className="mt-6 md:mt-8">
@@ -230,118 +200,6 @@ export default function EnhancedWhyRecommendation({
           </div>
         </div>
 
-        {/* Action Items - Interactive Checklist */}
-        {actionItems.length > 0 && (
-          <div className="mb-12">
-            {/* Section Header */}
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="h-1 w-16 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 rounded-full"></div>
-                <h3 className="text-3xl font-bold text-gray-900">What You Need to Know</h3>
-              </div>
-              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-green-50 border-2 border-green-200 rounded-full">
-                <span className="text-sm font-bold text-green-700">{actionItems.length} Action Items</span>
-              </div>
-            </div>
-
-            {/* Interactive Checklist Grid */}
-            <div className="grid gap-5 md:grid-cols-2">
-              {actionItems.map((item, index) => {
-                const meta = categorizeAction(item.text);
-                const priorityColors = {
-                  high: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', checkBg: 'from-red-400 to-red-600' },
-                  medium: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300', checkBg: 'from-blue-400 to-blue-600' },
-                  low: { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', checkBg: 'from-gray-400 to-gray-600' },
-                };
-                const colors = priorityColors[meta.priority];
-
-                return (
-                  <div
-                    key={item.id}
-                    className="group relative overflow-hidden rounded-2xl border-2 border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-green-300 hover:shadow-xl animate-fadeIn"
-                    style={{ animationDelay: `${index * 100}ms` }}
-                  >
-                    {/* Background Pattern on Hover */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-[0.02] transition-opacity duration-300" style={{
-                      backgroundImage: `radial-gradient(circle at 2px 2px, rgb(34, 197, 94) 1px, transparent 0)`,
-                      backgroundSize: '24px 24px'
-                    }}></div>
-
-                    {/* Priority Badge */}
-                    <div className="absolute top-4 right-4">
-                      <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${colors.bg} ${colors.text} border ${colors.border}`}>
-                        {meta.priority}
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="relative flex items-start gap-4">
-                      {/* Interactive Checkbox */}
-                      <div className="flex-shrink-0 mt-1">
-                        <div className="relative h-7 w-7 cursor-pointer">
-                          {/* Unchecked State */}
-                          <div className="absolute inset-0 rounded-lg border-3 border-gray-300 bg-white group-hover:border-green-500 transition-colors duration-200"></div>
-
-                          {/* Checked State (shows on hover) */}
-                          <div className={`absolute inset-0 rounded-lg bg-gradient-to-br ${colors.checkBg} flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
-                            <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path
-                                fillRule="evenodd"
-                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Text Content */}
-                      <div className="flex-1 min-w-0">
-                        {/* Category Badge */}
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-xl" aria-hidden="true">{meta.icon}</span>
-                          <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">{meta.category}</span>
-                        </div>
-
-                        {/* Action Text with Highlighted Keywords */}
-                        <p className="text-base leading-relaxed text-gray-800">
-                          {item.text.split(' ').map((word, idx) => {
-                            const isKeyword = /enroll|shop|compare|deadline|before|medicare|medigap|marketplace/i.test(word);
-                            return (
-                              <span key={idx} className={isKeyword ? 'font-bold text-gray-900' : ''}>
-                                {word}{' '}
-                              </span>
-                            );
-                          })}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Bottom Accent Line */}
-                    <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${colors.checkBg} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Completion Encouragement */}
-            <div className="mt-8 rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 p-6 shadow-sm">
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-md">
-                  <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <div className="flex-1">
-                  <p className="font-bold text-green-900 text-lg mb-1">Ready to Get Started?</p>
-                  <p className="text-green-800 leading-relaxed">
-                    Follow these action items to secure your coverage. Most can be completed online in minutes.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Three-Column Benefits Grid */}
         <div className="mb-12">
