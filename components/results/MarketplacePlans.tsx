@@ -42,43 +42,98 @@ export default function MarketplacePlans({ plans }: MarketplacePlansProps) {
     }
   });
 
-  // Metal level colors
-  const metalColors: Record<string, { bg: string; text: string; border: string }> = {
-    Bronze: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
-    Silver: { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-300' },
-    Gold: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-300' },
-    Platinum: { bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-300' },
-    Catastrophic: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
+  // Premium metal level gradients and styling
+  const metalColors: Record<string, {
+    gradient: string;
+    badgeGradient: string;
+    text: string;
+    border: string;
+    iconBg: string;
+  }> = {
+    Bronze: {
+      gradient: 'from-orange-600 via-amber-600 to-orange-700',
+      badgeGradient: 'from-orange-500 to-amber-600',
+      text: 'text-amber-800',
+      border: 'border-amber-300',
+      iconBg: 'bg-amber-100'
+    },
+    Silver: {
+      gradient: 'from-gray-600 via-slate-600 to-gray-700',
+      badgeGradient: 'from-gray-500 to-slate-600',
+      text: 'text-slate-800',
+      border: 'border-slate-300',
+      iconBg: 'bg-slate-100'
+    },
+    Gold: {
+      gradient: 'from-yellow-600 via-amber-500 to-yellow-600',
+      badgeGradient: 'from-yellow-500 to-amber-600',
+      text: 'text-yellow-800',
+      border: 'border-yellow-300',
+      iconBg: 'bg-yellow-100'
+    },
+    Platinum: {
+      gradient: 'from-purple-600 via-indigo-600 to-purple-700',
+      badgeGradient: 'from-purple-500 to-indigo-600',
+      text: 'text-purple-800',
+      border: 'border-purple-300',
+      iconBg: 'bg-purple-100'
+    },
+    Catastrophic: {
+      gradient: 'from-red-600 via-rose-600 to-red-700',
+      badgeGradient: 'from-red-500 to-rose-600',
+      text: 'text-red-800',
+      border: 'border-red-300',
+      iconBg: 'bg-red-100'
+    },
   };
 
   const getMetalColor = (level: string) => metalColors[level] || metalColors.Silver;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h3 className="text-2xl font-bold text-gray-900">Real Marketplace Plans</h3>
-          <p className="text-sm text-gray-600 mt-1">
-            Showing {plans.length} plan{plans.length !== 1 ? 's' : ''} available in your area
-          </p>
-        </div>
+    <div className="space-y-8">
+      {/* Premium Header with Healthcare.gov branding */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 px-6 py-8 md:px-8 md:py-10 shadow-xl">
+        {/* Background pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+            backgroundSize: '40px 40px'
+          }}
+        ></div>
 
-        {/* Sort Controls */}
-        <div className="flex items-center gap-2">
-          <label htmlFor="sort-plans" className="text-sm font-medium text-gray-700">
-            Sort by:
-          </label>
-          <select
-            id="sort-plans"
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600"
-          >
-            <option value="premium">💰 Premium (Low to High)</option>
-            <option value="deductible">🏥 Deductible (Low to High)</option>
-            <option value="rating">⭐ Quality Rating (High to Low)</option>
-          </select>
+        <div className="relative flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex items-center gap-4">
+            {/* Healthcare.gov badge */}
+            <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm text-3xl md:text-4xl shadow-xl rotate-3 hover:rotate-6 transition-transform duration-300">
+              🏥
+            </div>
+            <div>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-1">
+                Real Marketplace Plans
+              </h3>
+              <p className="text-sm md:text-base text-blue-100">
+                Showing {plans.length} plan{plans.length !== 1 ? 's' : ''} available in your area
+              </p>
+            </div>
+          </div>
+
+          {/* Premium Sort Controls */}
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <label htmlFor="sort-plans" className="text-sm font-semibold text-white whitespace-nowrap">
+              Sort by:
+            </label>
+            <select
+              id="sort-plans"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+              className="flex-1 sm:flex-none px-4 py-2.5 border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white rounded-xl text-sm font-medium focus:ring-2 focus:ring-white focus:border-white transition-all hover:bg-white/20 cursor-pointer"
+            >
+              <option value="premium" className="text-gray-900">💰 Premium (Low to High)</option>
+              <option value="deductible" className="text-gray-900">🏥 Deductible (Low to High)</option>
+              <option value="rating" className="text-gray-900">⭐ Quality Rating (High to Low)</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -88,114 +143,190 @@ export default function MarketplacePlans({ plans }: MarketplacePlansProps) {
           const isSelected = selectedPlan === plan.id;
           const metalColor = getMetalColor(plan.metalLevel);
           const hasSubsidy = plan.premiumAfterCredit && plan.premiumAfterCredit < plan.premium;
+          const subsidySavings = hasSubsidy ? plan.premium - plan.premiumAfterCredit! : 0;
 
           return (
             <div
               key={plan.id}
               className={`
-                border-2 rounded-xl overflow-hidden transition-all cursor-pointer
-                ${isSelected ? 'border-blue-600 shadow-lg scale-[1.02]' : 'border-gray-200 hover:border-gray-300 hover:shadow-md'}
+                group relative border-2 rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer
+                ${isSelected
+                  ? 'border-blue-600 shadow-2xl scale-[1.02] ring-4 ring-blue-100'
+                  : 'border-gray-200 hover:border-blue-400 hover:shadow-xl hover:-translate-y-1'
+                }
               `}
               onClick={() => setSelectedPlan(isSelected ? null : plan.id)}
             >
-              {/* Header */}
-              <div className={`${metalColor.bg} ${metalColor.border} border-b-2 p-4`}>
-                <div className="flex items-start justify-between gap-3">
+              {/* Premium Metal Level Header with gradient */}
+              <div className={`relative overflow-hidden bg-gradient-to-br ${metalColor.gradient} px-5 py-6`}>
+                {/* Subtle pattern overlay */}
+                <div
+                  className="absolute inset-0 opacity-[0.08]"
+                  style={{
+                    backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+                    backgroundSize: '30px 30px'
+                  }}
+                ></div>
+
+                <div className="relative flex items-start justify-between gap-3">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className={`px-2 py-1 ${metalColor.bg} ${metalColor.text} ${metalColor.border} border rounded-md text-xs font-semibold`}>
+                    <div className="flex items-center gap-2 mb-2">
+                      {/* Metal level badge with gradient */}
+                      <span className={`px-3 py-1.5 bg-gradient-to-r ${metalColor.badgeGradient} text-white border-2 border-white/30 rounded-lg text-xs font-bold shadow-lg`}>
                         {plan.metalLevel}
                       </span>
-                      <span className="px-2 py-1 bg-white border border-gray-300 rounded-md text-xs font-medium text-gray-700">
+                      <span className="px-3 py-1.5 bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white rounded-lg text-xs font-semibold">
                         {plan.type}
                       </span>
                     </div>
-                    <h4 className="text-lg font-bold text-gray-900">{plan.name}</h4>
-                    <p className="text-sm text-gray-600">by {plan.issuer}</p>
+                    <h4 className="text-xl font-bold text-white mb-1 drop-shadow-md">{plan.name}</h4>
+
+                    {/* Issuer badge with rotating icon */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm text-sm rotate-2 group-hover:rotate-6 transition-transform duration-300">
+                        🏢
+                      </div>
+                      <p className="text-sm text-white/90 font-medium">{plan.issuer}</p>
+                    </div>
                   </div>
 
-                  {/* Quality Rating */}
+                  {/* Premium Quality Rating */}
                   {plan.qualityRating && (
-                    <div className="flex flex-col items-center bg-white rounded-lg px-3 py-2 border border-gray-300">
-                      <div className="flex items-center gap-1">
-                        <span className="text-yellow-500">⭐</span>
-                        <span className="text-lg font-bold text-gray-900">{plan.qualityRating}</span>
+                    <div className="flex flex-col items-center bg-white/95 backdrop-blur-sm rounded-xl px-4 py-3 border-2 border-white/50 shadow-lg">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xl bg-gradient-to-br from-yellow-400 to-amber-500 bg-clip-text text-transparent drop-shadow">⭐</span>
+                        <span className="text-xl font-bold bg-gradient-to-br from-amber-600 to-yellow-700 bg-clip-text text-transparent">
+                          {plan.qualityRating}
+                        </span>
                       </div>
-                      <span className="text-xs text-gray-600">Rating</span>
+                      <span className="text-xs text-gray-600 font-semibold mt-0.5">Quality</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Body */}
-              <div className="p-4 bg-white space-y-4">
-                {/* Premium */}
-                <div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-blue-600">
+              {/* Premium Card Body */}
+              <div className="p-6 bg-white space-y-5">
+                {/* Premium Pricing Display */}
+                <div className="relative">
+                  <div className="flex items-baseline gap-2 mb-2">
+                    <span className="text-4xl font-bold bg-gradient-to-br from-blue-600 to-indigo-700 bg-clip-text text-transparent">
                       ${hasSubsidy ? plan.premiumAfterCredit!.toFixed(2) : plan.premium.toFixed(2)}
                     </span>
-                    <span className="text-gray-600">/month</span>
+                    <span className="text-lg text-gray-600 font-medium">/month</span>
                   </div>
+
+                  {/* Premium Subsidy Savings Callout */}
                   {hasSubsidy && (
-                    <div className="mt-1">
-                      <span className="text-sm text-gray-500 line-through">${plan.premium.toFixed(2)}</span>
-                      <span className="ml-2 text-sm font-medium text-green-600">
-                        Save ${(plan.premium - plan.premiumAfterCredit!).toFixed(2)}/mo with tax credit
-                      </span>
+                    <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 p-4 mt-3">
+                      <div
+                        className="absolute inset-0 opacity-[0.03]"
+                        style={{
+                          backgroundImage: `radial-gradient(circle at 1px 1px, #10b981 1px, transparent 0)`,
+                          backgroundSize: '20px 20px'
+                        }}
+                      ></div>
+                      <div className="relative flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white text-xl shadow-lg rotate-3">
+                          💰
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm text-gray-700 mb-0.5">
+                            <span className="line-through">${plan.premium.toFixed(2)}/mo</span>
+                            <span className="mx-2">→</span>
+                            <span className="font-bold text-green-700">${plan.premiumAfterCredit!.toFixed(2)}/mo</span>
+                          </div>
+                          <div className="text-xs font-semibold text-green-800">
+                            Save ${subsidySavings.toFixed(2)}/month (${(subsidySavings * 12).toFixed(0)}/year) with tax credit
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {/* Key Details Grid */}
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-                  <div>
-                    <div className="text-sm text-gray-600">Annual Deductible</div>
-                    <div className="text-lg font-semibold text-gray-900">
+                {/* Premium Key Details Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-slate-50 border-2 border-gray-200 p-4">
+                    <div className="text-sm font-semibold text-gray-600 mb-1">Annual Deductible</div>
+                    <div className="text-xl font-bold text-gray-900">
                       ${plan.deductible.toLocaleString()}
                     </div>
                   </div>
-                  <div>
-                    <div className="text-sm text-gray-600">Out-of-Pocket Max</div>
-                    <div className="text-lg font-semibold text-gray-900">
+                  <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-gray-50 to-slate-50 border-2 border-gray-200 p-4">
+                    <div className="text-sm font-semibold text-gray-600 mb-1">Out-of-Pocket Max</div>
+                    <div className="text-xl font-bold text-gray-900">
                       ${plan.outOfPocketMax.toLocaleString()}
                     </div>
                   </div>
                 </div>
 
-                {/* Additional Info */}
-                <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
+                {/* Premium Feature Badges */}
+                <div className="flex flex-wrap gap-2 pt-2">
                   {plan.hasNationalNetwork && (
-                    <span className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
-                      🌎 National Network
+                    <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 text-blue-800 rounded-xl text-sm font-semibold shadow-sm">
+                      <span className="rotate-3">🌎</span>
+                      National Network
                     </span>
                   )}
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-gray-50 text-gray-700 rounded-full text-sm">
-                    📋 View Full Benefits
+                  <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 text-gray-700 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md transition-shadow">
+                    <span className="rotate-3">📋</span>
+                    Full Benefits
                   </span>
                 </div>
 
-                {/* Expanded Details */}
+                {/* Premium Expanded Details */}
                 {isSelected && (
-                  <div className="pt-4 border-t border-gray-200 space-y-3 animate-fadeIn">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                      <h5 className="text-sm font-semibold text-blue-900 mb-2">📋 Next Steps:</h5>
-                      <ul className="text-sm text-blue-800 space-y-1">
-                        <li>• Visit Healthcare.gov to see full plan details</li>
-                        <li>• Check if your doctors are in-network</li>
-                        <li>• Review prescription drug coverage</li>
-                        <li>• Compare total cost of care (not just premiums)</li>
-                      </ul>
+                  <div className="pt-5 border-t-2 border-gray-200 space-y-4 animate-fadeIn">
+                    {/* Next Steps Card */}
+                    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 border-2 border-blue-200 p-5">
+                      <div
+                        className="absolute inset-0 opacity-[0.03]"
+                        style={{
+                          backgroundImage: `radial-gradient(circle at 1px 1px, #3b82f6 1px, transparent 0)`,
+                          backgroundSize: '20px 20px'
+                        }}
+                      ></div>
+                      <div className="relative">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg shadow-md rotate-3">
+                            📋
+                          </div>
+                          <h5 className="text-base font-bold text-blue-900">Next Steps to Enroll</h5>
+                        </div>
+                        <ul className="space-y-2">
+                          <li className="flex items-start gap-2 text-sm text-blue-800">
+                            <span className="text-blue-500 font-bold mt-0.5">✓</span>
+                            <span>Visit Healthcare.gov to see full plan details and benefits</span>
+                          </li>
+                          <li className="flex items-start gap-2 text-sm text-blue-800">
+                            <span className="text-blue-500 font-bold mt-0.5">✓</span>
+                            <span>Check if your doctors and hospitals are in-network</span>
+                          </li>
+                          <li className="flex items-start gap-2 text-sm text-blue-800">
+                            <span className="text-blue-500 font-bold mt-0.5">✓</span>
+                            <span>Review prescription drug coverage and pharmacy network</span>
+                          </li>
+                          <li className="flex items-start gap-2 text-sm text-blue-800">
+                            <span className="text-blue-500 font-bold mt-0.5">✓</span>
+                            <span>Compare total cost of care including copays and deductibles</span>
+                          </li>
+                        </ul>
+                      </div>
                     </div>
 
+                    {/* Premium Enroll Button */}
                     <a
                       href={`https://www.healthcare.gov/`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors text-center"
+                      className="group/btn relative block w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 px-6 py-4 text-center font-bold text-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      Enroll on Healthcare.gov →
+                      <div className="relative flex items-center justify-center gap-2">
+                        <span className="text-lg">Enroll on Healthcare.gov</span>
+                        <span className="text-xl transition-transform duration-300 group-hover/btn:translate-x-1">→</span>
+                      </div>
                     </a>
                   </div>
                 )}
@@ -205,13 +336,26 @@ export default function MarketplacePlans({ plans }: MarketplacePlansProps) {
         })}
       </div>
 
-      {/* Footer Note */}
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <p className="text-sm text-gray-700">
-          <strong>Note:</strong> These are real marketplace plans available in your ZIP code.
-          Premiums shown reflect your household size and income. Click any plan to see enrollment
-          instructions. Final costs may vary based on tobacco use and exact birth dates.
-        </p>
+      {/* Premium Footer Note */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-slate-50 border-2 border-gray-200 p-6 shadow-md">
+        <div
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)`,
+            backgroundSize: '30px 30px'
+          }}
+        ></div>
+        <div className="relative flex items-start gap-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 text-2xl shadow-sm rotate-2">
+            ℹ️
+          </div>
+          <div className="flex-1">
+            <h4 className="text-sm font-bold text-gray-900 mb-1">Important Information</h4>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              These are real marketplace plans available in your ZIP code. Premiums shown reflect your household size and income. Click any plan to see enrollment instructions. Final costs may vary based on tobacco use and exact birth dates.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
