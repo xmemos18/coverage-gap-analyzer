@@ -323,34 +323,52 @@ function ResultsContent() {
       </div>
 
       <main className="container-max py-8 md:py-12">
-        {/* Page Header */}
-        <div className="text-center mb-8 md:mb-10 print:hidden">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+        {/* Premium Page Header */}
+        <div className="text-center mb-10 md:mb-12 print:hidden">
+          <div className="inline-flex items-center justify-center gap-3 mb-6">
+            <div className="flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-4xl md:text-5xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+              ⭐
+            </div>
+          </div>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-5">
             Your Personalized Insurance Recommendations
           </h1>
-          <p className="text-base md:text-lg text-gray-600">
+          <p className="text-lg md:text-xl text-gray-700 font-medium max-w-3xl mx-auto leading-relaxed">
             Based on your household situation and coverage needs
           </p>
 
           {simpleMode && (
-            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-semibold">
-              <span>🎯</span>
+            <div className="mt-6 inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-900 rounded-2xl text-base font-bold border-2 border-blue-200 shadow-md hover:shadow-lg transition-all duration-300">
+              <span className="text-2xl">🎯</span>
               <span>Simple Mode Results</span>
             </div>
           )}
         </div>
 
-        {/* Trust Signals Bar */}
-        <div className="bg-white rounded-2xl shadow-md p-6 mb-6 md:mb-8 print:hidden">
-          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-blue-600 text-xl">🔒</span>
-              <span className="text-gray-700 font-medium">HIPAA Compliant</span>
+        {/* Premium Trust Signals Bar */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-white via-blue-50 to-indigo-50 rounded-2xl shadow-2xl border-2 border-blue-200 p-8 mb-8 md:mb-10 print:hidden">
+          {/* Subtle background pattern */}
+          <div
+            className="absolute inset-0 opacity-[0.02]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, #3b82f6 1px, transparent 0)`,
+              backgroundSize: '30px 30px'
+            }}
+          ></div>
+
+          <div className="relative flex flex-wrap items-center justify-center gap-8 md:gap-12 text-base">
+            <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-xl shadow-md border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all duration-300">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xl shadow-sm rotate-3">
+                🔒
+              </div>
+              <span className="text-gray-900 font-bold">HIPAA Compliant</span>
             </div>
-            <div className="hidden md:block w-px h-6 bg-gray-300"></div>
-            <div className="flex items-center gap-2">
-              <span className="text-green-600 text-xl">✓</span>
-              <span className="text-gray-700 font-medium">CMS Data Verified</span>
+            <div className="hidden md:block w-1 h-10 bg-gradient-to-b from-blue-300 to-indigo-300 rounded-full"></div>
+            <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-xl shadow-md border-2 border-green-200 hover:border-green-400 hover:shadow-lg transition-all duration-300">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-white text-xl shadow-sm rotate-3">
+                ✓
+              </div>
+              <span className="text-gray-900 font-bold">CMS Data Verified</span>
             </div>
           </div>
         </div>
@@ -666,22 +684,47 @@ function ResultsContent() {
           <DisclaimerSection />
         </div>
 
-        {/* Methodology Transparency Section */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-2xl p-6 print:hidden">
-          <h4 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-            <span className="text-lg">📊</span>
-            <span>How We Calculate Recommendations</span>
-          </h4>
-          <p className="text-sm text-blue-800 leading-relaxed mb-3">
-            Our recommendations are based on your household size, location, income, health needs, and budget.
-            We analyze coverage options from marketplace plans, Medicare programs, and specialized insurance
-            using data from CMS, state insurance departments, and major carriers.
-          </p>
-          <p className="text-xs text-blue-700">
-            <strong>Note:</strong> These are estimates for educational purposes. Final costs depend on specific
-            plan selection, carrier underwriting, and enrollment timing. Always verify details with carriers
-            before enrolling.
-          </p>
+        {/* Premium Methodology Transparency Section */}
+        <div className="relative overflow-hidden mt-10 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 border-2 border-blue-200 rounded-2xl p-8 md:p-10 shadow-2xl print:hidden">
+          {/* Subtle background pattern */}
+          <div
+            className="absolute inset-0 opacity-[0.02]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 1px 1px, #3b82f6 1px, transparent 0)`,
+              backgroundSize: '30px 30px'
+            }}
+          ></div>
+
+          <div className="relative">
+            <div className="flex items-center gap-4 mb-5">
+              <div className="flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-2xl md:text-3xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+                📊
+              </div>
+              <h4 className="text-xl md:text-2xl font-bold text-blue-900">How We Calculate Recommendations</h4>
+            </div>
+
+            <div className="bg-white rounded-xl p-6 border-2 border-blue-200 shadow-md mb-5">
+              <p className="text-base md:text-lg text-gray-800 leading-relaxed font-medium">
+                Our recommendations are based on your household size, location, income, health needs, and budget.
+                We analyze coverage options from marketplace plans, Medicare programs, and specialized insurance
+                using data from CMS, state insurance departments, and major carriers.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-5 border-2 border-amber-200 shadow-md">
+              <p className="text-sm md:text-base text-gray-800 leading-relaxed">
+                <span className="inline-flex items-center gap-2 font-bold text-amber-900 mb-2">
+                  <span className="text-lg">⚠️</span>
+                  <span>Important Note:</span>
+                </span>
+                <span className="block mt-2 font-medium">
+                  These are estimates for educational purposes. Final costs depend on specific
+                  plan selection, carrier underwriting, and enrollment timing. Always verify details with carriers
+                  before enrolling.
+                </span>
+              </p>
+            </div>
+          </div>
         </div>
       </main>
     </div>
