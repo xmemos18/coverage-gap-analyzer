@@ -60,25 +60,28 @@ export default function StickyNavigation({ sections }: StickyNavigationProps) {
 
   return (
     <>
-      {/* Desktop: Sidebar Navigation */}
+      {/* Premium Desktop: Sidebar Navigation */}
       <nav className="hidden lg:block fixed left-4 top-24 z-40 print:hidden">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-4 max-w-[200px]">
-          <h3 className="text-xs font-bold text-gray-500 uppercase mb-3">Jump to</h3>
-          <ul className="space-y-1">
+        <div className="bg-white rounded-2xl shadow-2xl border-2 border-gray-200 p-5 max-w-[220px]">
+          <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <span className="text-blue-600">🗂️</span>
+            Jump to
+          </h3>
+          <ul className="space-y-2">
             {sections.map((section) => (
               <li key={section.id}>
                 <button
                   onClick={() => scrollToSection(section.id)}
                   className={`
-                    w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all
-                    flex items-center gap-2
+                    w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300
+                    flex items-center gap-3 border-2
                     ${activeSection === section.id
-                      ? 'bg-blue-600 text-white shadow-md'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg border-blue-600 scale-105'
+                      : 'text-gray-700 hover:bg-blue-50 border-transparent hover:border-blue-200 hover:shadow-md'
                     }
                   `}
                 >
-                  <span className="text-base">{section.icon}</span>
+                  <span className="text-lg">{section.icon}</span>
                   <span className="truncate">{section.label}</span>
                 </button>
               </li>
@@ -87,45 +90,48 @@ export default function StickyNavigation({ sections }: StickyNavigationProps) {
         </div>
       </nav>
 
-      {/* Mobile: Bottom Navigation */}
+      {/* Premium Mobile: Bottom Navigation */}
       <div className="lg:hidden fixed bottom-4 right-4 z-50 print:hidden">
-        {/* Expandable Menu */}
+        {/* Premium Expandable Menu */}
         {isExpanded && (
           <>
-            {/* Backdrop */}
+            {/* Premium Backdrop */}
             <div
-              className="fixed inset-0 bg-black/20 backdrop-blur-sm"
+              className="fixed inset-0 bg-black/30 backdrop-blur-sm animate-fadeIn"
               onClick={() => setIsExpanded(false)}
             />
 
-            {/* Menu */}
-            <div className="fixed bottom-20 right-4 bg-white rounded-2xl shadow-2xl border border-gray-200 p-3 w-64 max-h-[60vh] overflow-y-auto">
-              <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-200">
-                <h3 className="text-xs font-bold text-gray-500 uppercase">Jump to Section</h3>
+            {/* Premium Menu */}
+            <div className="fixed bottom-24 right-4 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl border-2 border-gray-200 p-4 w-72 max-h-[60vh] overflow-y-auto animate-fadeIn">
+              <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-gray-200">
+                <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                  <span className="text-blue-600">🗂️</span>
+                  Jump to Section
+                </h3>
                 <button
                   onClick={() => setIsExpanded(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-gray-500 hover:text-blue-600 p-1 rounded-lg hover:bg-blue-50 transition-all duration-300"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
-              <ul className="space-y-1">
+              <ul className="space-y-2">
                 {sections.map((section) => (
                   <li key={section.id}>
                     <button
                       onClick={() => scrollToSection(section.id)}
                       className={`
-                        w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all
-                        flex items-center gap-3
+                        w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300
+                        flex items-center gap-3 border-2
                         ${activeSection === section.id
-                          ? 'bg-blue-600 text-white shadow-md'
-                          : 'text-gray-700 hover:bg-gray-100'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg border-blue-600'
+                          : 'text-gray-700 hover:bg-blue-50 border-transparent hover:border-blue-200 hover:shadow-md'
                         }
                       `}
                     >
-                      <span className="text-lg">{section.icon}</span>
+                      <span className="text-xl">{section.icon}</span>
                       <span>{section.label}</span>
                     </button>
                   </li>
@@ -135,19 +141,19 @@ export default function StickyNavigation({ sections }: StickyNavigationProps) {
           </>
         )}
 
-        {/* Toggle Button */}
+        {/* Premium Toggle Button */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="bg-blue-600 text-white rounded-full p-4 shadow-2xl hover:bg-blue-700 transition-all hover:scale-110"
+          className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 hover:scale-110 border-2 border-white"
           aria-label="Navigation menu"
         >
           {isExpanded ? (
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
           ) : (
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           )}
         </button>
