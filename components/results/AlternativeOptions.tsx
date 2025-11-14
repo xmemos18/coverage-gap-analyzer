@@ -43,25 +43,40 @@ function AlternativeOptions({ options }: AlternativeOptionsProps) {
   if (options.length === 0) return null;
 
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8">
-      <div className="mb-6">
-        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <span className="text-3xl">🔍</span>
-          Other Options to Consider
-        </h3>
-        <p className="text-gray-600">Alternative plans that might work for your situation</p>
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 shadow-2xl p-6 md:p-8 mb-12 md:mb-16">
+      {/* Subtle background pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.02]"
+        style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)`,
+          backgroundSize: '30px 30px'
+        }}
+      ></div>
+
+      <div className="relative mb-8">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+            🔍
+          </div>
+          <div>
+            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
+              Other Options to Consider
+            </h3>
+            <p className="text-gray-600 font-medium">Alternative plans that might work for your situation</p>
+          </div>
+        </div>
       </div>
 
-      {/* Mobile: Horizontal Scroll Carousel */}
+      {/* Premium Mobile: Horizontal Scroll Carousel */}
       <div className="md:hidden relative">
         {showLeftScroll && (
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full shadow-lg p-2"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-full shadow-xl p-3 hover:scale-110 transition-transform duration-300"
             aria-label="Scroll left"
           >
-            <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
         )}
@@ -89,11 +104,11 @@ function AlternativeOptions({ options }: AlternativeOptionsProps) {
         {showRightScroll && (
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white rounded-full shadow-lg p-2"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-full shadow-xl p-3 hover:scale-110 transition-transform duration-300"
             aria-label="Scroll right"
           >
-            <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
             </svg>
           </button>
         )}
@@ -123,77 +138,98 @@ interface OptionCardProps {
 
 function OptionCard({ option, isExpanded, onToggle }: OptionCardProps) {
   return (
-    <div className="bg-gradient-to-br from-gray-50 to-white rounded-lg border-2 border-gray-200 hover:border-blue-600 transition-all h-full flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="p-6 pb-4">
-        <h4 className="text-xl font-bold text-gray-900 mb-3">
+    <div className="group relative bg-gradient-to-br from-white via-gray-50 to-white rounded-2xl border-2 border-gray-200 hover:border-blue-500 hover:shadow-2xl transition-all duration-300 h-full flex flex-col overflow-hidden hover:-translate-y-1">
+      {/* Subtle background pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.03] transition-opacity"
+        style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)`,
+          backgroundSize: '20px 20px'
+        }}
+      ></div>
+
+      {/* Premium Header */}
+      <div className="relative p-6 pb-4 border-b-2 border-gray-100">
+        <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">
           <InsuranceText text={option.name} position="bottom" />
         </h4>
         <div className="flex items-baseline gap-2 mb-1">
-          <div className="text-3xl font-bold text-blue-600">
+          <div className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-blue-600 to-indigo-700 bg-clip-text text-transparent">
             {formatCost(option.monthlyCost.low, option.monthlyCost.high)}
           </div>
-          <div className="text-sm text-gray-600">/month</div>
+          <div className="text-sm font-medium text-gray-600">/month</div>
         </div>
       </div>
 
-      {/* Pros (Always Visible) */}
-      <div className="px-6 pb-4 flex-1">
-        <h5 className="font-semibold text-green-600 mb-2 flex items-center gap-2 text-sm">
-          <span>✓</span> Key Benefits
-        </h5>
-        <ul className="space-y-1">
+      {/* Premium Pros (Always Visible) */}
+      <div className="relative px-6 pt-4 pb-4 flex-1">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white text-sm shadow-md rotate-3">
+            ✓
+          </div>
+          <h5 className="font-bold text-green-900 text-base">Key Benefits</h5>
+        </div>
+        <ul className="space-y-2">
           {option.pros.slice(0, 3).map((pro, i) => (
-            <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-              <span className="text-green-600 flex-shrink-0 mt-1">•</span>
-              <span><InsuranceText text={pro} position="bottom" /></span>
+            <li key={i} className="text-sm text-gray-800 flex items-start gap-2.5">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-600 text-xs font-bold flex-shrink-0 mt-0.5">
+                {i + 1}
+              </span>
+              <span className="flex-1 leading-relaxed"><InsuranceText text={pro} position="bottom" /></span>
             </li>
           ))}
           {option.pros.length > 3 && !isExpanded && (
-            <li className="text-sm text-gray-500 italic">
-              +{option.pros.length - 3} more...
+            <li className="text-sm text-blue-600 font-semibold italic pl-7">
+              +{option.pros.length - 3} more benefit{option.pros.length - 3 !== 1 ? 's' : ''}...
             </li>
           )}
           {isExpanded && option.pros.slice(3).map((pro, i) => (
-            <li key={i + 3} className="text-sm text-gray-700 flex items-start gap-2">
-              <span className="text-green-600 flex-shrink-0 mt-1">•</span>
-              <span><InsuranceText text={pro} position="bottom" /></span>
+            <li key={i + 3} className="text-sm text-gray-800 flex items-start gap-2.5 animate-fadeIn">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-600 text-xs font-bold flex-shrink-0 mt-0.5">
+                {i + 4}
+              </span>
+              <span className="flex-1 leading-relaxed"><InsuranceText text={pro} position="bottom" /></span>
             </li>
           ))}
         </ul>
       </div>
 
-      {/* Cons (Expandable) */}
+      {/* Premium Cons (Expandable) */}
       {isExpanded && (
-        <div className="px-6 pb-4 animate-fadeIn">
-          <h5 className="font-semibold text-gray-700 mb-2 flex items-center gap-2 text-sm">
-            <span>−</span> Considerations
-          </h5>
-          <ul className="space-y-1">
+        <div className="relative px-6 pb-4 animate-fadeIn">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 text-white text-lg shadow-md rotate-3">
+              ⚠
+            </div>
+            <h5 className="font-bold text-orange-900 text-base">Considerations</h5>
+          </div>
+          <ul className="space-y-2">
             {option.cons.map((con, i) => (
-              <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
-                <span className="text-gray-400 flex-shrink-0 mt-1">•</span>
-                <span><InsuranceText text={con} position="bottom" /></span>
+              <li key={i} className="text-sm text-gray-700 flex items-start gap-2.5">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 text-orange-600 text-xs font-bold flex-shrink-0 mt-0.5">
+                  {i + 1}
+                </span>
+                <span className="flex-1 leading-relaxed"><InsuranceText text={con} position="bottom" /></span>
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* View More/Less Button */}
-      <div className="p-4 pt-0 mt-auto">
+      {/* Premium Toggle Button */}
+      <div className="relative p-4 pt-0 mt-auto">
         <button
           onClick={onToggle}
-          className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="group/btn w-full py-3 px-4 bg-gradient-to-r from-gray-100 to-slate-100 hover:from-blue-600 hover:to-indigo-700 text-gray-700 hover:text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 border-2 border-gray-200 hover:border-blue-600 shadow-sm hover:shadow-md"
         >
           <span>{isExpanded ? 'Show Less' : 'View Details'}</span>
           <svg
-            className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+            className={`w-5 h-5 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
       </div>
