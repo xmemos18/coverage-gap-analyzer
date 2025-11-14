@@ -7,88 +7,135 @@ interface MedicareAdvantageDetailsProps {
 export default function MedicareAdvantageDetails({ analysis }: MedicareAdvantageDetailsProps) {
   return (
     <div className="space-y-6">
-      {/* Pros and Cons */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <h5 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
-            <span aria-label="Checkmark">✅</span> Benefits
-          </h5>
-          <ul className="space-y-2 text-sm text-gray-700">
+      {/* Premium Pros and Cons Grid */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-5 shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-md rotate-3">
+              ✅
+            </div>
+            <h5 className="font-bold text-green-900 text-lg">Benefits</h5>
+          </div>
+          <ul className="space-y-2.5">
             {analysis.analysis.pros.map((pro: string, idx: number) => (
-              <li key={idx} className="flex gap-2">
-                <span className="text-green-600 flex-shrink-0" aria-hidden="true">•</span>
-                <span>{pro}</span>
+              <li key={idx} className="flex gap-2.5 text-sm text-gray-800">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-white text-xs font-bold flex-shrink-0 mt-0.5">
+                  {idx + 1}
+                </span>
+                <span className="leading-relaxed">{pro}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-          <h5 className="font-semibold text-orange-900 mb-3 flex items-center gap-2">
-            <span aria-label="Warning">⚠️</span> Drawbacks
-          </h5>
-          <ul className="space-y-2 text-sm text-gray-700">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 p-5 shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-md rotate-3">
+              ⚠️
+            </div>
+            <h5 className="font-bold text-orange-900 text-lg">Drawbacks</h5>
+          </div>
+          <ul className="space-y-2.5">
             {analysis.analysis.cons.map((con: string, idx: number) => (
-              <li key={idx} className="flex gap-2">
-                <span className="text-orange-600 flex-shrink-0" aria-hidden="true">•</span>
-                <span>{con}</span>
+              <li key={idx} className="flex gap-2.5 text-sm text-gray-800">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-600 text-white text-xs font-bold flex-shrink-0 mt-0.5">
+                  {idx + 1}
+                </span>
+                <span className="leading-relaxed">{con}</span>
               </li>
             ))}
           </ul>
         </div>
       </div>
 
-      {/* Red Flags */}
+      {/* Premium Red Flags */}
       {analysis.analysis.redFlags.length > 0 && (
-        <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
-          <h5 className="font-semibold text-red-900 mb-3 flex items-center gap-2">
-            <span aria-label="Alert">🚨</span> Important Considerations
-          </h5>
-          <ul className="space-y-2 text-sm text-gray-800">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-300 p-5 shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-md rotate-3">
+              🚨
+            </div>
+            <h5 className="font-bold text-red-900 text-lg">Important Considerations</h5>
+          </div>
+          <ul className="space-y-2.5">
             {analysis.analysis.redFlags.map((flag: string, idx: number) => (
-              <li key={idx} className="flex gap-2">
-                <span className="text-red-600 flex-shrink-0" aria-hidden="true">•</span>
-                <span className="font-medium">{flag}</span>
+              <li key={idx} className="flex gap-2.5 text-sm text-gray-900">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white text-xs font-bold flex-shrink-0 mt-0.5">
+                  !
+                </span>
+                <span className="font-semibold leading-relaxed">{flag}</span>
               </li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* Comparison */}
-      <div className="bg-white rounded-lg p-6 border border-blue-200">
-        <h5 className="font-semibold text-lg text-gray-900 mb-4">Quick Comparison</h5>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <h6 className="font-semibold text-blue-900 mb-2">Original Medicare + Medigap</h6>
-            <ul className="space-y-1 text-sm text-gray-700">
+      {/* Premium Comparison Card */}
+      <div className="relative overflow-hidden rounded-xl bg-white border-2 border-blue-200 p-6 shadow-lg">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 text-2xl shadow-sm rotate-2">
+            ⚖️
+          </div>
+          <h5 className="font-bold text-xl text-gray-900">Quick Comparison</h5>
+        </div>
+        <div className="grid md:grid-cols-2 gap-6 mb-5">
+          <div className="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-4">
+            <h6 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+              <span className="text-lg">🏥</span>
+              Original Medicare + Medigap
+            </h6>
+            <ul className="space-y-2">
               {analysis.comparison.medigapAdvantages.map((adv: string, idx: number) => (
-                <li key={idx}>• {adv}</li>
+                <li key={idx} className="flex gap-2 text-sm text-gray-800">
+                  <span className="text-blue-600 font-bold">✓</span>
+                  <span>{adv}</span>
+                </li>
               ))}
             </ul>
           </div>
-          <div>
-            <h6 className="font-semibold text-indigo-900 mb-2">Medicare Advantage</h6>
-            <ul className="space-y-1 text-sm text-gray-700">
+          <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 p-4">
+            <h6 className="font-bold text-indigo-900 mb-3 flex items-center gap-2">
+              <span className="text-lg">💊</span>
+              Medicare Advantage
+            </h6>
+            <ul className="space-y-2">
               {analysis.comparison.medicareAdvantageAdvantages.map((adv: string, idx: number) => (
-                <li key={idx}>• {adv}</li>
+                <li key={idx} className="flex gap-2 text-sm text-gray-800">
+                  <span className="text-indigo-600 font-bold">✓</span>
+                  <span>{adv}</span>
+                </li>
               ))}
             </ul>
           </div>
         </div>
-        <p className="mt-4 text-gray-800 bg-blue-50 p-3 rounded border border-blue-200">
-          <strong>Recommendation:</strong> {analysis.comparison.recommendation}
-        </p>
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 border-2 border-blue-200 p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-lg shadow-md rotate-3 flex-shrink-0">
+              💡
+            </div>
+            <p className="text-sm text-gray-900 font-medium leading-relaxed">
+              <strong className="text-blue-900">Recommendation:</strong> {analysis.comparison.recommendation}
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Shopping Tips */}
-      <div className="bg-white rounded-lg p-6 border border-blue-200">
-        <h5 className="font-semibold text-lg text-gray-900 mb-4">
-          <span aria-label="Light bulb">💡</span> Shopping Tips
-        </h5>
-        <ul className="space-y-2 text-sm text-gray-700">
+      {/* Premium Shopping Tips */}
+      <div className="relative overflow-hidden rounded-xl bg-white border-2 border-gray-200 p-6 shadow-lg">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-100 to-amber-100 text-2xl shadow-sm rotate-2">
+            💡
+          </div>
+          <h5 className="font-bold text-xl text-gray-900">Shopping Tips</h5>
+        </div>
+        <ul className="space-y-3">
           {analysis.shoppingTips.map((tip: string, idx: number) => (
-            <li key={idx}>{tip}</li>
+            <li key={idx} className="flex gap-3 text-sm text-gray-800">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-yellow-500 to-amber-600 text-white text-xs font-bold flex-shrink-0 mt-0.5">
+                {idx + 1}
+              </span>
+              <span className="leading-relaxed">{tip}</span>
+            </li>
           ))}
         </ul>
       </div>
