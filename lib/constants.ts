@@ -97,6 +97,16 @@ export const COVERAGE_SCORES = {
 } as const;
 
 // ============================================================================
+// API CONFIGURATION
+// ============================================================================
+
+export const API_CONFIG = {
+  HEALTHCARE_GOV_TIMEOUT_MS: 10000, // 10 second timeout
+  HEALTHCARE_GOV_MAX_RETRIES: 2, // Retry failed requests up to 2 times
+  HEALTHCARE_GOV_RETRY_DELAY_MS: 1000, // Wait 1 second between retries
+} as const;
+
+// ============================================================================
 // BUDGET RANGES
 // ============================================================================
 
@@ -153,6 +163,19 @@ export const STEP_NAMES = [
   'Current Insurance',
   'Budget',
 ] as const;
+
+/**
+ * Safely get step name with bounds checking
+ * @param step - Step number (1-indexed)
+ * @returns Step name or 'Unknown Step' if out of bounds
+ */
+export function getStepName(step: number): string {
+  const index = step - 1;
+  if (index >= 0 && index < STEP_NAMES.length) {
+    return STEP_NAMES[index];
+  }
+  return 'Unknown Step';
+}
 
 // ============================================================================
 // STORAGE KEYS

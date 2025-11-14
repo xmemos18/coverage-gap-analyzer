@@ -102,7 +102,11 @@ export const env = {
  * This runs once when the module is imported
  */
 export function validateEnv(): void {
-  const requiredVars: string[] = [];
+  const requiredVars: string[] = [
+    'NODE_ENV',
+    // Add more required variables as needed:
+    // 'HEALTHCARE_GOV_API_KEY', // Uncomment when API key is required for production
+  ];
 
   const missing = requiredVars.filter(key => !process.env[key]);
 

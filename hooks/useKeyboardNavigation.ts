@@ -15,11 +15,12 @@ export function useKeyboardNavigation(
   const { enabled = true, onEnter, onEscape } = options;
 
   useEffect(() => {
-    if (!enabled || !containerRef.current) return;
+    // Capture container ref early and check for null
+    const container = containerRef.current;
+    if (!enabled || !container) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const container = containerRef.current;
-      if (!container) return;
+      // Container is guaranteed non-null at this point due to early return above
 
       // Get all focusable elements within the container
       const focusableElements = container.querySelectorAll<HTMLElement>(
@@ -76,7 +77,7 @@ export function useKeyboardNavigation(
       }
     };
 
-    const container = containerRef.current;
+    // Container was captured and validated at the top of useEffect
     container.addEventListener('keydown', handleKeyDown);
 
     return () => {

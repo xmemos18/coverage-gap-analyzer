@@ -11,12 +11,13 @@
  */
 
 import { logger } from './logger';
+import { API_CONFIG } from './constants';
 
 const API_BASE_URL = 'https://marketplace.api.healthcare.gov/api/v1';
 const API_KEY = process.env.NEXT_PUBLIC_HEALTHCARE_GOV_API_KEY;
-const API_TIMEOUT_MS = 10000; // 10 second timeout
-const MAX_RETRIES = 2; // Retry failed requests up to 2 times
-const RETRY_DELAY_MS = 1000; // Wait 1 second between retries
+const API_TIMEOUT_MS = API_CONFIG.HEALTHCARE_GOV_TIMEOUT_MS;
+const MAX_RETRIES = API_CONFIG.HEALTHCARE_GOV_MAX_RETRIES;
+const RETRY_DELAY_MS = API_CONFIG.HEALTHCARE_GOV_RETRY_DELAY_MS;
 
 // Simple in-memory cache for county lookups (expires after 1 hour)
 const countyCache = new Map<string, { data: County[]; timestamp: number }>();

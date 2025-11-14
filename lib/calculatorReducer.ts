@@ -94,20 +94,21 @@ export function calculatorReducer(state: CalculatorState, action: CalculatorActi
       };
 
     case 'NEXT_STEP': {
-      let nextStep = state.formData.currentStep + 1;
+      const maxStep = 5; // Total steps in the calculator
 
-      // Skip steps 3 and 4 (Health Profile and Current Insurance) in simple mode
-      if (state.formData.simpleMode) {
-        // From step 2 (Household), jump to step 5 (Budget)
-        if (state.formData.currentStep === 2) {
-          nextStep = 5; // Jump directly to Budget
-        }
+      // Check bounds first - don't allow incrementing past max
+      if (state.formData.currentStep >= maxStep) {
+        return state; // Already at max, no change
       }
 
-      // Bounds checking - ensure we don't exceed maximum step
-      const maxStep = 5; // Total steps in the calculator
-      if (nextStep > maxStep) {
-        nextStep = maxStep;
+      let nextStep: number;
+
+      // Skip steps 3 and 4 (Health Profile and Current Insurance) in simple mode
+      if (state.formData.simpleMode && state.formData.currentStep === 2) {
+        // From step 2 (Household), jump to step 5 (Budget)
+        nextStep = 5;
+      } else {
+        nextStep = state.formData.currentStep + 1;
       }
 
       return {

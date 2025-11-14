@@ -13,10 +13,40 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 // ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
+
+interface ActionHandlers {
+  onShare: () => void;
+  onExport: () => void;
+  onPrint: () => void;
+}
+
+interface HeroData {
+  score: number;
+  name: string;
+  household: string;
+  costLow: number;
+  costHigh: number;
+  reasoning: string;
+}
+
+interface CostData {
+  monthly: string;
+  annual: string;
+  savings?: number;
+}
+
+interface TabsProps {
+  activeTab: string;
+  onTabChange: (tabId: string) => void;
+}
+
+// ============================================================================
 // MOBILE HEADER COMPONENT
 // ============================================================================
 
-function MobileHeader({ onShare, onExport, onPrint }: any) {
+function MobileHeader({ onShare, onExport, onPrint }: ActionHandlers) {
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -144,7 +174,7 @@ function MobileHeader({ onShare, onExport, onPrint }: any) {
 // MOBILE HERO CARD (COLLAPSIBLE)
 // ============================================================================
 
-function MobileHeroCard({ data }: any) {
+function MobileHeroCard({ data }: { data: HeroData }) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const getScoreColor = (score: number) => {
@@ -261,7 +291,7 @@ function MobileHeroCard({ data }: any) {
 // MOBILE TAB NAVIGATION
 // ============================================================================
 
-function MobileTabs({ activeTab, onTabChange }: any) {
+function MobileTabs({ activeTab, onTabChange }: TabsProps) {
   const tabs = [
     { id: 'summary', icon: '📋', label: 'Summary' },
     { id: 'costs', icon: '💰', label: 'Costs' },
@@ -312,7 +342,7 @@ function MobileTabs({ activeTab, onTabChange }: any) {
 // MOBILE COST CARDS
 // ============================================================================
 
-function MobileCostCards({ data }: any) {
+function MobileCostCards({ data }: { data: CostData }) {
   return (
     <div className="space-y-4 mb-6">
       {/* Monthly Premium */}
@@ -345,7 +375,7 @@ function MobileCostCards({ data }: any) {
 // MOBILE BOTTOM ACTION BAR
 // ============================================================================
 
-function MobileBottomBar({ onShare, onExport, onPrint }: any) {
+function MobileBottomBar({ onShare, onExport, onPrint }: ActionHandlers) {
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-2xl px-4 py-3 safe-area-bottom z-40">
       <div className="flex gap-2">

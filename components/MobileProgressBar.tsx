@@ -1,6 +1,6 @@
 'use client';
 
-import { CALCULATOR_STEPS, STEP_NAMES } from '@/lib/constants';
+import { CALCULATOR_STEPS, getStepName } from '@/lib/constants';
 
 interface MobileProgressBarProps {
   currentStep: number;
@@ -12,7 +12,7 @@ interface MobileProgressBarProps {
  */
 export default function MobileProgressBar({ currentStep }: MobileProgressBarProps) {
   const progress = (currentStep / CALCULATOR_STEPS.TOTAL_STEPS) * 100;
-  const stepName = STEP_NAMES[currentStep - 1];
+  const stepName = getStepName(currentStep);
 
   return (
     <div className="bg-white border-b border-gray-200 sticky top-0 z-30 md:hidden">

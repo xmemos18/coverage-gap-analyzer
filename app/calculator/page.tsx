@@ -16,7 +16,7 @@ import { calculatorReducer, createInitialState } from '@/lib/calculatorReducer';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardNavigation';
 import { useFocusOnError, useStepFocus, useLiveRegionAnnouncement, useFocusVisible } from '@/hooks/useFocusManagement';
 import { useDebouncedCallback } from '@/hooks/useDebounce';
-import { VALIDATION, THRESHOLDS, STORAGE_KEYS, STEP_NAMES, CALCULATOR_STEPS } from '@/lib/constants';
+import { VALIDATION, THRESHOLDS, STORAGE_KEYS, CALCULATOR_STEPS, getStepName } from '@/lib/constants';
 import SimpleModeToggle from '@/components/SimpleModeToggle';
 import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp';
 import { trackEvent, trackStepCompleted } from '@/lib/analytics';
@@ -90,7 +90,7 @@ export default function Calculator() {
 
   // Announce step changes to screen readers
   useEffect(() => {
-    announce(`Step ${formData.currentStep} of ${CALCULATOR_STEPS.TOTAL_STEPS}: ${STEP_NAMES[formData.currentStep - 1]}`);
+    announce(`Step ${formData.currentStep} of ${CALCULATOR_STEPS.TOTAL_STEPS}: ${getStepName(formData.currentStep)}`);
   }, [formData.currentStep, announce]);
 
   // Keyboard shortcuts for navigation
@@ -167,7 +167,7 @@ export default function Calculator() {
 
   // Trigger save whenever form changes
   useEffect(() => {
-    saveToLocalStorage();
+    void saveToLocalStorage();
   }, [formData, saveToLocalStorage]);
 
   const resumeSavedData = async () => {
@@ -182,7 +182,7 @@ export default function Calculator() {
       // Track resume action
       trackEvent('resume_data_used', {
         step: formDataWithoutTimestamp.currentStep,
-        step_name: STEP_NAMES[formDataWithoutTimestamp.currentStep - 1],
+        step_name: getStepName(formDataWithoutTimestamp.currentStep),
       });
     } else {
       // Failed to load or validate data
@@ -295,9 +295,15 @@ export default function Calculator() {
   };
 
   const validateStep3 = (): boolean => {
-    // Health profile is optional, no validation required
-    // User can skip all questions in this step
-    return true;
+    const newErrors: FormErrors = {};
+
+    // If user selected "Yes" to chronic conditions, they must select at least one
+    if (formData.hasChronicConditions && formData.chronicConditions.length === 0) {
+      newErrors.chronicConditions = 'Please select at least one condition or choose "No"';
+    }
+
+    dispatch({ type: 'SET_ERRORS', errors: newErrors });
+    return Object.keys(newErrors).length === 0;
   };
 
   const validateStep4 = (): boolean => {
@@ -360,7 +366,7 @@ export default function Calculator() {
 
     if (isValid) {
       // Track step completion before advancing
-      trackStepCompleted(formData.currentStep, STEP_NAMES[formData.currentStep - 1]);
+      trackStepCompleted(formData.currentStep, getStepName(formData.currentStep));
       dispatch({ type: 'NEXT_STEP' });
     }
   };
@@ -536,7 +542,7 @@ export default function Calculator() {
                         ? 'bg-green-600 text-white'
                         : 'bg-gray-300 text-gray-600'
                     }`}
-                    aria-label={`Step ${step}: ${STEP_NAMES[step - 1]}${isCompleted ? ' - Completed' : isCurrent ? ' - Current' : ' - Pending'}`}
+                    aria-label={`Step ${step}: ${getStepName(step)}${isCompleted ? ' - Completed' : isCurrent ? ' - Current' : ' - Pending'}`}
                   >
                     {isCompleted ? <span aria-hidden="true">✓</span> : <span aria-hidden="true">{step}</span>}
                     <span className="sr-only">{isCompleted ? 'Completed' : isCurrent ? 'Current step' : `Step ${step}`}</span>
@@ -544,7 +550,7 @@ export default function Calculator() {
                   <div className={`text-xs font-semibold mt-2 ${
                     isCurrent ? 'text-blue-600 font-bold' : 'text-gray-600'
                   }`}>
-                    {STEP_NAMES[step - 1]}
+                    {getStepName(step)}
                   </div>
                 </div>
                 {step < CALCULATOR_STEPS.TOTAL_STEPS && (
@@ -560,7 +566,7 @@ export default function Calculator() {
             })}
           </div>
           <p className="text-center text-gray-600 font-medium">
-            Step {formData.currentStep} of {CALCULATOR_STEPS.TOTAL_STEPS}: {STEP_NAMES[formData.currentStep - 1]}
+            Step {formData.currentStep} of {CALCULATOR_STEPS.TOTAL_STEPS}: {getStepName(formData.currentStep)}
           </p>
 
           {/* Clear Button */}
@@ -622,6 +628,8 @@ export default function Calculator() {
             ref={stepContainerRef}
             className="bg-white rounded-xl shadow-xl p-8"
             tabIndex={-1}
+            role="region"
+            aria-label={`Step ${formData.currentStep} of ${CALCULATOR_STEPS.TOTAL_STEPS}: ${getStepName(formData.currentStep)}`}
           >
             {formData.currentStep === CALCULATOR_STEPS.RESIDENCES && (
               <Step1Residences
