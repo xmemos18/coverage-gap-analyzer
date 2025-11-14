@@ -42,11 +42,30 @@ export default function EnhancedWhyRecommendation({
   // Get alternative plans for comparison
   const topAlternative = recommendation.alternativeOptions?.[0];
 
-  // Prepare action items for display
+  // Prepare action items for display with priority detection
   const actionItems: ActionItem[] = recommendation.actionItems.map((item, i) => ({
     id: `action-${i}`,
     text: item,
   }));
+
+  // Categorize action items by keywords
+  const categorizeAction = (text: string): { category: string; icon: string; priority: 'high' | 'medium' | 'low' } => {
+    const lowerText = text.toLowerCase();
+
+    if (lowerText.includes('enroll') || lowerText.includes('sign up') || lowerText.includes('apply')) {
+      return { category: 'Enrollment', icon: '📝', priority: 'high' };
+    } else if (lowerText.includes('shop') || lowerText.includes('compare') || lowerText.includes('research')) {
+      return { category: 'Research', icon: '🔍', priority: 'high' };
+    } else if (lowerText.includes('consider') || lowerText.includes('look into') || lowerText.includes('explore')) {
+      return { category: 'Consider', icon: '💡', priority: 'medium' };
+    } else if (lowerText.includes('review') || lowerText.includes('check') || lowerText.includes('verify')) {
+      return { category: 'Review', icon: '✓', priority: 'medium' };
+    } else if (lowerText.includes('deadline') || lowerText.includes('before') || lowerText.includes('by')) {
+      return { category: 'Deadline', icon: '⏰', priority: 'high' };
+    } else {
+      return { category: 'Action', icon: '→', priority: 'medium' };
+    }
+  };
 
   return (
     <section className="mt-6 md:mt-8">
@@ -139,44 +158,187 @@ export default function EnhancedWhyRecommendation({
 
       {/* Main Content Area (White Background) */}
       <div className="rounded-b-3xl bg-white px-6 py-8 md:px-12 md:py-12 shadow-lg">
-        {/* Full Explanation Section */}
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-1 w-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full"></div>
-            <h3 className="text-2xl font-bold text-gray-900">Why We Chose This</h3>
+        {/* Full Explanation Section - Featured Quote Card */}
+        <div className="mb-12 animate-fadeIn">
+          {/* Section Header */}
+          <div className="flex items-center gap-3 mb-8">
+            <div className="h-1 w-16 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-full"></div>
+            <h3 className="text-3xl font-bold text-gray-900">Why We Chose This</h3>
           </div>
-          <div className="prose prose-lg max-w-none">
-            <p className="text-lg leading-relaxed text-gray-700">
-              {recommendation.reasoning}
-            </p>
+
+          {/* Featured Quote Card */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 md:p-12 shadow-xl border-2 border-blue-100">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{
+              backgroundImage: `radial-gradient(circle at 2px 2px, rgb(59, 130, 246) 1px, transparent 0)`,
+              backgroundSize: '32px 32px'
+            }}></div>
+
+            {/* Decorative Quote Mark - Top Left */}
+            <div className="absolute -top-4 -left-4 text-8xl md:text-9xl font-serif text-blue-200 opacity-30 leading-none select-none">
+              &ldquo;
+            </div>
+
+            {/* Premium Badge - Top Right */}
+            <div className="absolute top-6 right-6 md:top-8 md:right-8">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+                <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Quote Content */}
+            <div className="relative z-10 pt-8">
+              <div className="prose prose-lg md:prose-xl max-w-none">
+                <p className="text-lg md:text-xl leading-relaxed text-gray-800 font-medium">
+                  {recommendation.reasoning.split('.').map((sentence, idx) => {
+                    if (!sentence.trim()) return null;
+                    // Highlight key phrases
+                    const isFirstSentence = idx === 0;
+                    return (
+                      <span key={idx} className={isFirstSentence ? 'text-gray-900 font-semibold' : ''}>
+                        {sentence.trim()}.{' '}
+                      </span>
+                    );
+                  })}
+                </p>
+              </div>
+
+              {/* Key Highlight Callout */}
+              <div className="mt-8 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-blue-200 p-6 shadow-md">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-md">
+                    <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-900 text-lg mb-1">Perfect Match</p>
+                    <p className="text-gray-700">
+                      This plan scored <span className="font-bold text-blue-600">{scoreBreakdown.totalScore}/100</span> based on your unique situation and preferences.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Decorative Quote Mark - Bottom Right */}
+            <div className="absolute -bottom-4 -right-4 text-8xl md:text-9xl font-serif text-blue-200 opacity-30 leading-none select-none rotate-180">
+              &rdquo;
+            </div>
           </div>
         </div>
 
-        {/* Action Items - Key Features */}
+        {/* Action Items - Interactive Checklist */}
         {actionItems.length > 0 && (
           <div className="mb-12">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-1 w-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full"></div>
-              <h3 className="text-2xl font-bold text-gray-900">What You Need to Know</h3>
+            {/* Section Header */}
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="h-1 w-16 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 rounded-full"></div>
+                <h3 className="text-3xl font-bold text-gray-900">What You Need to Know</h3>
+              </div>
+              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-green-50 border-2 border-green-200 rounded-full">
+                <span className="text-sm font-bold text-green-700">{actionItems.length} Action Items</span>
+              </div>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              {actionItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-start gap-4 rounded-xl border-2 border-gray-100 bg-gradient-to-br from-white to-gray-50 p-5 transition-all duration-200 hover:border-green-200 hover:shadow-md"
-                >
-                  <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-green-400 to-green-600 shadow-sm">
-                    <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
+
+            {/* Interactive Checklist Grid */}
+            <div className="grid gap-5 md:grid-cols-2">
+              {actionItems.map((item, index) => {
+                const meta = categorizeAction(item.text);
+                const priorityColors = {
+                  high: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-300', checkBg: 'from-red-400 to-red-600' },
+                  medium: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-300', checkBg: 'from-blue-400 to-blue-600' },
+                  low: { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-300', checkBg: 'from-gray-400 to-gray-600' },
+                };
+                const colors = priorityColors[meta.priority];
+
+                return (
+                  <div
+                    key={item.id}
+                    className="group relative overflow-hidden rounded-2xl border-2 border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-green-300 hover:shadow-xl animate-fadeIn"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    {/* Background Pattern on Hover */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-[0.02] transition-opacity duration-300" style={{
+                      backgroundImage: `radial-gradient(circle at 2px 2px, rgb(34, 197, 94) 1px, transparent 0)`,
+                      backgroundSize: '24px 24px'
+                    }}></div>
+
+                    {/* Priority Badge */}
+                    <div className="absolute top-4 right-4">
+                      <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${colors.bg} ${colors.text} border ${colors.border}`}>
+                        {meta.priority}
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="relative flex items-start gap-4">
+                      {/* Interactive Checkbox */}
+                      <div className="flex-shrink-0 mt-1">
+                        <div className="relative h-7 w-7 cursor-pointer">
+                          {/* Unchecked State */}
+                          <div className="absolute inset-0 rounded-lg border-3 border-gray-300 bg-white group-hover:border-green-500 transition-colors duration-200"></div>
+
+                          {/* Checked State (shows on hover) */}
+                          <div className={`absolute inset-0 rounded-lg bg-gradient-to-br ${colors.checkBg} flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200`}>
+                            <svg className="h-4 w-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Text Content */}
+                      <div className="flex-1 min-w-0">
+                        {/* Category Badge */}
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-xl" aria-hidden="true">{meta.icon}</span>
+                          <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">{meta.category}</span>
+                        </div>
+
+                        {/* Action Text with Highlighted Keywords */}
+                        <p className="text-base leading-relaxed text-gray-800">
+                          {item.text.split(' ').map((word, idx) => {
+                            const isKeyword = /enroll|shop|compare|deadline|before|medicare|medigap|marketplace/i.test(word);
+                            return (
+                              <span key={idx} className={isKeyword ? 'font-bold text-gray-900' : ''}>
+                                {word}{' '}
+                              </span>
+                            );
+                          })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Bottom Accent Line */}
+                    <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${colors.checkBg} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
                   </div>
-                  <p className="flex-1 text-base leading-relaxed text-gray-700">{item.text}</p>
+                );
+              })}
+            </div>
+
+            {/* Completion Encouragement */}
+            <div className="mt-8 rounded-2xl bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 p-6 shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 shadow-md">
+                  <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
                 </div>
-              ))}
+                <div className="flex-1">
+                  <p className="font-bold text-green-900 text-lg mb-1">Ready to Get Started?</p>
+                  <p className="text-green-800 leading-relaxed">
+                    Follow these action items to secure your coverage. Most can be completed online in minutes.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}
