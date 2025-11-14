@@ -23,7 +23,7 @@ import { validateURLParameters, getValidationSummary } from '@/lib/urlValidation
 import { logger, devLogger } from '@/lib/logger';
 import CostComparisonChart from '@/components/charts/CostComparisonChart';
 import CollapsibleSection from '@/components/results/CollapsibleSection';
-import ResultsActions from '@/components/results/ResultsActions';
+import ResultsNavigation from '@/components/results/ResultsNavigation';
 import MarketplacePlans from '@/components/results/MarketplacePlans';
 import MedicarePlanFinderLink from '@/components/results/MedicarePlanFinderLink';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -297,6 +297,20 @@ function ResultsContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Top Navigation with Print, Download, Email */}
+      <ResultsNavigation
+        recommendation={recommendation}
+        formData={{
+          residences: residences.map((r): { zip: string; state: string } => ({ zip: r.zip, state: r.state })),
+          numAdults,
+          numChildren,
+          adultAges,
+          childAges,
+          budget,
+          incomeRange,
+        }}
+      />
+
       {/* Sticky Navigation */}
       <StickyNavigation sections={navigationSections} />
 
@@ -312,20 +326,6 @@ function ResultsContent() {
           </p>
         </div>
       </div>
-
-      {/* Sticky Toolbar (Desktop) / FAB (Mobile) */}
-      <ResultsActions
-        recommendation={recommendation}
-        formData={{
-          residences: residences.map((r): { zip: string; state: string } => ({ zip: r.zip, state: r.state })),
-          numAdults,
-          numChildren,
-          adultAges,
-          childAges,
-          budget,
-          incomeRange,
-        }}
-      />
 
       <main className="container-max py-8 md:py-12">
         {/* Page Header */}

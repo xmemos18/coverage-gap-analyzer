@@ -315,9 +315,21 @@ export async function downloadPDF(props: PDFReportProps): Promise<void> {
 interface PDFDownloadButtonProps extends PDFReportProps {
   className?: string;
   onError?: (error: Error) => void;
+  variant?: 'default' | 'dropdown-item' | 'mobile-menu-item';
+  label?: string;
+  description?: string;
+  fullReport?: boolean;
 }
 
-export function PDFDownloadButton({ className = '', onError, ...pdfProps }: PDFDownloadButtonProps) {
+export function PDFDownloadButton({
+  className = '',
+  onError,
+  variant = 'default',
+  label,
+  description,
+  fullReport: _fullReport = false, // TODO: Implement full report variant
+  ...pdfProps
+}: PDFDownloadButtonProps) {
   const [isGenerating, setIsGenerating] = React.useState(false);
 
   const handleDownload = async () => {
@@ -337,6 +349,61 @@ export function PDFDownloadButton({ className = '', onError, ...pdfProps }: PDFD
     }
   };
 
+  // Dropdown item variant
+  if (variant === 'dropdown-item') {
+    return (
+      <button
+        onClick={handleDownload}
+        disabled={isGenerating}
+        className="w-full text-left px-4 py-2.5 hover:bg-gray-50 transition-colors disabled:opacity-50"
+      >
+        {isGenerating ? (
+          <div className="flex items-center gap-2">
+            <svg className="animate-spin h-4 w-4 text-gray-600" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <span className="text-sm text-gray-600">Generating...</span>
+          </div>
+        ) : (
+          <>
+            <div className="font-medium text-gray-900">{label || 'Download PDF'}</div>
+            {description && <div className="text-xs text-gray-600 mt-0.5">{description}</div>}
+          </>
+        )}
+      </button>
+    );
+  }
+
+  // Mobile menu item variant
+  if (variant === 'mobile-menu-item') {
+    return (
+      <button
+        onClick={handleDownload}
+        disabled={isGenerating}
+        className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+      >
+        <div className="flex items-center gap-3">
+          {isGenerating ? (
+            <svg className="animate-spin h-5 w-5 text-gray-600" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+          ) : (
+            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          )}
+          <div>
+            <div className="font-medium text-gray-900">{label || 'Download PDF'}</div>
+            {description && <div className="text-xs text-gray-600">{description}</div>}
+          </div>
+        </div>
+      </button>
+    );
+  }
+
+  // Default button variant
   return (
     <button
       onClick={handleDownload}
@@ -357,7 +424,7 @@ export function PDFDownloadButton({ className = '', onError, ...pdfProps }: PDFD
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          Download PDF
+          {label || 'Download PDF'}
         </>
       )}
     </button>
