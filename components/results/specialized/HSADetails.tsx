@@ -7,144 +7,201 @@ interface HSADetailsProps {
 export default function HSADetails({ analysis }: HSADetailsProps) {
   return (
     <div className="space-y-6">
-      {/* Triple Tax Advantage */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-5 border border-blue-200">
-        <h4 className="font-bold text-lg mb-3">
-          <span aria-label="Target" role="img">🎯</span> Triple Tax Advantage
-        </h4>
-        <div className="space-y-2">
+      {/* Premium Triple Tax Advantage */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-2 border-blue-200 p-6 shadow-lg">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-2xl shadow-md rotate-3">
+            🎯
+          </div>
+          <h4 className="font-bold text-xl text-gray-900">Triple Tax Advantage</h4>
+        </div>
+        <div className="space-y-3">
           {analysis.analysis.tripleTaxAdvantage.map((advantage: string, idx: number) => (
-            <div key={idx} className="flex items-start gap-2">
-              <span className="text-blue-600 font-bold">{advantage.split(' ')[0]}</span>
-              <span className="text-gray-800">{advantage.substring(advantage.indexOf(' ') + 1)}</span>
+            <div key={idx} className="flex items-start gap-3 bg-white/60 rounded-lg p-3 border border-blue-200/50">
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-sm font-bold flex-shrink-0 shadow-sm">
+                {idx + 1}
+              </span>
+              <div className="flex-1">
+                <span className="text-blue-600 font-bold text-base">{advantage.split(' ')[0]}</span>
+                <span className="text-gray-800 ml-1 leading-relaxed">{advantage.substring(advantage.indexOf(' ') + 1)}</span>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Contribution Limits & Tax Savings */}
+      {/* Premium Contribution Limits & Tax Savings */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-blue-50 rounded-lg p-5 border border-blue-200">
-          <h5 className="font-semibold text-lg text-blue-900 mb-3">
-            <span aria-label="Bar chart" role="img">📊</span> 2024 Contribution Limits
-          </h5>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-gray-600">Individual Coverage</p>
-              <p className="text-2xl font-bold text-blue-600">${analysis.analysis.contributionLimits.individual.toLocaleString()}</p>
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 p-5 shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md rotate-3">
+              📊
             </div>
-            <div>
-              <p className="text-sm text-gray-600">Family Coverage</p>
-              <p className="text-2xl font-bold text-blue-600">${analysis.analysis.contributionLimits.family.toLocaleString()}</p>
+            <h5 className="font-bold text-blue-900 text-lg">2024 Contribution Limits</h5>
+          </div>
+          <div className="space-y-4">
+            <div className="bg-white rounded-lg p-4 border-2 border-blue-200 shadow-sm">
+              <p className="text-sm font-medium text-gray-600 mb-1">Individual Coverage</p>
+              <p className="text-3xl font-bold bg-gradient-to-br from-blue-600 to-indigo-700 bg-clip-text text-transparent">
+                ${analysis.analysis.contributionLimits.individual.toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-white rounded-lg p-4 border-2 border-blue-200 shadow-sm">
+              <p className="text-sm font-medium text-gray-600 mb-1">Family Coverage</p>
+              <p className="text-3xl font-bold bg-gradient-to-br from-blue-600 to-indigo-700 bg-clip-text text-transparent">
+                ${analysis.analysis.contributionLimits.family.toLocaleString()}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-green-50 rounded-lg p-5 border border-green-200">
-          <h5 className="font-semibold text-lg text-green-900 mb-3">
-            <span aria-label="Money with wings" role="img">💵</span> Your Annual Tax Savings
-          </h5>
-          <div className="space-y-2 mb-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Federal Tax:</span>
-              <span className="font-semibold">${analysis.analysis.taxSavings.federal.toLocaleString()}</span>
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-5 shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-md rotate-3">
+              💵
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">FICA Tax:</span>
-              <span className="font-semibold">${analysis.analysis.taxSavings.fica.toLocaleString()}</span>
+            <h5 className="font-bold text-green-900 text-lg">Your Annual Tax Savings</h5>
+          </div>
+          <div className="space-y-2.5 mb-3">
+            <div className="flex justify-between text-sm bg-white/50 rounded-lg p-2">
+              <span className="text-gray-700 font-medium">Federal Tax:</span>
+              <span className="font-bold text-gray-900">${analysis.analysis.taxSavings.federal.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">State Tax:</span>
-              <span className="font-semibold">${analysis.analysis.taxSavings.state.toLocaleString()}</span>
+            <div className="flex justify-between text-sm bg-white/50 rounded-lg p-2">
+              <span className="text-gray-700 font-medium">FICA Tax:</span>
+              <span className="font-bold text-gray-900">${analysis.analysis.taxSavings.fica.toLocaleString()}</span>
             </div>
-            <div className="border-t-2 border-green-300 pt-2 mt-2">
-              <div className="flex justify-between">
-                <span className="font-bold text-gray-900">Total Savings:</span>
-                <span className="text-2xl font-bold text-green-600">${analysis.analysis.taxSavings.total.toLocaleString()}</span>
+            <div className="flex justify-between text-sm bg-white/50 rounded-lg p-2">
+              <span className="text-gray-700 font-medium">State Tax:</span>
+              <span className="font-bold text-gray-900">${analysis.analysis.taxSavings.state.toLocaleString()}</span>
+            </div>
+            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-3 mt-3 shadow-md">
+              <div className="flex justify-between items-baseline">
+                <span className="font-bold text-white text-base">Total Savings:</span>
+                <span className="text-3xl font-bold text-white drop-shadow-md">${analysis.analysis.taxSavings.total.toLocaleString()}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Growth Projections */}
-      <div className="bg-purple-50 rounded-lg p-5 border border-purple-200">
-        <h5 className="font-semibold text-lg text-purple-900 mb-4">
-          <span aria-label="Chart increasing" role="img">📈</span> Long-Term Growth Potential
-        </h5>
-        <p className="text-sm text-gray-600 mb-4">
+      {/* Premium Growth Projections */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 p-6 shadow-lg">
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white text-2xl shadow-md rotate-3">
+            📈
+          </div>
+          <h5 className="font-bold text-xl text-gray-900">Long-Term Growth Potential</h5>
+        </div>
+        <p className="text-sm text-gray-700 mb-5 font-medium bg-white/50 rounded-lg p-3">
           If you invest your HSA contributions (7% annual return):
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">Year 1</p>
-            <p className="text-lg font-bold text-purple-600">${analysis.analysis.projections.year1.toLocaleString()}</p>
+          <div className="bg-white rounded-xl p-4 text-center border-2 border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+            <p className="text-xs font-bold text-gray-600 mb-2">Year 1</p>
+            <p className="text-xl md:text-2xl font-bold bg-gradient-to-br from-purple-600 to-indigo-700 bg-clip-text text-transparent">
+              ${analysis.analysis.projections.year1.toLocaleString()}
+            </p>
           </div>
-          <div className="bg-white rounded p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">Year 5</p>
-            <p className="text-lg font-bold text-purple-600">${analysis.analysis.projections.year5.toLocaleString()}</p>
+          <div className="bg-white rounded-xl p-4 text-center border-2 border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+            <p className="text-xs font-bold text-gray-600 mb-2">Year 5</p>
+            <p className="text-xl md:text-2xl font-bold bg-gradient-to-br from-purple-600 to-indigo-700 bg-clip-text text-transparent">
+              ${analysis.analysis.projections.year5.toLocaleString()}
+            </p>
           </div>
-          <div className="bg-white rounded p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">Year 10</p>
-            <p className="text-lg font-bold text-purple-600">${analysis.analysis.projections.year10.toLocaleString()}</p>
+          <div className="bg-white rounded-xl p-4 text-center border-2 border-purple-200 shadow-sm hover:shadow-md transition-shadow">
+            <p className="text-xs font-bold text-gray-600 mb-2">Year 10</p>
+            <p className="text-xl md:text-2xl font-bold bg-gradient-to-br from-purple-600 to-indigo-700 bg-clip-text text-transparent">
+              ${analysis.analysis.projections.year10.toLocaleString()}
+            </p>
           </div>
-          <div className="bg-white rounded p-3 text-center border-2 border-purple-300">
-            <p className="text-xs text-gray-600 mb-1">Retirement</p>
-            <p className="text-lg font-bold text-purple-600">${analysis.analysis.projections.retirement.toLocaleString()}</p>
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl p-4 text-center border-2 border-purple-300 shadow-md hover:shadow-lg transition-shadow">
+            <p className="text-xs font-bold text-white/90 mb-2">Retirement</p>
+            <p className="text-xl md:text-2xl font-bold text-white drop-shadow-md">
+              ${analysis.analysis.projections.retirement.toLocaleString()}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Recommendation */}
-      <div className="bg-yellow-50 rounded-lg p-5 border-2 border-yellow-300">
-        <h5 className="font-bold text-lg mb-2">
-          <span aria-label="Light bulb" role="img">💡</span> Recommendation for You
-        </h5>
-        <p className="text-gray-800">{analysis.analysis.recommendation}</p>
+      {/* Premium Recommendation */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-50 border-2 border-yellow-300 p-5 shadow-md">
+        <div className="flex items-start gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-500 to-amber-600 text-white text-2xl shadow-md rotate-3 flex-shrink-0">
+            💡
+          </div>
+          <div className="flex-1">
+            <h5 className="font-bold text-yellow-900 text-lg mb-2">Recommendation for You</h5>
+            <p className="text-gray-800 leading-relaxed font-medium">{analysis.analysis.recommendation}</p>
+          </div>
+        </div>
       </div>
 
-      {/* Benefits and Considerations */}
+      {/* Premium Benefits and Considerations */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-green-50 rounded-lg p-5 border border-green-200">
-          <h5 className="font-semibold text-lg text-green-900 mb-3">
-            <span aria-label="Check mark" role="img">✅</span> HSA Benefits
-          </h5>
-          <ul className="space-y-2">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 p-5 shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-md rotate-3">
+              ✅
+            </div>
+            <h5 className="font-bold text-green-900 text-lg">HSA Benefits</h5>
+          </div>
+          <ul className="space-y-2.5">
             {analysis.analysis.benefits.map((benefit: string, idx: number) => (
-              <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                <span className="text-green-600 mt-0.5">✓</span>
-                <span>{benefit}</span>
+              <li key={idx} className="flex gap-2.5 text-sm text-gray-800">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-600 text-white text-xs font-bold flex-shrink-0 mt-0.5">
+                  {idx + 1}
+                </span>
+                <span className="leading-relaxed">{benefit}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <div className="bg-orange-50 rounded-lg p-5 border border-orange-200">
-          <h5 className="font-semibold text-lg text-orange-900 mb-3">
-            <span aria-label="Warning" role="img">⚠️</span> Important Considerations
-          </h5>
-          <ul className="space-y-2">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-200 p-5 shadow-md">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-md rotate-3">
+              ⚠️
+            </div>
+            <h5 className="font-bold text-orange-900 text-lg">Important Considerations</h5>
+          </div>
+          <ul className="space-y-2.5">
             {analysis.analysis.considerations.map((consideration: string, idx: number) => (
-              <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-                <span className="text-orange-600 mt-0.5">→</span>
-                <span>{consideration}</span>
+              <li key={idx} className="flex gap-2.5 text-sm text-gray-800">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-600 text-white text-xs font-bold flex-shrink-0 mt-0.5">
+                  {idx + 1}
+                </span>
+                <span className="leading-relaxed">{consideration}</span>
               </li>
             ))}
           </ul>
         </div>
       </div>
 
-      {/* HSA Strategies */}
-      <div className="bg-indigo-50 rounded-lg p-5 border border-indigo-200">
-        <h5 className="font-semibold text-lg text-indigo-900 mb-4">
-          <span aria-label="Target" role="img">🎯</span> HSA Usage Strategies
-        </h5>
+      {/* Premium HSA Strategies */}
+      <div className="relative overflow-hidden rounded-xl bg-white border-2 border-indigo-200 p-6 shadow-lg">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 text-2xl shadow-sm rotate-2">
+            🎯
+          </div>
+          <h5 className="font-bold text-xl text-gray-900">HSA Usage Strategies</h5>
+        </div>
         <div className="space-y-4">
           {analysis.strategies.map((strategy, idx: number) => (
-            <div key={idx} className="bg-white rounded p-4 border border-indigo-200">
-              <h6 className="font-semibold text-gray-900 mb-1">{strategy.strategy}</h6>
-              <p className="text-sm text-gray-700 mb-2">{strategy.description}</p>
-              <p className="text-xs text-indigo-600 font-semibold">Best for: {strategy.bestFor}</p>
+            <div key={idx} className="relative overflow-hidden bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-5 border-2 border-indigo-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex gap-3 mb-3">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-sm font-bold flex-shrink-0 shadow-md">
+                  {idx + 1}
+                </span>
+                <h6 className="font-bold text-gray-900 text-base leading-relaxed">{strategy.strategy}</h6>
+              </div>
+              <p className="text-sm text-gray-800 mb-3 leading-relaxed pl-10">{strategy.description}</p>
+              <div className="bg-white/60 rounded-lg p-2.5 pl-10">
+                <p className="text-xs text-indigo-700 font-bold flex items-center gap-2">
+                  <span className="text-indigo-500">✓</span>
+                  <span>Best for: {strategy.bestFor}</span>
+                </p>
+              </div>
             </div>
           ))}
         </div>
