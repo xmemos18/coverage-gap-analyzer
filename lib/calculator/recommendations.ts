@@ -60,15 +60,15 @@ async function fetchMarketplacePlans(
     const householdData = {
       income: parseIncomeRange(formData.incomeRange),
       people: [
-        ...formData.adultAges.map((age) => ({
+        ...formData.adultAges.map((age, index) => ({
           age,
           aptc_eligible: !formData.hasEmployerInsurance, // Not eligible for subsidies if has employer insurance
-          uses_tobacco: false, // TODO: Add tobacco use question to form
+          uses_tobacco: formData.adultsUseTobacco[index] || false,
         })),
-        ...formData.childAges.map((age) => ({
+        ...formData.childAges.map((age, index) => ({
           age,
           aptc_eligible: true,
-          uses_tobacco: false,
+          uses_tobacco: formData.childrenUseTobacco[index] || false,
         })),
       ],
     };
