@@ -7,6 +7,7 @@ import { validateZipCode as validateZipCodeAPI, ZipCodeLocation } from '@/lib/zi
 import { getMonthLabel, MONTH_OPTIONS } from '@/lib/residenceHelpers';
 import InfoTooltip from '@/components/InfoTooltip';
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
+import { ScaleButton } from '@/components/animations';
 
 interface Step1Props {
   residences: Residence[];
@@ -506,25 +507,25 @@ export default function Step1Residences({
         )}
 
         {/* Add Another Property Button */}
-        <button
+        <ScaleButton
           onClick={addResidence}
           className="w-full px-6 py-4 border-2 border-dashed border-blue-600 text-blue-600 rounded-lg font-semibold text-lg hover:bg-blue-600 hover:text-white transition-all flex items-center justify-center gap-2"
-          aria-label="Add another property to your residences"
+          ariaLabel="Add another property to your residences"
         >
           <span className="text-2xl" aria-hidden="true">+</span>
           Add Another Property
-        </button>
+        </ScaleButton>
       </div>
 
       {/* Navigation */}
       <div className="mt-8 flex justify-end sticky-mobile-nav touch-manipulation">
-        <button
+        <ScaleButton
           onClick={onNext}
-          className="px-8 py-3 w-full md:w-auto bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-500 shadow-lg transition-all touch-manipulation"
-          aria-label="Continue to household information"
+          className="px-8 py-3 w-full md:w-auto bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all touch-manipulation"
+          ariaLabel="Continue to household information"
         >
           Next
-        </button>
+        </ScaleButton>
       </div>
     </div>
   );

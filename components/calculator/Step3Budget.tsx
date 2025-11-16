@@ -3,6 +3,7 @@
 import { FormErrors, UpdateFieldFunction } from '@/types';
 import ErrorMessage from '@/components/ErrorMessage';
 import InfoTooltip from '@/components/InfoTooltip';
+import { ScaleButton } from '@/components/animations';
 
 interface Step3Props {
   budget: string;
@@ -141,21 +142,21 @@ export default function Step3Budget({
 
       {/* Navigation */}
       <nav className="flex gap-3 justify-between items-center mt-8 sticky-mobile-nav touch-manipulation" aria-label="Form navigation">
-        <button
+        <ScaleButton
           onClick={onBack}
-          className="px-6 py-3 flex-1 md:flex-initial border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors touch-manipulation"
-          aria-label="Go back to current insurance information"
+          className="px-6 py-3 flex-1 md:flex-initial border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors touch-manipulation"
+          ariaLabel="Go back to current insurance information"
         >
           Back
-        </button>
+        </ScaleButton>
 
-        <button
+        <ScaleButton
           onClick={onSubmit}
-          className="px-8 py-3 flex-1 md:flex-initial bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-800 shadow-lg transition-all touch-manipulation"
-          aria-label="Analyze coverage and view results"
+          className="px-8 py-3 flex-1 md:flex-initial bg-blue-600 text-white rounded-lg font-semibold text-lg hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all touch-manipulation"
+          ariaLabel="Analyze coverage and view results"
         >
           Analyze Coverage
-        </button>
+        </ScaleButton>
       </nav>
     </div>
   );
