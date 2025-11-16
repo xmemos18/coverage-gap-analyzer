@@ -16,6 +16,8 @@ export function useFAQFeedback() {
 
   // Load feedback from localStorage on mount
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -33,6 +35,8 @@ export function useFAQFeedback() {
       [index]: isHelpful ? ('helpful' as const) : ('not-helpful' as const),
     };
     setFeedback(newFeedback);
+
+    if (typeof window === 'undefined') return;
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newFeedback));

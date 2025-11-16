@@ -21,10 +21,8 @@ import ValidationError from '@/components/results/ValidationError';
 import { trackEvent, trackCalculatorCompleted } from '@/lib/analytics';
 import { validateURLParameters, getValidationSummary } from '@/lib/urlValidation';
 import { logger, devLogger } from '@/lib/logger';
-import CostComparisonChart from '@/components/charts/CostComparisonChart';
 import CollapsibleSection from '@/components/results/CollapsibleSection';
 import ResultsNavigation from '@/components/results/ResultsNavigation';
-import MarketplacePlans from '@/components/results/MarketplacePlans';
 import MedicarePlanFinderLink from '@/components/results/MedicarePlanFinderLink';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import StickyNavigation from '@/components/results/StickyNavigation';
@@ -32,6 +30,8 @@ import BackToTop from '@/components/results/BackToTop';
 
 // Lazy load heavy components
 const PlanComparisonTable = lazy(() => import('@/components/results/PlanComparisonTable'));
+const CostComparisonChart = lazy(() => import('@/components/charts/CostComparisonChart'));
+const MarketplacePlans = lazy(() => import('@/components/results/MarketplacePlans'));
 
 function ResultsContent() {
   const searchParams = useSearchParams();
@@ -411,27 +411,29 @@ function ResultsContent() {
           {/* Cost Comparison Chart */}
           {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
             <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6">
-              <CostComparisonChart
-              data={[
-                {
-                  name: 'Recommended',
-                  cost: recommendation.estimatedMonthlyCost,
-                  color: '#3b82f6',
-                },
-                ...recommendation.alternativeOptions.slice(0, 3).map((alt, idx) => ({
-                  name: alt.name,
-                  cost: alt.monthlyCost,
-                  color: ['#10b981', '#f59e0b', '#ef4444'][idx] || '#6b7280',
-                })),
-              ]}
-              title="Monthly Premium Comparison"
-              height={300}
-            />
-            <p className="text-sm text-gray-600 text-center mt-4">
-              * Costs shown are estimates. Actual premiums may vary.
-            </p>
-          </div>
-        )}
+              <Suspense fallback={<div className="h-[300px] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                <CostComparisonChart
+                data={[
+                  {
+                    name: 'Recommended',
+                    cost: recommendation.estimatedMonthlyCost,
+                    color: '#3b82f6',
+                  },
+                  ...recommendation.alternativeOptions.slice(0, 3).map((alt, idx) => ({
+                    name: alt.name,
+                    cost: alt.monthlyCost,
+                    color: ['#10b981', '#f59e0b', '#ef4444'][idx] || '#6b7280',
+                  })),
+                ]}
+                title="Monthly Premium Comparison"
+                height={300}
+              />
+              </Suspense>
+              <p className="text-sm text-gray-600 text-center mt-4">
+                * Costs shown are estimates. Actual premiums may vary.
+              </p>
+            </div>
+          )}
 
         {/* Cost Analysis with Marketplace Plans */}
         <div className="mt-8 md:mt-12">
@@ -447,7 +449,9 @@ function ResultsContent() {
           {/* Real Marketplace Plans (if available) */}
           {recommendation.marketplaceDataAvailable && recommendation.marketplacePlans && recommendation.marketplacePlans.length > 0 && (
             <div className="mt-6">
-              <MarketplacePlans plans={recommendation.marketplacePlans} />
+              <Suspense fallback={<div className="bg-white rounded-2xl p-8 flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                <MarketplacePlans plans={recommendation.marketplacePlans} />
+              </Suspense>
             </div>
           )}
 

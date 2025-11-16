@@ -6,6 +6,7 @@ import { simplifyReasoning, generateWhatThisMeans } from '@/lib/plainEnglish';
 import { getMedigapShoppingSteps, getPartDShoppingSteps, getMarketplaceShoppingSteps, getEnrollmentDeadlines, formatActionStep } from '../concreteActions';
 import { adjustCostForStates } from '@/lib/stateSpecificData';
 import { searchMarketplacePlans, isHealthcareGovApiAvailable, calculateSubsidyEstimates, type MarketplacePlan } from '@/lib/healthcareGovApi';
+import { logger } from '@/lib/logger';
 
 /**
  * Health Profile Analysis Helper
@@ -118,7 +119,7 @@ async function fetchMarketplacePlans(
       csrLevel,
     };
   } catch (error) {
-    console.error('Error fetching marketplace plans:', error);
+    logger.error('Error fetching marketplace plans', { error });
     return null;
   }
 }

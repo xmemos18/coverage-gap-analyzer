@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { PDFDownloadButton } from '@/components/PDFReport';
 import { InsuranceRecommendation } from '@/types';
@@ -24,11 +24,14 @@ type DropdownType = 'print' | 'download' | 'email' | null;
 export default function ResultsNavigation({ recommendation, formData }: ResultsNavigationProps) {
   const [openDropdown, setOpenDropdown] = useState<DropdownType>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const dropdownRefs = {
-    print: useRef<HTMLDivElement>(null),
-    download: useRef<HTMLDivElement>(null),
-    email: useRef<HTMLDivElement>(null),
-  };
+  const printRef = useRef<HTMLDivElement>(null);
+  const downloadRef = useRef<HTMLDivElement>(null);
+  const emailRef = useRef<HTMLDivElement>(null);
+  const dropdownRefs = useMemo(() => ({
+    print: printRef,
+    download: downloadRef,
+    email: emailRef,
+  }), []);
   const { showError } = useToast();
 
   // Close dropdown when clicking outside

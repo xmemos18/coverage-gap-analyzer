@@ -1,29 +1,43 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === 'development';
+
 const nextConfig: NextConfig = {
   async headers() {
+    // Content Security Policy directives
+    const cspDirectives = [
+      "default-src 'self'",
+      // IMPORTANT: Next.js requires 'unsafe-eval' for webpack hot module replacement
+      // and 'unsafe-inline' for dynamic script injection. These cannot be removed.
+      // In production, Next.js still uses dynamic imports which require these directives.
+      // See: https://nextjs.org/docs/advanced-features/security-headers
+      `script-src 'self' ${isDev ? "'unsafe-eval' 'unsafe-inline'" : "'unsafe-eval'"} https://www.googletagmanager.com https://plausible.io`,
+      // Styles require 'unsafe-inline' for Next.js styled-jsx and CSS-in-JS
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self' data:",
+      "connect-src 'self' https://www.google-analytics.com https://plausible.io https://api.zippopotam.us https://marketplace.api.healthcare.gov",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+      "media-src 'self'",
+      "worker-src 'self' blob:",
+      "manifest-src 'self'",
+      "upgrade-insecure-requests",
+      // Report CSP violations in production (can be configured with a reporting endpoint)
+      // "report-uri /api/csp-report",
+    ];
+
     return [
       {
         // Apply security headers to all routes
         source: '/:path*',
         headers: [
           // Content Security Policy - prevents XSS attacks
-          // Note: Next.js requires 'unsafe-inline' and 'unsafe-eval' for inline scripts and webpack
           {
             key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://plausible.io",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https:",
-              "font-src 'self' data:",
-              "connect-src 'self' https://www.google-analytics.com https://plausible.io https://api.zippopotam.us https://marketplace.api.healthcare.gov",
-              "frame-ancestors 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-              "object-src 'none'",
-              "upgrade-insecure-requests",
-            ].join('; '),
+            value: cspDirectives.join('; '),
           },
           // Strict Transport Security - enforce HTTPS
           {

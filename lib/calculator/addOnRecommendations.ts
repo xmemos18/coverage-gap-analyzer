@@ -18,6 +18,7 @@ import {
   ADD_ON_COST_ADJUSTMENTS,
   PRIORITY_THRESHOLDS,
 } from '@/lib/addOnInsuranceData';
+import { logger } from '@/lib/logger';
 import { adjustCostForStates } from '@/lib/stateSpecificData';
 import { RECOMMENDATION_REASONS } from '@/types/addOnInsurance';
 import {
@@ -110,7 +111,7 @@ export function generateAddOnRecommendations(
       householdAgeGroups,
     };
   } catch (error) {
-    console.error('Error generating add-on recommendations:', error);
+    logger.error('Error generating add-on recommendations', { error });
     // Return empty analysis on error to prevent application crash
     return {
       recommendations: [],
