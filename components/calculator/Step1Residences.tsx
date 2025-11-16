@@ -273,7 +273,7 @@ export default function Step1Residences({
                       placeholder="12345"
                       aria-label={`ZIP code for ${getResidenceLabel(index)}`}
                       aria-required="true"
-                      aria-invalid={!!zipError || isValid === false}
+                      aria-invalid={!!zipError || isValid === false ? 'true' : 'false'}
                       aria-describedby={zipError ? `residence-${index}-zip-error` : undefined}
                     />
                     {isValidating && (
@@ -343,7 +343,7 @@ export default function Step1Residences({
                     }`}
                     aria-label={`State for ${getResidenceLabel(index)}`}
                     aria-required="true"
-                    aria-invalid={!!stateError}
+                    aria-invalid={!!stateError ? 'true' : 'false'}
                     aria-describedby={stateError ? `residence-${index}-state-error` : undefined}
                   >
                     <option value="">Select a state</option>

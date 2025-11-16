@@ -63,12 +63,12 @@ async function fetchMarketplacePlans(
         ...formData.adultAges.map((age, index) => ({
           age,
           aptc_eligible: !formData.hasEmployerInsurance, // Not eligible for subsidies if has employer insurance
-          uses_tobacco: formData.adultsUseTobacco[index] || false,
+          uses_tobacco: formData.adultsUseTobacco?.[index] || false,
         })),
         ...formData.childAges.map((age, index) => ({
           age,
           aptc_eligible: true,
-          uses_tobacco: formData.childrenUseTobacco[index] || false,
+          uses_tobacco: formData.childrenUseTobacco?.[index] || false,
         })),
       ],
     };
