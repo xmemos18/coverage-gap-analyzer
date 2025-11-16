@@ -2,6 +2,24 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
+  // Check if user is authenticated
+  const authCookie = request.cookies.get('auth');
+  const isAuthenticated = authCookie?.value === 'authenticated';
+
+  // Public paths that don't require authentication
+  const publicPaths = ['/login'];
+  const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path));
+
+  // If not authenticated and trying to access protected route, redirect to login
+  if (!isAuthenticated && !isPublicPath) {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // If authenticated and trying to access login, redirect to home
+  if (isAuthenticated && request.nextUrl.pathname === '/login') {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
   // Clone the response
   const response = NextResponse.next();
 
@@ -29,7 +47,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - public files (images, etc.)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
