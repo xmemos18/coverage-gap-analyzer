@@ -8,10 +8,10 @@ const nextConfig: NextConfig = {
     const cspDirectives = [
       "default-src 'self'",
       // IMPORTANT: Next.js requires 'unsafe-eval' for webpack hot module replacement
-      // and 'unsafe-inline' for dynamic script injection. These cannot be removed.
-      // In production, Next.js still uses dynamic imports which require these directives.
+      // and 'unsafe-inline' for dynamic script injection and hydration. These cannot be removed.
+      // Next.js injects inline scripts for hydration, SSR, and dynamic imports even in production.
       // See: https://nextjs.org/docs/advanced-features/security-headers
-      `script-src 'self' ${isDev ? "'unsafe-eval' 'unsafe-inline'" : "'unsafe-eval'"} https://www.googletagmanager.com https://plausible.io`,
+      `script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://plausible.io`,
       // Styles require 'unsafe-inline' for Next.js styled-jsx and CSS-in-JS
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
