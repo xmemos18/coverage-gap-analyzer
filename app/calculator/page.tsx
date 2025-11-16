@@ -469,7 +469,7 @@ export default function Calculator() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white md:py-12 pb-32 md:pb-12 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 dark:from-dark-900 to-white dark:to-dark-950 md:py-12 pb-32 md:pb-12 px-4">
       {/* Live region for screen reader announcements */}
       <div
         ref={liveRegionRef}
@@ -484,8 +484,8 @@ export default function Calculator() {
       <div className="max-w-2xl mx-auto">
         {/* Page Header */}
         <div className="text-center mb-8 mt-4 md:mt-0">
-          <h1 className="text-3xl md:text-4xl font-bold text-blue-900 mb-2">Coverage Calculator</h1>
-          <p className="text-gray-600 text-base md:text-lg">
+          <h1 className="text-3xl md:text-4xl font-bold text-blue-900 dark:text-blue-400 mb-2">Coverage Calculator</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-base md:text-lg">
             {formData.simpleMode
               ? "Answer 3 quick questions to find your ideal insurance"
               : "Answer detailed questions for personalized recommendations"}
@@ -503,23 +503,23 @@ export default function Calculator() {
 
         {/* Resume Prompt */}
         {showResumePrompt && (
-          <div className="bg-blue-50 border-2 border-blue-600 rounded-xl p-6 mb-6 shadow-lg">
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-600 dark:border-blue-500 rounded-xl p-6 mb-6 shadow-lg">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
               Continue where you left off?
             </h2>
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-700 dark:text-gray-300 mb-4">
               We found your previous progress. Would you like to resume?
             </p>
             <div className="flex gap-3">
               <ScaleButton
                 onClick={resumeSavedData}
-                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+                className="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors shadow-md hover:shadow-lg"
               >
                 Resume
               </ScaleButton>
               <ScaleButton
                 onClick={clearSavedData}
-                className="px-6 py-2 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+                className="px-6 py-2 border-2 border-gray-300 dark:border-dark-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors"
               >
                 Start Fresh
               </ScaleButton>
@@ -569,7 +569,7 @@ export default function Calculator() {
             );
             })}
           </div>
-          <p className="text-center text-gray-600 font-medium">
+          <p className="text-center text-gray-600 dark:text-gray-400 font-medium">
             Step {formData.currentStep} of {CALCULATOR_STEPS.TOTAL_STEPS}: {getStepName(formData.currentStep)}
           </p>
 
@@ -578,7 +578,7 @@ export default function Calculator() {
             <div className="text-center mt-4">
               <button
                 onClick={clearSavedData}
-                className="text-sm text-gray-500 hover:text-blue-600 underline"
+                className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 underline"
                 aria-label="Clear form and start over"
               >
                 Clear and start over
@@ -589,22 +589,22 @@ export default function Calculator() {
           {/* Keyboard Shortcuts Hint */}
           {!showResumePrompt && (
             <div className="text-center mt-4">
-              <details className="inline-block text-xs text-gray-500">
-                <summary className="cursor-pointer hover:text-blue-600">
+              <details className="inline-block text-xs text-gray-500 dark:text-gray-400">
+                <summary className="cursor-pointer hover:text-blue-600 dark:hover:text-blue-400">
                   ⌨️ Keyboard shortcuts
                 </summary>
-                <div className="mt-2 text-left bg-gray-50 rounded-lg p-3 shadow-sm">
-                  <ul className="space-y-1">
+                <div className="mt-2 text-left bg-gray-50 dark:bg-dark-800 rounded-lg p-3 shadow-sm">
+                  <ul className="space-y-1 text-gray-700 dark:text-gray-300">
                     {formData.currentStep < CALCULATOR_STEPS.TOTAL_STEPS && (
-                      <li><kbd className="px-2 py-1 bg-white rounded border">Alt+N</kbd> Next step</li>
+                      <li><kbd className="px-2 py-1 bg-white dark:bg-dark-700 rounded border border-gray-300 dark:border-dark-600">Alt+N</kbd> Next step</li>
                     )}
                     {formData.currentStep > CALCULATOR_STEPS.RESIDENCES && (
-                      <li><kbd className="px-2 py-1 bg-white rounded border">Alt+B</kbd> Back step</li>
+                      <li><kbd className="px-2 py-1 bg-white dark:bg-dark-700 rounded border border-gray-300 dark:border-dark-600">Alt+B</kbd> Back step</li>
                     )}
                     {formData.currentStep === CALCULATOR_STEPS.BUDGET && (
-                      <li><kbd className="px-2 py-1 bg-white rounded border">Alt+S</kbd> Submit</li>
+                      <li><kbd className="px-2 py-1 bg-white dark:bg-dark-700 rounded border border-gray-300 dark:border-dark-600">Alt+S</kbd> Submit</li>
                     )}
-                    <li><kbd className="px-2 py-1 bg-white rounded border">Alt+C</kbd> Clear form</li>
+                    <li><kbd className="px-2 py-1 bg-white dark:bg-dark-700 rounded border border-gray-300 dark:border-dark-600">Alt+C</kbd> Clear form</li>
                   </ul>
                 </div>
               </details>
@@ -615,13 +615,13 @@ export default function Calculator() {
         {/* Form Container */}
         <ErrorBoundary
           fallback={
-            <div className="bg-white rounded-xl shadow-xl p-8 text-center">
-              <p className="text-red-600 text-lg font-semibold mb-4">
+            <div className="bg-white dark:bg-dark-800 rounded-xl shadow-xl p-8 text-center border border-gray-200 dark:border-dark-700">
+              <p className="text-red-600 dark:text-red-400 text-lg font-semibold mb-4">
                 There was an error loading the form.
               </p>
               <button
                 onClick={() => window.location.reload()}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-500 transition-colors"
+                className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
               >
                 Reload Calculator
               </button>
@@ -630,7 +630,7 @@ export default function Calculator() {
         >
           <div
             ref={stepContainerRef}
-            className="bg-white rounded-xl shadow-xl p-8"
+            className="bg-white dark:bg-dark-800 rounded-xl shadow-xl p-8 border border-gray-100 dark:border-dark-700"
             tabIndex={-1}
             role="region"
             aria-label={`Step ${formData.currentStep} of ${CALCULATOR_STEPS.TOTAL_STEPS}: ${getStepName(formData.currentStep)}`}
