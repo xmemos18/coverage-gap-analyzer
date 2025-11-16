@@ -27,6 +27,7 @@ import MedicarePlanFinderLink from '@/components/results/MedicarePlanFinderLink'
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import StickyNavigation from '@/components/results/StickyNavigation';
 import BackToTop from '@/components/results/BackToTop';
+import { FadeIn, SlideIn, Confetti, ScaleButton } from '@/components/animations';
 
 // Lazy load heavy components
 const PlanComparisonTable = lazy(() => import('@/components/results/PlanComparisonTable'));
@@ -37,6 +38,7 @@ function ResultsContent() {
   const searchParams = useSearchParams();
   const isMobile = useIsMobile();
   const [showAllAlternatives, setShowAllAlternatives] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   // Parse URL parameters (same as production results page)
   const residenceZipsStr = searchParams.get('residenceZips') || '';
@@ -206,6 +208,11 @@ function ResultsContent() {
         numChildren,
         hasMedicareEligible
       );
+
+      // Trigger confetti for high coverage scores
+      if (recommendation.coverageGapScore >= 80) {
+        setTimeout(() => setShowConfetti(true), 800); // Delay for visual effect
+      }
     }
   }, [hasRequiredData, recommendation, numAdults, adultAges, numChildren, hasMedicareEligible]);
 
@@ -292,6 +299,9 @@ function ResultsContent() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Celebration Confetti for High Scores */}
+      <Confetti active={showConfetti} duration={4000} />
+
       {/* Top Navigation with Print, Download, Email */}
       <ResultsNavigation
         recommendation={recommendation}
@@ -324,29 +334,32 @@ function ResultsContent() {
 
       <main className="container-max py-8 md:py-12">
         {/* Premium Page Header */}
-        <div className="text-center mb-10 md:mb-12 print:hidden">
-          <div className="inline-flex items-center justify-center gap-3 mb-6">
-            <div className="flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-4xl md:text-5xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
-              ⭐
+        <FadeIn delay={0.1}>
+          <div className="text-center mb-10 md:mb-12 print:hidden">
+            <div className="inline-flex items-center justify-center gap-3 mb-6">
+              <div className="flex h-16 w-16 md:h-20 md:w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-4xl md:text-5xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+                ⭐
+              </div>
             </div>
-          </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-5">
-            Your Personalized Insurance Recommendations
-          </h1>
-          <p className="text-lg md:text-xl text-gray-700 font-medium max-w-3xl mx-auto leading-relaxed">
-            Based on your household situation and coverage needs
-          </p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-5">
+              Your Personalized Insurance Recommendations
+            </h1>
+            <p className="text-lg md:text-xl text-gray-700 font-medium max-w-3xl mx-auto leading-relaxed">
+              Based on your household situation and coverage needs
+            </p>
 
-          {simpleMode && (
-            <div className="mt-6 inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-900 rounded-2xl text-base font-bold border-2 border-blue-200 shadow-md hover:shadow-lg transition-all duration-300">
-              <span className="text-2xl">🎯</span>
-              <span>Simple Mode Results</span>
-            </div>
-          )}
-        </div>
+            {simpleMode && (
+              <div className="mt-6 inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-900 rounded-2xl text-base font-bold border-2 border-blue-200 shadow-md hover:shadow-lg transition-all duration-300">
+                <span className="text-2xl">🎯</span>
+                <span>Simple Mode Results</span>
+              </div>
+            )}
+          </div>
+        </FadeIn>
 
         {/* Premium Trust Signals Bar */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-white via-blue-50 to-indigo-50 rounded-2xl shadow-2xl border-2 border-blue-200 p-8 mb-8 md:mb-10 print:hidden">
+        <SlideIn delay={0.2} duration={0.6}>
+          <div className="relative overflow-hidden bg-gradient-to-br from-white via-blue-50 to-indigo-50 rounded-2xl shadow-2xl border-2 border-blue-200 p-8 mb-8 md:mb-10 print:hidden">
           {/* Subtle background pattern */}
           <div
             className="absolute inset-0 opacity-[0.02]"
@@ -372,47 +385,55 @@ function ResultsContent() {
             </div>
           </div>
         </div>
+        </SlideIn>
 
         {/* Recommendation Section */}
         <section id="recommendation">
           {/* Hero Card */}
-          <HeroCard {...heroData} />
+          <SlideIn delay={0.3} duration={0.7}>
+            <HeroCard {...heroData} />
+          </SlideIn>
 
           {/* Why This Recommendation - Enhanced with Data Visualization */}
-          <EnhancedWhyRecommendation
-            recommendation={recommendation}
-            formData={formData}
-            currentInsuranceCost={currentInsuranceCost}
-          />
+          <FadeIn delay={0.5}>
+            <EnhancedWhyRecommendation
+              recommendation={recommendation}
+              formData={formData}
+              currentInsuranceCost={currentInsuranceCost}
+            />
+          </FadeIn>
         </section>
 
         {/* Current Insurance Comparison (if provided) */}
         {recommendation.currentInsuranceSummary && recommendation.costComparison && (
-          <div className="mt-8 md:mt-12">
+          <SlideIn delay={0.6} className="mt-8 md:mt-12">
             <CurrentInsuranceComparison
               currentInsuranceSummary={recommendation.currentInsuranceSummary}
               costComparison={recommendation.costComparison}
               improvementAreas={recommendation.improvementAreas || []}
             />
-          </div>
+          </SlideIn>
         )}
 
         {/* Personalized Suggestions */}
         {recommendation.suggestions && recommendation.suggestions.length > 0 && (
-          <div className="mt-8 md:mt-12">
+          <FadeIn delay={0.7} className="mt-8 md:mt-12">
             <PersonalizedSuggestions suggestions={recommendation.suggestions} />
-          </div>
+          </FadeIn>
         )}
 
         {/* Costs Section */}
         <section id="costs" className="mt-8 md:mt-12">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Cost Analysis</h2>
+          <FadeIn delay={0.2}>
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Cost Analysis</h2>
+          </FadeIn>
 
           {/* Cost Comparison Chart */}
           {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6">
-              <Suspense fallback={<div className="h-[300px] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
-                <CostComparisonChart
+            <SlideIn delay={0.3} duration={0.6}>
+              <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6">
+                <Suspense fallback={<div className="h-[300px] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                  <CostComparisonChart
                 data={[
                   {
                     name: 'Recommended',
@@ -428,15 +449,16 @@ function ResultsContent() {
                 title="Monthly Premium Comparison"
                 height={300}
               />
-              </Suspense>
-              <p className="text-sm text-gray-600 text-center mt-4">
-                * Costs shown are estimates. Actual premiums may vary.
-              </p>
-            </div>
+                </Suspense>
+                <p className="text-sm text-gray-600 text-center mt-4">
+                  * Costs shown are estimates. Actual premiums may vary.
+                </p>
+              </div>
+            </SlideIn>
           )}
 
         {/* Cost Analysis with Marketplace Plans */}
-        <div className="mt-8 md:mt-12">
+        <FadeIn delay={0.5} className="mt-8 md:mt-12">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Detailed Cost Analysis</h2>
           <CostAnalysis
             monthlyCost={recommendation.estimatedMonthlyCost}
@@ -478,24 +500,30 @@ function ResultsContent() {
               </a>
             </div>
           )}
-        </div>
+        </FadeIn>
         </section>
 
         {/* Alternatives Section */}
         {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
           <section id="alternatives" className="mt-8 md:mt-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Compare Your Options</h2>
+            <FadeIn delay={0.2}>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">Compare Your Options</h2>
+            </FadeIn>
 
             {/* Comparison Section */}
             {comparisonData.options.length > 0 && (
-              <ComparisonSection {...comparisonData} />
+              <SlideIn delay={0.3}>
+                <ComparisonSection {...comparisonData} />
+              </SlideIn>
             )}
 
             {/* Quick Comparison Table */}
-            <QuickComparisonTable {...quickComparisonData} />
+            <FadeIn delay={0.4}>
+              <QuickComparisonTable {...quickComparisonData} />
+            </FadeIn>
 
             {/* Alternative Options */}
-            <div className="mt-8 md:mt-12">
+            <FadeIn delay={0.5} className="mt-8 md:mt-12">
               <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">All Your Options</h3>
               <AlternativeOptions
                 options={
@@ -508,9 +536,9 @@ function ResultsContent() {
               {/* Show More Button */}
               {recommendation.alternativeOptions.length > 3 && (
                 <div className="mt-6 text-center">
-                  <button
+                  <ScaleButton
                     onClick={() => setShowAllAlternatives(!showAllAlternatives)}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors"
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
                   >
                     {showAllAlternatives ? (
                       <>
@@ -527,10 +555,10 @@ function ResultsContent() {
                         </svg>
                       </>
                     )}
-                  </button>
+                  </ScaleButton>
                 </div>
               )}
-            </div>
+            </FadeIn>
 
             {/* Plan Comparison Table */}
             <div className="mt-8">
