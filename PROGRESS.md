@@ -78,11 +78,23 @@ Only tool that analyzes coverage gaps across multiple state residences and recom
   - Add Federal Poverty Levels for 2025
   - Can use Drizzle Studio or SQL
 
-### Deployment (Next Priority)
-- [ ] Deploy to Vercel
-  - Command: `vercel`
-  - Set environment variables
-  - Get production URL
+### Deployment (Next Priority) ⏭️ READY TO DEPLOY
+- [ ] **Login to Vercel** (Required first step)
+  - Run: `vercel login`
+  - Follow browser authentication flow
+  - Confirm login in terminal
+
+- [ ] **Deploy to Production**
+  - Run: `vercel --prod --yes`
+  - Vercel will auto-detect Next.js configuration
+  - Wait for build and deployment (~2-3 minutes)
+  - Note the production URL
+
+- [ ] **Configure Environment Variables**
+  - Go to: Vercel Dashboard → Project Settings → Environment Variables
+  - Add: `DATABASE_URL` = (copy from .env.local)
+  - Optional: `HEALTHCARE_GOV_API_KEY` = (if you have one)
+  - Redeploy: `vercel --prod --yes`
 
 ### Market Validation (Critical)
 - [ ] User Interviews (Goal: 10-20 people)
