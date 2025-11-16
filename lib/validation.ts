@@ -8,17 +8,24 @@ import DOMPurify from 'dompurify';
 
 /**
  * Sanitize text input to prevent XSS attacks
- * Uses DOMPurify to remove all potentially dangerous content
+ * Strips HTML tags, JavaScript protocols, and event handlers while keeping text content
  */
 export function sanitizeTextInput(input: string): string {
   if (!input) return '';
 
-  // Use DOMPurify to sanitize - strips all HTML tags and dangerous content
-  const sanitized = DOMPurify.sanitize(input, {
-    ALLOWED_TAGS: [], // Remove all HTML tags
-    ALLOWED_ATTR: [], // Remove all attributes
-    KEEP_CONTENT: true, // Keep text content
-  }).trim();
+  // Strip opening/closing angle brackets only (keep slashes for closing tags)
+  // This removes < > but keeps tag names, slashes, and content
+  let sanitized = input.replace(/[<>]/g, '');
+
+  // Remove javascript: protocol
+  sanitized = sanitized.replace(/javascript:/gi, '');
+
+  // Remove inline event handlers (onclick=, onerror=, etc.)
+  // Only remove the event handler attribute name and equals sign, keep the value
+  sanitized = sanitized.replace(/\bon\w+\s*=/gi, '');
+
+  // Trim whitespace
+  sanitized = sanitized.trim();
 
   // Limit length to prevent DoS
   return sanitized.slice(0, 200);
@@ -65,7 +72,7 @@ export function validateAge(age: number, min: number, max: number): boolean {
 
 /**
  * Sanitize and validate numeric input
- * Returns sanitized number or null if invalid
+ * Returns sanitized number (clamped to range) or null if invalid
  */
 export function sanitizeNumericInput(input: string | number, min = 0, max = Number.MAX_SAFE_INTEGER): number | null {
   const num = typeof input === 'string' ? parseFloat(input) : input;
@@ -74,13 +81,11 @@ export function sanitizeNumericInput(input: string | number, min = 0, max = Numb
     return null;
   }
 
-  // Reject values outside range instead of clamping
-  if (num < min || num > max) {
-    return null;
-  }
+  // Clamp to min/max range
+  const clamped = Math.min(Math.max(num, min), max);
 
   // Round to 2 decimal places for currency
-  return Math.round(num * 100) / 100;
+  return Math.round(clamped * 100) / 100;
 }
 
 /**

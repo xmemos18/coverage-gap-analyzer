@@ -1,3 +1,10 @@
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About Us - Coverage Gap Analyzer',
+  description: 'Learn about our mission to help snowbirds, remote workers, and multi-residence families find the right health insurance coverage.',
+};
+
 export default function About() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">

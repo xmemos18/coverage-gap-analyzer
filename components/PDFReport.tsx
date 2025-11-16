@@ -327,6 +327,7 @@ export function PDFDownloadButton({
   variant = 'default',
   label,
   description,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   fullReport: _fullReport = false, // TODO: Implement full report variant
   ...pdfProps
 }: PDFDownloadButtonProps) {

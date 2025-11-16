@@ -1,3 +1,10 @@
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Privacy Policy - Coverage Gap Analyzer',
+  description: 'Our privacy policy explains how we collect, use, and protect your personal information.',
+};
+
 export default function Privacy() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">

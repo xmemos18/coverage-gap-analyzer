@@ -31,12 +31,16 @@ interface EligibilityResult {
   inCoverageGap: boolean;
 }
 
+// @future - Planned for detailed cost summary feature
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface CostSummary {
   lowestTotalCost: number;
   highestTotalCost: number;
   recommendedTotalCost: number;
 }
 
+// @future - Planned for risk assessment feature
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface RiskAssessment {
   category: 'low' | 'moderate' | 'high' | 'very-high';
   recommendedReserve: number;
@@ -206,6 +210,7 @@ export function generateRecommendations(input: RecommendationInput): Comprehensi
 /**
  * Module 1: Life Event Analysis
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function analyzeLifeEvents(input: RecommendationInput, _magi: number) {
   const recommendations: Recommendation[] = [];
   const warnings: string[] = [];

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Step1Residences from '../Step1Residences';
 import { Residence, FormErrors } from '@/types';
 import * as zipCodeApi from '@/lib/zipCodeApi';

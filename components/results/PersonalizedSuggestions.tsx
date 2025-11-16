@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { getPriorityColors, getPriorityBadge, getSuggestionIcon } from '@/lib/results-utils';
+import { getPriorityBadge, getSuggestionIcon } from '@/lib/results-utils';
 import { Suggestion } from '@/types';
 
 interface PersonalizedSuggestionsProps {

@@ -69,6 +69,7 @@ export default function ResultsNavigation({ recommendation, formData }: ResultsN
     setMobileMenuOpen(false);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleEmail = (_fullReport: boolean) => {
     // TODO: Implement different email content for full report vs summary
     const subject = encodeURIComponent('My Health Insurance Analysis');

@@ -1,6 +1,12 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// Mock fetch API for tests (simpler than undici polyfill)
+global.fetch = jest.fn() as any;
+global.Headers = class Headers {} as any;
+global.Request = class Request {} as any;
+global.Response = class Response {} as any;
+
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter() {

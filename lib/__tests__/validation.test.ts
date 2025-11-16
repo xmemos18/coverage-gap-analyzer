@@ -220,10 +220,12 @@ describe('Validation Utilities', () => {
   describe('validateIncomeRange', () => {
     it('should accept valid income ranges', () => {
       expect(validateIncomeRange('under-30k').isValid).toBe(true);
-      expect(validateIncomeRange('30k-60k').isValid).toBe(true);
-      expect(validateIncomeRange('60k-90k').isValid).toBe(true);
-      expect(validateIncomeRange('90k-120k').isValid).toBe(true);
-      expect(validateIncomeRange('over-120k').isValid).toBe(true);
+      expect(validateIncomeRange('30k-50k').isValid).toBe(true);
+      expect(validateIncomeRange('50k-75k').isValid).toBe(true);
+      expect(validateIncomeRange('75k-100k').isValid).toBe(true);
+      expect(validateIncomeRange('100k-150k').isValid).toBe(true);
+      expect(validateIncomeRange('150k-plus').isValid).toBe(true);
+      expect(validateIncomeRange('prefer-not-say').isValid).toBe(true);
     });
 
     it('should reject undefined income range', () => {
