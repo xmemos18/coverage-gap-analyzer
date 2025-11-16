@@ -2,17 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import ThemeToggle from './ThemeToggle';
 
 export default function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
 
   // Don't show navigation on results page (has its own ResultsNavigation)
-  // Also don't show on login page
-  if (pathname === '/results' || pathname === '/login') {
+  if (pathname === '/results') {
     return null;
   }
 
@@ -22,13 +20,6 @@ export default function Navigation() {
 
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
-  };
-
-  const handleLogout = () => {
-    // Clear auth cookie
-    document.cookie = 'auth=; path=/; max-age=0';
-    // Redirect to login
-    router.push('/login');
   };
 
   return (
@@ -63,26 +54,6 @@ export default function Navigation() {
               Contact
             </Link>
             <ThemeToggle />
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-              aria-label="Logout"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-              Logout
-            </button>
           </div>
 
           {/* Mobile menu button and theme toggle */}
@@ -139,25 +110,6 @@ export default function Navigation() {
             >
               Contact
             </Link>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 w-full px-4 py-3 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors font-medium"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                />
-              </svg>
-              Logout
-            </button>
           </div>
         </div>
       )}
