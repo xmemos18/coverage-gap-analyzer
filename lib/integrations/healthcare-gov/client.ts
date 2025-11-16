@@ -21,6 +21,8 @@ import type {
   RateArea,
   Place,
   APIError,
+  Household,
+  QualityRating,
 } from './types';
 
 const BASE_URL = 'https://marketplace.api.healthcare.gov/api/v1';
@@ -137,7 +139,7 @@ export class HealthcareGovClient {
   async getPlanWithPremium(
     planId: string,
     place: Place,
-    household?: { income: number; people: any[] }
+    household?: Household
   ): Promise<Plan> {
     return this.request<Plan>(`/plans/${planId}`, {
       method: 'POST',
@@ -185,7 +187,7 @@ export class HealthcareGovClient {
   /**
    * Get Second Lowest Cost Silver Plan
    */
-  async getSLCSP(place: Place, household: any): Promise<Plan> {
+  async getSLCSP(place: Place, household: Household): Promise<Plan> {
     return this.request<Plan>('/households/slcsp', {
       method: 'POST',
       body: JSON.stringify({
@@ -199,7 +201,7 @@ export class HealthcareGovClient {
   /**
    * Get Lowest Cost Silver Plan
    */
-  async getLCSP(place: Place, household: any): Promise<Plan> {
+  async getLCSP(place: Place, household: Household): Promise<Plan> {
     return this.request<Plan>('/households/lcsp', {
       method: 'POST',
       body: JSON.stringify({
@@ -213,7 +215,7 @@ export class HealthcareGovClient {
   /**
    * Get Lowest Cost Bronze Plan
    */
-  async getLCBP(place: Place, household: any): Promise<Plan> {
+  async getLCBP(place: Place, household: Household): Promise<Plan> {
     return this.request<Plan>('/households/lcbp', {
       method: 'POST',
       body: JSON.stringify({
@@ -326,11 +328,11 @@ export class HealthcareGovClient {
    * Autocomplete drug search
    * @param query - Drug name (minimum 3 characters)
    */
-  async autocompleteDrug(query: string): Promise<{ drugs: any[] }> {
+  async autocompleteDrug(query: string): Promise<{ drugs: Array<{ rxcui: string; name: string }> }> {
     if (query.length < 3) {
       throw new Error('Drug query must be at least 3 characters');
     }
-    return this.request<{ drugs: any[] }>(
+    return this.request<{ drugs: Array<{ rxcui: string; name: string }> }>(
       `/drugs/autocomplete?q=${encodeURIComponent(query)}`
     );
   }
@@ -345,8 +347,8 @@ export class HealthcareGovClient {
     query: string,
     limit = 10,
     offset = 0
-  ): Promise<{ drugs: any[] }> {
-    return this.request<{ drugs: any[] }>(
+  ): Promise<{ drugs: Array<{ rxcui: string; name: string }> }> {
+    return this.request<{ drugs: Array<{ rxcui: string; name: string }> }>(
       `/drugs/search?q=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`
     );
   }
@@ -386,11 +388,11 @@ export class HealthcareGovClient {
    * Autocomplete provider search
    * @param query - Provider name (minimum 3 characters)
    */
-  async autocompleteProvider(query: string): Promise<{ providers: any[] }> {
+  async autocompleteProvider(query: string): Promise<{ providers: ProviderSearchResult[] }> {
     if (query.length < 3) {
       throw new Error('Provider query must be at least 3 characters');
     }
-    return this.request<{ providers: any[] }>(
+    return this.request<{ providers: ProviderSearchResult[] }>(
       `/providers/autocomplete?q=${encodeURIComponent(query)}`
     );
   }
@@ -423,8 +425,8 @@ export class HealthcareGovClient {
   async getQualityRatings(
     planId: string,
     year: number
-  ): Promise<{ quality_rating: any }> {
-    return this.request<{ quality_rating: any }>(
+  ): Promise<{ quality_rating: QualityRating }> {
+    return this.request<{ quality_rating: QualityRating }>(
       `/plans/${planId}/quality-ratings?year=${year}`
     );
   }
@@ -443,18 +445,18 @@ export class HealthcareGovClient {
     state?: string,
     limit = 50,
     offset = 0
-  ): Promise<{ issuers: any[] }> {
+  ): Promise<{ issuers: Array<{ id: string; name: string; state: string }> }> {
     const params = new URLSearchParams({ limit: limit.toString(), offset: offset.toString() });
     if (state) params.set('state', state);
-    return this.request<{ issuers: any[] }>(`/issuers?${params.toString()}`);
+    return this.request<{ issuers: Array<{ id: string; name: string; state: string }> }>(`/issuers?${params.toString()}`);
   }
 
   /**
    * Get specific issuer details
    * @param issuerId - Issuer ID
    */
-  async getIssuer(issuerId: string): Promise<any> {
-    return this.request<any>(`/issuers/${issuerId}`);
+  async getIssuer(issuerId: string): Promise<{ id: string; name: string; state: string; url?: string; toll_free?: string }> {
+    return this.request<{ id: string; name: string; state: string; url?: string; toll_free?: string }>(`/issuers/${issuerId}`);
   }
 }
 

@@ -113,8 +113,8 @@ export default function NDAModal({ isOpen, onAccept, onDecline }: NDAModalProps)
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     You acknowledge that the Coverage Gap Analyzer system, including but not limited to its
                     algorithms, data structures, insurance plan information, pricing models, recommendation
-                    engine, source code, design documents, and business processes (collectively, "Confidential
-                    Information") are the exclusive property of the Company and contain valuable trade secrets
+                    engine, source code, design documents, and business processes (collectively, &ldquo;Confidential
+                    Information&rdquo;) are the exclusive property of the Company and contain valuable trade secrets
                     and proprietary information.
                   </p>
 
@@ -141,7 +141,7 @@ export default function NDAModal({ isOpen, onAccept, onDecline }: NDAModalProps)
                   <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300 space-y-2 ml-4 mt-2">
                     <li>Share your access credentials with any other person</li>
                     <li>Attempt to gain unauthorized access to any system components</li>
-                    <li>Interfere with or disrupt the system's operation</li>
+                    <li>Interfere with or disrupt the system&apos;s operation</li>
                     <li>Extract, download, or export data in bulk</li>
                   </ul>
 
@@ -184,7 +184,7 @@ export default function NDAModal({ isOpen, onAccept, onDecline }: NDAModalProps)
 
                   <div className="bg-gray-100 dark:bg-dark-900 border border-gray-300 dark:border-dark-600 rounded-lg p-4 mt-8">
                     <p className="text-sm text-gray-700 dark:text-gray-300 font-semibold">
-                      By clicking "I Accept" below, you acknowledge that you have read, understood, and
+                      By clicking &ldquo;I Accept&rdquo; below, you acknowledge that you have read, understood, and
                       agree to be bound by all terms and conditions of this Non-Disclosure Agreement.
                     </p>
                   </div>

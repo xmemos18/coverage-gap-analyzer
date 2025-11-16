@@ -7,7 +7,7 @@ import { createHealthcareGovClient } from './client';
 import type { Plan, Place, PlanSearchRequest } from './types';
 import { getDb } from '../../../db/client';
 import { acaPlans } from '../../../db/schema/insurance-costs';
-import { eq, and } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 interface SyncOptions {
   states?: string[]; // State codes to sync (defaults to all seeded states)
@@ -114,8 +114,8 @@ export async function syncMarketplacePlans(
             // Rate limiting: wait 1 second between counties
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-          } catch (error) {
-            const errorMsg = `Error syncing ${county.name}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          } catch (_error) {
+            const errorMsg = `Error syncing ${county.name}: ${_error instanceof Error ? _error.message : 'Unknown error'}`;
             console.error(`    ❌ ${errorMsg}`);
             result.errors.push(errorMsg);
           }
@@ -184,7 +184,7 @@ async function getStateCounties(
           zipcode,
         });
       }
-    } catch (error) {
+    } catch (_error) {
       console.warn(`  Warning: Could not get counties for ${zipcode}`);
     }
   }
@@ -200,8 +200,50 @@ function convertAPIPlantoDatabaseRecords(
   apiPlan: Plan,
   place: Place,
   year: number
-): any[] {
-  const records: any[] = [];
+): Array<{
+  state: string;
+  county: string;
+  ratingArea: string;
+  zipCode: string;
+  metalTier: string;
+  planType: string;
+  carrier: string;
+  planName: string;
+  age: number;
+  monthlyPremium: string;
+  tobaccoSurcharge: string;
+  deductible: string;
+  oopMaximum: string;
+  primaryCareVisit: string;
+  specialistVisit: string;
+  networkTier: string;
+  nationalNetwork: boolean;
+  planYear: number;
+  dataSource: string;
+  isActive: boolean;
+}> {
+  const records: Array<{
+    state: string;
+    county: string;
+    ratingArea: string;
+    zipCode: string;
+    metalTier: string;
+    planType: string;
+    carrier: string;
+    planName: string;
+    age: number;
+    monthlyPremium: string;
+    tobaccoSurcharge: string;
+    deductible: string;
+    oopMaximum: string;
+    primaryCareVisit: string;
+    specialistVisit: string;
+    networkTier: string;
+    nationalNetwork: boolean;
+    planYear: number;
+    dataSource: string;
+    isActive: boolean;
+  }> = [];
 
   // Sample ages for premium calculation (Healthcare.gov uses age rating)
   const sampleAges = [21, 25, 30, 35, 40, 45, 50, 55, 60, 64];
