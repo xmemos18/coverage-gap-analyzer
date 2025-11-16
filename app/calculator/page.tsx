@@ -2,6 +2,7 @@
 
 import { useReducer, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { AnimatePresence } from 'framer-motion';
 import { CalculatorFormData, FormErrors } from '@/types';
 import Step1Residences from '@/components/calculator/Step1Residences';
 import Step2Household from '@/components/calculator/Step2Household';
@@ -21,6 +22,7 @@ import SimpleModeToggle from '@/components/SimpleModeToggle';
 import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp';
 import { trackEvent, trackStepCompleted } from '@/lib/analytics';
 import { logger } from '@/lib/logger';
+import { PageTransition, ScaleButton } from '@/components/animations';
 import { useToast } from '@/hooks/useToast';
 import {
   validateZipCodeWithMessage,
@@ -509,18 +511,18 @@ export default function Calculator() {
               We found your previous progress. Would you like to resume?
             </p>
             <div className="flex gap-3">
-              <button
+              <ScaleButton
                 onClick={resumeSavedData}
-                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                className="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
               >
                 Resume
-              </button>
-              <button
+              </ScaleButton>
+              <ScaleButton
                 onClick={clearSavedData}
                 className="px-6 py-2 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
               >
                 Start Fresh
-              </button>
+              </ScaleButton>
             </div>
           </div>
         )}
@@ -633,67 +635,79 @@ export default function Calculator() {
             role="region"
             aria-label={`Step ${formData.currentStep} of ${CALCULATOR_STEPS.TOTAL_STEPS}: ${getStepName(formData.currentStep)}`}
           >
-            {formData.currentStep === CALCULATOR_STEPS.RESIDENCES && (
-              <Step1Residences
-                residences={formData.residences}
-                errors={errors}
-                onUpdate={updateField}
-                onNext={handleNext}
-              />
-            )}
+            <AnimatePresence mode="wait">
+              {formData.currentStep === CALCULATOR_STEPS.RESIDENCES && (
+                <PageTransition key="step-1">
+                  <Step1Residences
+                    residences={formData.residences}
+                    errors={errors}
+                    onUpdate={updateField}
+                    onNext={handleNext}
+                  />
+                </PageTransition>
+              )}
 
-            {formData.currentStep === CALCULATOR_STEPS.HOUSEHOLD && (
-              <Step2Household
-                numAdults={formData.numAdults}
-                adultAges={formData.adultAges}
-                adultsUseTobacco={formData.adultsUseTobacco}
-                numChildren={formData.numChildren}
-                childAges={formData.childAges}
-                childrenUseTobacco={formData.childrenUseTobacco}
-                hasMedicareEligible={formData.hasMedicareEligible}
-                hasEmployerInsurance={formData.hasEmployerInsurance}
-                employerContribution={formData.employerContribution}
-                errors={errors}
-                onUpdate={updateField}
-                onNext={handleNext}
-                onBack={handleBack}
-              />
-            )}
+              {formData.currentStep === CALCULATOR_STEPS.HOUSEHOLD && (
+                <PageTransition key="step-2">
+                  <Step2Household
+                    numAdults={formData.numAdults}
+                    adultAges={formData.adultAges}
+                    adultsUseTobacco={formData.adultsUseTobacco}
+                    numChildren={formData.numChildren}
+                    childAges={formData.childAges}
+                    childrenUseTobacco={formData.childrenUseTobacco}
+                    hasMedicareEligible={formData.hasMedicareEligible}
+                    hasEmployerInsurance={formData.hasEmployerInsurance}
+                    employerContribution={formData.employerContribution}
+                    errors={errors}
+                    onUpdate={updateField}
+                    onNext={handleNext}
+                    onBack={handleBack}
+                  />
+                </PageTransition>
+              )}
 
-            {formData.currentStep === CALCULATOR_STEPS.HEALTH_PROFILE && (
-              <Step2_3HealthProfile
-                hasChronicConditions={formData.hasChronicConditions}
-                chronicConditions={formData.chronicConditions}
-                prescriptionCount={formData.prescriptionCount}
-                providerPreference={formData.providerPreference}
-                errors={errors}
-                onUpdate={updateField}
-                onNext={handleNext}
-                onBack={handleBack}
-              />
-            )}
+              {formData.currentStep === CALCULATOR_STEPS.HEALTH_PROFILE && (
+                <PageTransition key="step-3">
+                  <Step2_3HealthProfile
+                    hasChronicConditions={formData.hasChronicConditions}
+                    chronicConditions={formData.chronicConditions}
+                    prescriptionCount={formData.prescriptionCount}
+                    providerPreference={formData.providerPreference}
+                    errors={errors}
+                    onUpdate={updateField}
+                    onNext={handleNext}
+                    onBack={handleBack}
+                  />
+                </PageTransition>
+              )}
 
-            {formData.currentStep === CALCULATOR_STEPS.CURRENT_INSURANCE && (
-              <Step2_5CurrentInsurance
-                hasCurrentInsurance={formData.hasCurrentInsurance}
-                currentInsurance={formData.currentInsurance}
-                errors={errors}
-                onUpdate={updateField}
-                onNext={handleNext}
-                onBack={handleBack}
-              />
-            )}
+              {formData.currentStep === CALCULATOR_STEPS.CURRENT_INSURANCE && (
+                <PageTransition key="step-4">
+                  <Step2_5CurrentInsurance
+                    hasCurrentInsurance={formData.hasCurrentInsurance}
+                    currentInsurance={formData.currentInsurance}
+                    errors={errors}
+                    onUpdate={updateField}
+                    onNext={handleNext}
+                    onBack={handleBack}
+                  />
+                </PageTransition>
+              )}
 
-            {formData.currentStep === CALCULATOR_STEPS.BUDGET && (
-              <Step3Budget
-                budget={formData.budget}
-                incomeRange={formData.incomeRange}
-                errors={errors}
-                onUpdate={updateField}
-                onSubmit={handleSubmit}
-                onBack={handleBack}
-              />
-            )}
+              {formData.currentStep === CALCULATOR_STEPS.BUDGET && (
+                <PageTransition key="step-5">
+                  <Step3Budget
+                    budget={formData.budget}
+                    incomeRange={formData.incomeRange}
+                    errors={errors}
+                    onUpdate={updateField}
+                    onSubmit={handleSubmit}
+                    onBack={handleBack}
+                  />
+                </PageTransition>
+              )}
+            </AnimatePresence>
           </div>
         </ErrorBoundary>
       </div>
