@@ -10,7 +10,12 @@ import Analytics from "@/components/Analytics";
 import PasswordGate from "@/components/PasswordGate";
 import ClientProviders from "@/components/ClientProviders";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ['300', '400', '500', '600', '700', '800'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   title: "Key Insurance Matters | Multi-State Health Insurance Tool",
