@@ -477,23 +477,26 @@ function ResultsContent() {
             </div>
           )}
 
-          {/* Message when API key is not configured */}
+          {/* Message when marketplace data is not available */}
           {!recommendation.marketplaceDataAvailable && (
             <div className="mt-6 bg-blue-50 border border-blue-200 rounded-2xl p-6 shadow-lg">
               <h4 className="text-base font-bold text-blue-900 mb-3 flex items-center gap-2">
-                <span className="text-xl">💡</span>
-                <span>Want to see real marketplace plans?</span>
+                <span className="text-xl">ℹ️</span>
+                <span>Marketplace Plans Not Available</span>
               </h4>
               <p className="text-sm text-blue-800 mb-4 leading-relaxed">
-                Configure the Healthcare.gov API to show actual plans available in your area with real premium costs.
+                Real-time plan data is not available for your location. This may be because your state uses its own health insurance marketplace instead of Healthcare.gov (such as Covered California, NY State of Health, etc.), or data is not currently available for your area.
+              </p>
+              <p className="text-sm text-blue-800 mb-4 leading-relaxed">
+                The cost estimates shown above are based on national averages and state-specific adjustments.
               </p>
               <a
-                href="https://developer.cms.gov/marketplace-api/key-request.html"
+                href="https://www.healthcare.gov/marketplace-in-your-state/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-xl text-sm font-bold text-blue-700 hover:text-blue-900 border border-blue-200 hover:border-blue-300 transition-colors"
               >
-                <span>Request Free API Key</span>
+                <span>Find Your State Marketplace</span>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
