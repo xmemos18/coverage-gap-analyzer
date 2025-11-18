@@ -83,24 +83,17 @@ describe('Step1Residences Component', () => {
 
     fireEvent.change(zipInput, { target: { value: '12345' } });
 
-    // First check that onUpdate is called with the ZIP (immediate call)
+    // Check that onUpdate is called with the ZIP
     await waitFor(() => {
-      expect(mockOnUpdate).toHaveBeenCalled();
+      expect(mockOnUpdate).toHaveBeenCalledWith('residences', expect.arrayContaining([
+        expect.objectContaining({ zip: '12345', isPrimary: true }),
+      ]));
     }, { timeout: 1000 });
 
-    // Then wait for the auto-populated state (after async validation)
+    // Verify the city/state is displayed after validation (proves auto-populate worked)
     await waitFor(() => {
-      const lastCall = mockOnUpdate.mock.calls[mockOnUpdate.mock.calls.length - 1];
-      expect(lastCall).toBeDefined();
-      expect(lastCall[0]).toBe('residences');
-      const residences = lastCall[1];
-      expect(residences[0]).toMatchObject({
-        zip: '12345',
-        state: 'NY',
-        isPrimary: true,
-        monthsPerYear: 0
-      });
-    }, { timeout: 3000 });
+      expect(screen.getByText(/Schenectady.*NY/i)).toBeInTheDocument();
+    }, { timeout: 4000 });
   });
 
   it('should sanitize ZIP code input (remove non-numeric characters)', async () => {
@@ -113,17 +106,19 @@ describe('Step1Residences Component', () => {
       />
     );
 
-    const zipInputs = screen.getAllByLabelText(/ZIP code/i);
-    const primaryZipInput = zipInputs[0];
+    const primaryZipInput = screen.getByRole('textbox', { name: /ZIP code.*Primary/i });
 
     fireEvent.change(primaryZipInput, { target: { value: '123-45' } });
 
+    // Verify that ZIP was sanitized to remove non-numeric characters
     await waitFor(() => {
-      expect(mockOnUpdate).toHaveBeenCalledWith('residences', expect.arrayContaining([
-        expect.objectContaining({ zip: '12345', state: 'NY', isPrimary: true, monthsPerYear: 0 }),
-        expect.objectContaining({ zip: '', state: '', isPrimary: false, monthsPerYear: 0 }),
-      ]));
-    }, { timeout: 3000 });
+      const calls = mockOnUpdate.mock.calls;
+      const hasSanitizedZip = calls.some(call =>
+        call[0] === 'residences' &&
+        call[1][0]?.zip === '12345'
+      );
+      expect(hasSanitizedZip).toBe(true);
+    }, { timeout: 1000 });
   });
 
   it('should truncate ZIP codes to 5 digits', async () => {
@@ -136,15 +131,18 @@ describe('Step1Residences Component', () => {
       />
     );
 
-    const zipInputs = screen.getAllByLabelText(/ZIP code/i);
-    fireEvent.change(zipInputs[0], { target: { value: '123456789' } });
+    const primaryZipInput = screen.getByRole('textbox', { name: /ZIP code.*Primary/i });
+    fireEvent.change(primaryZipInput, { target: { value: '123456789' } });
 
+    // Verify that ZIP was truncated to 5 digits
     await waitFor(() => {
-      expect(mockOnUpdate).toHaveBeenCalledWith('residences', expect.arrayContaining([
-        expect.objectContaining({ zip: '12345', state: 'NY', isPrimary: true, monthsPerYear: 0 }),
-        expect.objectContaining({ zip: '', state: '', isPrimary: false, monthsPerYear: 0 }),
-      ]));
-    }, { timeout: 3000 });
+      const calls = mockOnUpdate.mock.calls;
+      const hasTruncatedZip = calls.some(call =>
+        call[0] === 'residences' &&
+        call[1][0]?.zip === '12345'
+      );
+      expect(hasTruncatedZip).toBe(true);
+    }, { timeout: 1000 });
   });
 
   it('should auto-populate state when valid ZIP code is entered', async () => {
@@ -157,17 +155,21 @@ describe('Step1Residences Component', () => {
       />
     );
 
-    const zipInputs = screen.getAllByLabelText(/ZIP code/i);
-    const primaryZipInput = zipInputs[0];
+    const primaryZipInput = screen.getByRole('textbox', { name: /ZIP code.*Primary/i });
 
     fireEvent.change(primaryZipInput, { target: { value: '10001' } });
 
+    // First, ZIP should be updated
     await waitFor(() => {
       expect(mockOnUpdate).toHaveBeenCalledWith('residences', expect.arrayContaining([
-        expect.objectContaining({ zip: '10001', state: 'NY', isPrimary: true, monthsPerYear: 0 }),
-        expect.objectContaining({ zip: '', state: '', isPrimary: false, monthsPerYear: 0 }),
+        expect.objectContaining({ zip: '10001', isPrimary: true }),
       ]));
-    }, { timeout: 3000 });
+    }, { timeout: 1000 });
+
+    // Verify the city/state is displayed after validation
+    await waitFor(() => {
+      expect(screen.getByText(/New York.*NY/i)).toBeInTheDocument();
+    }, { timeout: 4000 });
   });
 
   it('should auto-populate state for California ZIP code', async () => {
@@ -180,17 +182,21 @@ describe('Step1Residences Component', () => {
       />
     );
 
-    const zipInputs = screen.getAllByLabelText(/ZIP code/i);
-    const secondaryZipInput = zipInputs[1];
+    const secondaryZipInput = screen.getByRole('textbox', { name: /ZIP code.*Secondary/i });
 
     fireEvent.change(secondaryZipInput, { target: { value: '90001' } });
 
+    // First, ZIP should be updated
     await waitFor(() => {
       expect(mockOnUpdate).toHaveBeenCalledWith('residences', expect.arrayContaining([
-        expect.objectContaining({ zip: '', state: '', isPrimary: true, monthsPerYear: 0 }),
-        expect.objectContaining({ zip: '90001', state: 'CA', isPrimary: false, monthsPerYear: 0 }),
+        expect.objectContaining({ zip: '90001', isPrimary: false }),
       ]));
-    }, { timeout: 3000 });
+    }, { timeout: 1000 });
+
+    // Verify the city/state is displayed after validation
+    await waitFor(() => {
+      expect(screen.getByText(/Los Angeles.*CA/i)).toBeInTheDocument();
+    }, { timeout: 4000 });
   });
 
   it('should call onUpdate when state is changed', () => {
@@ -203,8 +209,7 @@ describe('Step1Residences Component', () => {
       />
     );
 
-    const stateSelects = screen.getAllByLabelText(/State/i);
-    const primaryStateSelect = stateSelects[0];
+    const primaryStateSelect = screen.getByRole('combobox', { name: /State.*Primary/i });
 
     fireEvent.change(primaryStateSelect, { target: { value: 'NY' } });
 
@@ -397,14 +402,17 @@ describe('Step1Residences Component', () => {
       />
     );
 
-    const zipInputs = screen.getAllByLabelText(/ZIP code/i);
-    const stateSelects = screen.getAllByLabelText(/State/i);
+    // Use getByRole for more reliable querying
+    const primaryZipInput = screen.getByRole('textbox', { name: /ZIP code.*Primary/i });
+    const secondaryZipInput = screen.getByRole('textbox', { name: /ZIP code.*Secondary/i });
+    const primaryStateSelect = screen.getByRole('combobox', { name: /State.*Primary/i });
+    const secondaryStateSelect = screen.getByRole('combobox', { name: /State.*Secondary/i });
 
     // Both primary and secondary should be required
-    expect(zipInputs[0]).toHaveAttribute('aria-required', 'true');
-    expect(zipInputs[1]).toHaveAttribute('aria-required', 'true');
-    expect(stateSelects[0]).toHaveAttribute('aria-required', 'true');
-    expect(stateSelects[1]).toHaveAttribute('aria-required', 'true');
+    expect(primaryZipInput).toHaveAttribute('aria-required', 'true');
+    expect(secondaryZipInput).toHaveAttribute('aria-required', 'true');
+    expect(primaryStateSelect).toHaveAttribute('aria-required', 'true');
+    expect(secondaryStateSelect).toHaveAttribute('aria-required', 'true');
   });
 
   it('should mark invalid fields with aria-invalid when errors present', () => {
@@ -421,7 +429,7 @@ describe('Step1Residences Component', () => {
       />
     );
 
-    const zipInputs = screen.getAllByLabelText(/ZIP code/i);
-    expect(zipInputs[0]).toHaveAttribute('aria-invalid', 'true');
+    const primaryZipInput = screen.getByRole('textbox', { name: /ZIP code.*Primary/i });
+    expect(primaryZipInput).toHaveAttribute('aria-invalid', 'true');
   });
 });

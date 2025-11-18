@@ -24,6 +24,8 @@ export default function PremiumLoadingSpinner({
   return (
     <motion.div
       className={`${sizes[size]} ${className} relative`}
+      role="status"
+      aria-live="polite"
       animate={{ rotate: 360 }}
       transition={{
         duration: 1.5,
