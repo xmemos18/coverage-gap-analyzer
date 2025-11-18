@@ -5,8 +5,18 @@
 
 import { getDb } from './client';
 
-// Export the database client instance
-export const db = getDb();
+// Lazy database client - only connects when first accessed
+// This prevents connection attempts during build time
+let dbInstance: ReturnType<typeof getDb> | null = null;
+
+export const db = new Proxy({} as ReturnType<typeof getDb>, {
+  get(_target, prop) {
+    if (!dbInstance) {
+      dbInstance = getDb();
+    }
+    return (dbInstance as any)[prop];
+  }
+});
 
 // Re-export everything from schema for convenience
 export * from './schema';
