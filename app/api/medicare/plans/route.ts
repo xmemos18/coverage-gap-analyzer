@@ -125,7 +125,10 @@ export async function GET(request: NextRequest) {
     // Add cost summaries to each plan
     const plansWithCosts = result.plans.map(plan => {
       if ('maxOutOfPocket' in plan || 'planLetter' in plan) {
-        const costSummary = calculateMedicareCostSummary(plan as any, 'medium');
+        const costSummary = calculateMedicareCostSummary(
+          plan as import('@/types/medicare').MedicareAdvantagePlan | import('@/types/medicare').MedigapPlan,
+          'medium'
+        );
         return {
           ...plan,
           costSummary,
@@ -210,7 +213,7 @@ export async function POST(request: NextRequest) {
     // Add cost summaries
     const plansWithCosts = result.plans.map(plan => {
       const costSummary = calculateMedicareCostSummary(
-        plan as any,
+        plan as import('@/types/medicare').MedicareAdvantagePlan,
         userProfile?.estimatedUsage || 'medium'
       );
       return {

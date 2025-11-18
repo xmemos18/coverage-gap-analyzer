@@ -153,7 +153,7 @@ export interface PartDPlan {
 
 export interface PartDCoverageGap {
   // "Donut hole" details
-  enters At: number; // Dollar amount when coverage gap begins
+  entersAt: number; // Dollar amount when coverage gap begins
   genericCoinsurance: number; // % in gap
   brandCoinsurance: number; // % in gap
 }
