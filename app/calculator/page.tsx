@@ -341,19 +341,9 @@ export default function Calculator() {
   };
 
   const validateStep5 = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    // Network & Financial step - validate required fields
-    if (!formData.financialPriority) {
-      newErrors.financialPriority = 'Please select your financial priority';
-    }
-
-    if (!formData.canAffordUnexpectedBill) {
-      newErrors.canAffordUnexpectedBill = 'Please indicate if you can afford unexpected bills';
-    }
-
-    dispatch({ type: 'SET_ERRORS', errors: newErrors });
-    return Object.keys(newErrors).length === 0;
+    // Network & Financial step - all fields are optional for now
+    // Users can skip if they're not sure, recommendations will use defaults
+    return true;
   };
 
   const validateStep6 = (): boolean => {
