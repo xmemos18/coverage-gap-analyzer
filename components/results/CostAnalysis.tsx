@@ -12,6 +12,8 @@ interface CostAnalysisProps {
   currentCost?: number;
   subsidyAmount?: number;
   costAfterSubsidy?: CostRange;
+  slcspSource?: 'api' | 'estimate' | 'cache';
+  slcspPlanName?: string;
 }
 
 const ANNUAL_INCREASE_RATE = 0.06;
@@ -45,6 +47,8 @@ function CostAnalysis({
   currentCost,
   subsidyAmount = 0,
   costAfterSubsidy,
+  slcspSource,
+  slcspPlanName,
 }: CostAnalysisProps) {
   const [activeTab, setActiveTab] = useState<'glance' | 'comparison' | 'savings'>('glance');
   const [yearsToProject, setYearsToProject] = useState(5);
@@ -367,7 +371,34 @@ function CostAnalysis({
                       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
                         🎁
                       </div>
-                      <h4 className="text-xl md:text-2xl font-bold text-gray-900">Subsidy Impact</h4>
+                      <div className="flex-1">
+                        <h4 className="text-xl md:text-2xl font-bold text-gray-900">Subsidy Impact</h4>
+                        {slcspSource && (
+                          <div className="flex items-center gap-2 mt-2">
+                            {slcspSource === 'api' ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-300">
+                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                Real Healthcare.gov Data
+                              </span>
+                            ) : slcspSource === 'cache' ? (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300">
+                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                Cached API Data
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-300">
+                                <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                                Estimated Data
+                              </span>
+                            )}
+                            {slcspPlanName && slcspSource !== 'estimate' && (
+                              <span className="text-xs text-gray-600">
+                                Based on: {slcspPlanName}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="space-y-6">

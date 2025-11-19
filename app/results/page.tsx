@@ -475,6 +475,8 @@ function ResultsContent() {
             currentCost={hasCurrentInsurance ? currentMonthlyCost : undefined}
             subsidyAmount={recommendation.subsidyAnalysis?.estimatedMonthlySubsidy}
             costAfterSubsidy={recommendation.subsidyAnalysis?.estimatedAfterSubsidyCost}
+            slcspSource={recommendation.subsidyAnalysis?.slcspSource}
+            slcspPlanName={recommendation.subsidyAnalysis?.slcspPlanName}
           />
 
           {/* Real Marketplace Plans (if available) */}

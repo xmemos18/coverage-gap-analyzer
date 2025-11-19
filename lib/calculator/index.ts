@@ -2,7 +2,7 @@ import { CalculatorFormData, InsuranceRecommendation, SubsidyAnalysis, EmployerP
 import { calculateCoverageScore } from './coverage-scoring';
 import { getMedicareRecommendation, getMixedHouseholdRecommendation, getNonMedicareRecommendation } from './recommendations';
 import { addCurrentInsuranceComparison } from './comparison';
-import { calculateSubsidy } from './subsidyCalculator';
+import { calculateSubsidy, calculateSubsidyWithRealSLCSP } from './subsidyCalculator';
 import { compareEmployerToMarketplace } from './employerComparison';
 import { generateAddOnRecommendations } from './addOnRecommendations';
 import { INSURANCE_COSTS } from '@/lib/constants';
@@ -43,12 +43,25 @@ export async function analyzeInsurance(formData: CalculatorFormData): Promise<In
 
   // Only calculate subsidies for non-Medicare households with income data
   if (!allAdultsMedicareEligible && formData.incomeRange) {
-    const subsidyResult = calculateSubsidy(
-      formData.incomeRange,
-      totalAdults,
-      totalChildren,
-      uniqueStates
-    );
+    // Try to use real SLCSP data if ZIP code is available
+    const primaryZip = residences[0]?.zip;
+    const allAges = [...adultAges, ...childAges];
+
+    const subsidyResult = primaryZip && allAges.length === totalHousehold
+      ? await calculateSubsidyWithRealSLCSP(
+          formData.incomeRange,
+          totalAdults,
+          totalChildren,
+          uniqueStates,
+          primaryZip,
+          allAges
+        )
+      : calculateSubsidy(
+          formData.incomeRange,
+          totalAdults,
+          totalChildren,
+          uniqueStates
+        );
 
     // Calculate after-subsidy cost based on recommendation
     const afterSubsidyCost = {
@@ -64,6 +77,10 @@ export async function analyzeInsurance(formData: CalculatorFormData): Promise<In
       fplPercentage: subsidyResult.fplPercentage,
       explanation: subsidyResult.explanation,
       subsidyActionItems: subsidyResult.actionItems,
+      benchmarkPremium: subsidyResult.benchmarkPremium,
+      isRealSLCSP: subsidyResult.isRealSLCSP,
+      slcspSource: subsidyResult.slcspSource,
+      slcspPlanName: subsidyResult.slcspPlanName,
     };
 
     // Compare employer insurance if available

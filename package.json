@@ -21,12 +21,19 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx --env-file=.env.local db/seeds/index.ts",
     "db:reset": "tsx db/scripts/reset.ts",
-    "api:sync": "tsx --env-file=.env.local scripts/sync-healthcare-gov.ts"
+    "api:sync": "tsx --env-file=.env.local scripts/sync-healthcare-gov.ts",
+    "import:cms": "tsx --env-file=.env.local scripts/import-cms-data.ts",
+    "import:cms:counties": "tsx --env-file=.env.local scripts/import-cms-data.ts --counties",
+    "import:cms:slcsp": "tsx --env-file=.env.local scripts/import-cms-data.ts --slcsp",
+    "import:cms:zips": "tsx --env-file=.env.local scripts/import-cms-data.ts --zips",
+    "import:cms:carriers": "tsx --env-file=.env.local scripts/import-cms-data.ts --carriers",
+    "import:cms:validate": "tsx --env-file=.env.local scripts/import-cms-data.ts --validate"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.3.1",
     "@supabase/supabase-js": "^2.81.1",
     "@types/dompurify": "^3.0.5",
+    "csv-parser": "^3.2.0",
     "dompurify": "^3.3.0",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.44.7",

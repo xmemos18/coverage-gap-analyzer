@@ -114,6 +114,11 @@ export interface SubsidyAnalysis {
   fplPercentage: number;
   explanation: string;
   subsidyActionItems: string[];
+  // Real SLCSP data (optional)
+  benchmarkPremium?: number;
+  isRealSLCSP?: boolean;
+  slcspSource?: 'api' | 'estimate' | 'cache';
+  slcspPlanName?: string;
 }
 
 export interface EmployerPlanAnalysis {

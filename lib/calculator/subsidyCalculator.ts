@@ -1,6 +1,8 @@
 /**
  * ACA Subsidy Calculator
  * Calculates premium tax credits and Medicaid eligibility based on Federal Poverty Level (FPL)
+ *
+ * Now supports REAL SLCSP data from Healthcare.gov API for accurate subsidy calculations!
  */
 
 import { getMedicaidApplicationUrl } from './medicaidResources';
@@ -11,6 +13,7 @@ import {
   PREMIUM_CONTRIBUTION_RATE,
   INCOME_RANGE_MIDPOINTS,
 } from '../medicalCostConstants';
+import { getSLCSP, type SLCSPResult } from '../utils/slcsp-lookup';
 
 // 2025 Federal Poverty Level (FPL) Guidelines
 // Source: https://aspe.hhs.gov/poverty-guidelines
@@ -40,6 +43,12 @@ export interface SubsidyResult {
   // Subsidy calculations
   estimatedMonthlySubsidy: number;
   maxAffordablePercentage: number;
+
+  // Benchmark plan data (NEW)
+  benchmarkPremium?: number;
+  isRealSLCSP?: boolean; // Whether SLCSP is from API or estimate
+  slcspSource?: 'api' | 'estimate' | 'cache';
+  slcspPlanName?: string;
 
   // Explanation
   explanation: string;
@@ -91,7 +100,160 @@ function calculateAffordablePercentage(fplPercentage: number): number {
 }
 
 /**
- * Calculate ACA subsidy eligibility and estimated subsidy amount
+ * Calculate ACA subsidy eligibility and estimated subsidy amount (with REAL SLCSP data)
+ *
+ * @param incomeRange - Income range selection
+ * @param numAdults - Number of adults
+ * @param numChildren - Number of children
+ * @param states - Array of state codes
+ * @param zipCode - Optional ZIP code for real SLCSP lookup
+ * @param ages - Optional array of ages for real SLCSP lookup
+ * @returns Subsidy calculation with real or estimated benchmark data
+ */
+export async function calculateSubsidyWithRealSLCSP(
+  incomeRange: string,
+  numAdults: number,
+  numChildren: number,
+  states: string[],
+  zipCode?: string,
+  ages?: number[]
+): Promise<SubsidyResult> {
+  const householdSize = numAdults + numChildren;
+  const estimatedIncome = getEstimatedIncome(incomeRange);
+  const householdFPL = calculateFPL(householdSize);
+  const fplPercentage = (estimatedIncome / householdFPL) * 100;
+
+  // Check if in Medicaid expansion state
+  const primaryState = (states && states.length > 0 && states[0]) ? states[0] : '';
+  const medicaidState = primaryState ? MEDICAID_EXPANSION_STATES.includes(primaryState.toUpperCase()) : false;
+
+  if (!primaryState) {
+    logger.warn('No states provided for subsidy calculation', { incomeRange, householdSize });
+  }
+
+  // Determine Medicaid eligibility
+  const medicaidEligible = medicaidState && fplPercentage < FPL_THRESHOLDS.MEDICAID_EXPANSION;
+
+  // Determine subsidy eligibility (138-400% FPL, or 100-400% in non-expansion states)
+  const subsidyEligible = !medicaidEligible &&
+    fplPercentage >= (medicaidState ? FPL_THRESHOLDS.MEDICAID_EXPANSION : FPL_THRESHOLDS.MEDICAID_NON_EXPANSION) &&
+    fplPercentage <= FPL_THRESHOLDS.PTC_MAX;
+
+  // Get SLCSP (real or estimate)
+  let slcspResult: SLCSPResult | null = null;
+  let benchmarkPremium = householdSize * 500; // Default estimate
+
+  if (subsidyEligible && zipCode && ages && ages.length === householdSize) {
+    try {
+      slcspResult = await getSLCSP(zipCode, householdSize, ages, primaryState);
+      benchmarkPremium = slcspResult.monthlyPremium;
+
+      logger.info('SLCSP lookup for subsidy calculation', {
+        zipCode,
+        householdSize,
+        premium: benchmarkPremium,
+        source: slcspResult.source,
+        isEstimate: slcspResult.isEstimate
+      });
+    } catch (error) {
+      logger.error('Failed to get SLCSP for subsidy calculation', { error, zipCode });
+      // Fall back to estimate
+    }
+  }
+
+  // Calculate subsidy
+  let estimatedMonthlySubsidy = 0;
+  const maxAffordablePercentage = calculateAffordablePercentage(fplPercentage);
+
+  if (subsidyEligible) {
+    const maxAffordableAmount = (estimatedIncome / 12) * maxAffordablePercentage;
+    estimatedMonthlySubsidy = Math.max(0, benchmarkPremium - maxAffordableAmount);
+  }
+
+  // Generate explanation
+  let explanation = '';
+  const actionItems: string[] = [];
+
+  if (medicaidEligible) {
+    const medicaidUrl = getMedicaidApplicationUrl(primaryState);
+
+    explanation = `Based on your household income, you may qualify for Medicaid in ${primaryState}. ` +
+      `Your income is approximately ${fplPercentage.toFixed(0)}% of the Federal Poverty Level, ` +
+      `which is below the 138% threshold for Medicaid expansion states. ` +
+      `Medicaid provides free or low-cost health coverage.`;
+
+    const medicaidSteps = getMedicaidApplicationSteps(primaryState, medicaidUrl);
+
+    actionItems.push(
+      '🎉 Great News: You Likely Qualify for FREE Medicaid Coverage!',
+      '',
+      formatActionStep(medicaidSteps),
+      '',
+      '💡 Why Medicaid is Great:',
+      '→ Usually FREE or very low cost (typically $0-3/month)',
+      '→ Covers doctor visits, hospital care, prescriptions, preventive care',
+      '→ No deductibles or high out-of-pocket costs',
+      '→ Can apply and enroll any time of year (no waiting for open enrollment)',
+      ''
+    );
+  } else if (subsidyEligible) {
+    const dataSource = slcspResult?.isEstimate === false ? 'real marketplace data' : 'estimates';
+
+    explanation = `Based on your household income (approximately ${fplPercentage.toFixed(0)}% of FPL), ` +
+      `you likely qualify for premium tax credits. Using ${dataSource}, your estimated subsidy could be around ` +
+      `$${Math.round(estimatedMonthlySubsidy)}/month, which would reduce your monthly premium costs. ` +
+      `You should pay no more than ${(maxAffordablePercentage * 100).toFixed(1)}% of your income on health insurance.`;
+
+    actionItems.push(
+      `Shop on HealthCare.gov or your state marketplace to see exact subsidy amounts`,
+      `Compare plans after subsidy - you may find very affordable options`,
+      `Bring proof of income when applying (tax returns, pay stubs)`
+    );
+  } else if (fplPercentage > FPL_THRESHOLDS.PTC_MAX) {
+    explanation = `Based on your household income (approximately ${fplPercentage.toFixed(0)}% of FPL), ` +
+      `you do not qualify for premium tax credits as your income exceeds ${FPL_THRESHOLDS.PTC_MAX}% of the Federal Poverty Level. ` +
+      `You can still purchase marketplace plans at full price, or explore employer coverage if available.`;
+
+    actionItems.push(
+      `Compare marketplace plans for the best value`,
+      `Check if employer coverage is available and more affordable`,
+      `Consider high-deductible plans with HSA for tax advantages`
+    );
+  } else {
+    explanation = `You are in the "coverage gap" in ${primaryState}, a state that has not expanded Medicaid. ` +
+      `Your income (${fplPercentage.toFixed(0)}% of FPL) is too high for traditional Medicaid but too low ` +
+      `for marketplace subsidies. You may need to explore alternative options.`;
+
+    actionItems.push(
+      `Check if you qualify for traditional Medicaid based on other factors`,
+      `Look into community health centers for low-cost care`,
+      `Consider short-term health insurance or health sharing ministries (note limitations)`,
+      `Advocate for Medicaid expansion in your state`
+    );
+  }
+
+  return {
+    medicaidEligible,
+    subsidyEligible,
+    estimatedIncome,
+    householdFPL,
+    fplPercentage,
+    estimatedMonthlySubsidy,
+    maxAffordablePercentage,
+    benchmarkPremium,
+    isRealSLCSP: slcspResult ? !slcspResult.isEstimate : false,
+    slcspSource: slcspResult?.source,
+    slcspPlanName: slcspResult?.planName,
+    explanation,
+    medicaidState,
+    actionItems,
+  };
+}
+
+/**
+ * Calculate ACA subsidy eligibility and estimated subsidy amount (LEGACY - uses estimates)
+ *
+ * @deprecated Use calculateSubsidyWithRealSLCSP() for accurate calculations with real SLCSP data
  */
 export function calculateSubsidy(
   incomeRange: string,
