@@ -335,6 +335,28 @@ export default function Calculator() {
   };
 
   const validateStep4 = (): boolean => {
+    // Healthcare Usage step - all fields are optional
+    // No validation required, users can skip if they don't know
+    return true;
+  };
+
+  const validateStep5 = (): boolean => {
+    const newErrors: FormErrors = {};
+
+    // Network & Financial step - validate required fields
+    if (!formData.financialPriority) {
+      newErrors.financialPriority = 'Please select your financial priority';
+    }
+
+    if (!formData.canAffordUnexpectedBill) {
+      newErrors.canAffordUnexpectedBill = 'Please indicate if you can afford unexpected bills';
+    }
+
+    dispatch({ type: 'SET_ERRORS', errors: newErrors });
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep6 = (): boolean => {
     const newErrors: FormErrors = {};
 
     // Only validate if user said they have current insurance
@@ -359,7 +381,7 @@ export default function Calculator() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const validateStep5 = (): boolean => {
+  const validateStep7 = (): boolean => {
     const newErrors: FormErrors = {};
 
     const budgetValidation = validateBudgetWithMessage(formData.budget);
@@ -375,21 +397,29 @@ export default function Calculator() {
     let isValid = false;
 
     switch (formData.currentStep) {
-      case 1:
+      case CALCULATOR_STEPS.RESIDENCES:
         isValid = validateStep1();
         break;
-      case 2:
+      case CALCULATOR_STEPS.HOUSEHOLD:
         isValid = validateStep2();
         break;
-      case 3:
+      case CALCULATOR_STEPS.HEALTH_PROFILE:
         isValid = validateStep3();
         break;
-      case 4:
+      case CALCULATOR_STEPS.HEALTHCARE_USAGE:
         isValid = validateStep4();
         break;
-      case 5:
+      case CALCULATOR_STEPS.NETWORK_FINANCIAL:
         isValid = validateStep5();
         break;
+      case CALCULATOR_STEPS.CURRENT_INSURANCE:
+        isValid = validateStep6();
+        break;
+      case CALCULATOR_STEPS.BUDGET:
+        isValid = validateStep7();
+        break;
+      default:
+        isValid = true;
     }
 
     if (isValid) {
@@ -410,7 +440,7 @@ export default function Calculator() {
       return;
     }
 
-    if (!validateStep5()) {
+    if (!validateStep7()) {
       return;
     }
 
