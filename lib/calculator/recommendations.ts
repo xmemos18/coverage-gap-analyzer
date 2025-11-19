@@ -281,6 +281,7 @@ export function getMedicareRecommendation(
 
   return {
     recommendedInsurance: 'Basic Medicare + Extra Coverage',
+    planType: 'Original Medicare + Medigap',
     householdBreakdown: `${medicareEligibleCount} Medicare-eligible ${medicareEligibleCount === 1 ? 'adult' : 'adults'}`,
     estimatedMonthlyCost: totalCost,
     coverageGapScore: COVERAGE_SCORES.MEDICARE_SCORE,
@@ -377,6 +378,7 @@ export function getMixedHouseholdRecommendation(
 
   return {
     recommendedInsurance: 'Medicare + Extra Coverage for seniors, Nationwide Flexible Plan for others',
+    planType: 'Medicare + Medigap / PPO',
     householdBreakdown: `${medicareEligibleCount} Medicare-eligible, ${nonMedicareAdultCount} under-65 adult(s), ${childCount} ${childCount === 1 ? 'child' : 'children'}`,
     estimatedMonthlyCost: totalCost,
     coverageGapScore: COVERAGE_SCORES.MIXED_HOUSEHOLD_SCORE,
@@ -587,8 +589,19 @@ export async function getNonMedicareRecommendation(
         }))
     : undefined;
 
+  // Determine plan type
+  let planType = 'PPO'; // Default to PPO for flexibility
+  if (marketplaceData?.plans && marketplaceData.plans.length > 0) {
+    // Use the top recommended plan's type
+    planType = marketplaceData.plans[0]?.type || 'PPO';
+  } else if (!healthProfile.isHighUtilization && healthProfile.prescriptionCount === 'none') {
+    // Suggest HDHP + HSA for healthy individuals
+    planType = 'HDHP + HSA';
+  }
+
   return {
     recommendedInsurance: recommendedPlan,
+    planType,
     householdBreakdown,
     estimatedMonthlyCost: totalCost,
     coverageGapScore: coverageScore,

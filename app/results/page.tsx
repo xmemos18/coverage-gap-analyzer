@@ -239,6 +239,7 @@ function ResultsContent() {
   const heroData = {
     score: recommendation.coverageGapScore,
     planType: recommendation.recommendedInsurance,
+    planCategory: recommendation.planType,
     priceRange: recommendation.estimatedMonthlyCost,
     eligibilityDescription: `${numAdults} adult${numAdults !== 1 ? 's' : ''}${numChildren > 0 ? `, ${numChildren} child${numChildren !== 1 ? 'ren' : ''}` : ''} • ${state}`,
   };

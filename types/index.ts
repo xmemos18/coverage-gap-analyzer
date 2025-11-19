@@ -133,6 +133,7 @@ export interface EmployerPlanAnalysis {
 
 export interface InsuranceRecommendation {
   recommendedInsurance: string;
+  planType?: string; // PPO, HMO, EPO, HDHP, POS, etc.
   householdBreakdown: string;
   estimatedMonthlyCost: CostRange;
   coverageGapScore: number; // 0-100
