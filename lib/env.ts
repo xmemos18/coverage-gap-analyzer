@@ -233,13 +233,28 @@ function logValidationResults(result: EnvValidationResult): void {
 // Validate on module load (server-side only)
 if (typeof window === 'undefined') {
   const validationResult = validateEnv();
-  logValidationResults(validationResult);
 
-  // Throw error if critical variables are missing
-  if (!validationResult.isValid) {
-    throw new Error(
-      'Critical environment variables are missing. Please check the console output above.'
-    );
+  // Detect if we're in build phase
+  const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build' ||
+                       process.env.CI === 'true' ||
+                       process.argv.includes('build');
+
+  // During build, only log warnings - don't throw
+  if (isBuildPhase) {
+    if (!validationResult.isValid) {
+      console.warn('\n⚠️  Environment Variable Warnings (Build Phase):');
+      validationResult.errors.forEach(msg => console.warn(msg));
+      console.warn('\nℹ️  These will be validated at runtime. Continuing build...\n');
+    }
+  } else {
+    // At runtime, log and throw if invalid
+    logValidationResults(validationResult);
+
+    if (!validationResult.isValid) {
+      throw new Error(
+        'Critical environment variables are missing. Please check the console output above.'
+      );
+    }
   }
 }
 
