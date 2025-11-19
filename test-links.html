@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Enrollment Links</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 { color: #1e40af; }
+        h2 { color: #3b82f6; margin-top: 30px; }
+        .link-section {
+            background: #f0f9ff;
+            border: 2px solid #3b82f6;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        a {
+            display: inline-block;
+            background: linear-gradient(to right, #2563eb, #4f46e5);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        a:hover {
+            background: linear-gradient(to right, #1d4ed8, #4338ca);
+            transform: translateY(-2px);
+        }
+        code {
+            background: #e5e7eb;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔗 Test Enrollment Links</h1>
+    <p>Click these links to see the enrollment URLs in action:</p>
+
+    <div class="link-section">
+        <h2>1. Healthcare.gov (Federal Marketplace)</h2>
+        <p><strong>Florida ZIP 33101</strong> - Should go to Healthcare.gov with pre-filled ZIP:</p>
+        <a href="https://www.healthcare.gov/see-plans/#/plan/results?zip=33101&state=FL&year=2025" target="_blank">
+            View Healthcare.gov Plans (Florida) →
+        </a>
+        <br><code>URL: healthcare.gov with zip=33101&state=FL</code>
+    </div>
+
+    <div class="link-section">
+        <h2>2. Covered California (State Exchange)</h2>
+        <p><strong>California ZIP 90210</strong> - Should redirect to Covered California:</p>
+        <a href="https://www.coveredca.com" target="_blank">
+            View Covered California Plans →
+        </a>
+        <br><code>URL: coveredca.com</code>
+    </div>
+
+    <div class="link-section">
+        <h2>3. NY State of Health (State Exchange)</h2>
+        <p><strong>New York ZIP 10001</strong> - Should go to NY State of Health:</p>
+        <a href="https://nystateofhealth.ny.gov" target="_blank">
+            View NY State of Health Plans →
+        </a>
+        <br><code>URL: nystateofhealth.ny.gov</code>
+    </div>
+
+    <div class="link-section">
+        <h2>4. Medicare Plan Finder</h2>
+        <p><strong>With pre-filled ZIP code</strong>:</p>
+        <a href="https://www.medicare.gov/plan-compare/?zip=33101&type=ma" target="_blank">
+            View Medicare Advantage Plans (ZIP 33101) →
+        </a>
+        <br><code>URL: medicare.gov with zip=33101</code>
+    </div>
+
+    <h2>📱 Test in Your App:</h2>
+    <div class="link-section">
+        <p>Click here to test the full calculator flow:</p>
+        <a href="http://localhost:3002/results?residenceZips=33101&residenceStates=FL&numAdults=1&adultAges=35&numChildren=0&childAges=&householdIncome=50000&hasMedicareEligible=false&hasEmployerInsurance=false&budget=500">
+            View Results Page (Florida) →
+        </a>
+        <p style="margin-top: 10px; font-size: 14px; color: #64748b;">
+            ⚠️ Note: Real marketplace plans will only show if Healthcare.gov API returns data for Florida.
+            Scroll down and click on a plan card to see the enrollment button.
+        </p>
+    </div>
+</body>
+</html>

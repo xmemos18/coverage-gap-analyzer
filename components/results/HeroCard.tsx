@@ -1,6 +1,8 @@
 'use client';
 
 import { CostRange } from '@/types';
+import { getMarketplaceEnrollmentUrl, getMarketplaceName, getMedicaidEnrollmentUrl } from '@/lib/enrollmentUrls';
+import { getMedicarePlanFinderUrl } from '@/lib/medicareApi';
 
 interface HeroCardProps {
   score: number;
@@ -9,6 +11,8 @@ interface HeroCardProps {
   priceRange: CostRange | 'free' | 'varies';
   eligibilityDescription: string;
   householdSize?: number;
+  zipCode?: string;
+  state?: string;
 }
 
 export default function HeroCard({
@@ -17,6 +21,8 @@ export default function HeroCard({
   planCategory,
   priceRange,
   eligibilityDescription,
+  zipCode,
+  state,
 }: HeroCardProps) {
   // Score color logic
   const getScoreColor = (score: number) => {
@@ -31,6 +37,48 @@ export default function HeroCard({
     if (price === 'varies') return 'Varies by employer';
     return `$${price.low}-$${price.high}/month`;
   };
+
+  // Generate enrollment URL and button text based on plan type
+  const getEnrollmentInfo = () => {
+    const planTypeLower = planType.toLowerCase();
+
+    // Medicare
+    if (planTypeLower.includes('medicare')) {
+      return {
+        url: zipCode ? getMedicarePlanFinderUrl(zipCode, 'advantage') : 'https://www.medicare.gov/plan-compare',
+        text: 'Find Medicare Plans',
+        icon: '🏥',
+      };
+    }
+
+    // Medicaid
+    if (planTypeLower.includes('medicaid') || planTypeLower.includes('chip')) {
+      return {
+        url: getMedicaidEnrollmentUrl(state),
+        text: 'Apply for Medicaid',
+        icon: '📋',
+      };
+    }
+
+    // Employer/COBRA
+    if (planTypeLower.includes('employer') || planTypeLower.includes('cobra')) {
+      return {
+        url: 'https://www.healthcare.gov/have-job-based-coverage/',
+        text: 'Learn About Employer Coverage',
+        icon: '💼',
+      };
+    }
+
+    // ACA Marketplace (default)
+    const marketplaceName = getMarketplaceName(state);
+    return {
+      url: getMarketplaceEnrollmentUrl(state, zipCode),
+      text: `Enroll on ${marketplaceName}`,
+      icon: '🏥',
+    };
+  };
+
+  const enrollmentInfo = getEnrollmentInfo();
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6 md:mb-8">
@@ -110,9 +158,28 @@ export default function HeroCard({
           </p>
 
           {/* Eligibility Description */}
-          <p className="text-sm md:text-base text-gray-600">
+          <p className="text-sm md:text-base text-gray-600 mb-6">
             {eligibilityDescription}
           </p>
+
+          {/* Enrollment CTA Button */}
+          <a
+            href={enrollmentInfo.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white text-lg font-bold rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 group"
+          >
+            <span className="text-2xl">{enrollmentInfo.icon}</span>
+            <span>{enrollmentInfo.text}</span>
+            <svg
+              className="w-6 h-6 transition-transform duration-300 group-hover:translate-x-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </a>
         </div>
       </div>
     </div>

@@ -259,6 +259,8 @@ function ResultsContent() {
     planCategory: recommendation.planType,
     priceRange: recommendation.estimatedMonthlyCost,
     eligibilityDescription: `${numAdults} adult${numAdults !== 1 ? 's' : ''}${numChildren > 0 ? `, ${numChildren} child${numChildren !== 1 ? 'ren' : ''}` : ''} • ${state}`,
+    zipCode: residences[0]?.zip,
+    state: state,
   };
 
   // Get current insurance cost if available
