@@ -49,7 +49,7 @@ function NextStepsSection({ actionItems }: NextStepsSectionProps) {
           const emoji = emojiMatch ? emojiMatch[1] : undefined;
 
           // Extract title (everything between **Step N: and **)
-          const title = stepMatch[2].trim();
+          const title = stepMatch[2]?.trim() || '';
 
           currentStep = { title, emoji, substeps: [] };
         } else if (trimmedItem.startsWith('→') || trimmedItem.startsWith('-') || trimmedItem.startsWith('•')) {

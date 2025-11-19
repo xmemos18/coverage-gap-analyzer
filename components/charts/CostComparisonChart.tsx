@@ -64,7 +64,7 @@ export default function CostComparisonChart({
 
   // Premium Custom Tooltip
   const CustomTooltip = ({ active, payload }: TooltipProps) => {
-    if (active && payload && payload.length) {
+    if (active && payload && payload.length && payload[0]) {
       const data = payload[0].payload;
       return (
         <div className="relative overflow-hidden bg-white rounded-xl shadow-2xl border-2 border-gray-200">

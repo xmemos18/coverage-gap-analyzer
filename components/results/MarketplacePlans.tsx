@@ -87,7 +87,19 @@ export default function MarketplacePlans({ plans }: MarketplacePlansProps) {
     },
   };
 
-  const getMetalColor = (level: string) => metalColors[level] || metalColors.Silver;
+  const getMetalColor = (level: string): {
+    gradient: string;
+    badgeGradient: string;
+    text: string;
+    border: string;
+    iconBg: string;
+  } => metalColors[level] ?? metalColors.Silver ?? {
+    gradient: 'from-gray-600 via-slate-600 to-gray-700',
+    badgeGradient: 'from-gray-500 to-slate-600',
+    text: 'text-slate-800',
+    border: 'border-slate-300',
+    iconBg: 'bg-slate-100'
+  };
 
   return (
     <div className="space-y-8">

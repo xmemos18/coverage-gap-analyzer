@@ -16,9 +16,68 @@ const RETRY_DELAY_MS = API_CONFIG.HEALTHCARE_GOV_RETRY_DELAY_MS;
 // Simple in-memory cache for county lookups (expires after 1 hour)
 const countyCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_DURATION_MS = 60 * 60 * 1000; // 1 hour
+const MAX_CACHE_SIZE = 1000; // Prevent unbounded memory growth
+const CACHE_CLEANUP_INTERVAL_MS = 15 * 60 * 1000; // Clean up every 15 minutes
 
 // Lock mechanism to prevent race conditions
 const pendingRequests = new Map<string, Promise<Response>>();
+
+/**
+ * Clean up expired cache entries to prevent memory leaks
+ */
+function cleanupExpiredCache() {
+  const now = Date.now();
+  let removedCount = 0;
+
+  for (const [key, entry] of countyCache.entries()) {
+    if (now - entry.timestamp >= CACHE_DURATION_MS) {
+      countyCache.delete(key);
+      removedCount++;
+    }
+  }
+
+  if (removedCount > 0) {
+    logger.info(`Cleaned up ${removedCount} expired cache entries`, {
+      remainingEntries: countyCache.size,
+    });
+  }
+}
+
+/**
+ * Evict oldest entries if cache exceeds max size (LRU eviction)
+ */
+function evictOldestIfNeeded() {
+  if (countyCache.size >= MAX_CACHE_SIZE) {
+    // Find and remove the oldest entry
+    let oldestKey: string | null = null;
+    let oldestTimestamp = Date.now();
+
+    for (const [key, entry] of countyCache.entries()) {
+      if (entry.timestamp < oldestTimestamp) {
+        oldestTimestamp = entry.timestamp;
+        oldestKey = key;
+      }
+    }
+
+    if (oldestKey) {
+      countyCache.delete(oldestKey);
+      logger.info('Evicted oldest cache entry (max size reached)', {
+        cacheSize: countyCache.size,
+        maxSize: MAX_CACHE_SIZE,
+      });
+    }
+  }
+}
+
+// Set up periodic cache cleanup to prevent memory leaks
+let cleanupInterval: NodeJS.Timeout | null = null;
+if (!cleanupInterval) {
+  cleanupInterval = setInterval(cleanupExpiredCache, CACHE_CLEANUP_INTERVAL_MS);
+  // Ensure interval doesn't prevent process from exiting
+  if (cleanupInterval.unref) {
+    cleanupInterval.unref();
+  }
+}
 
 /**
  * Fetch with timeout support
@@ -80,7 +139,7 @@ async function fetchWithRetry<T>(
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   context: { params: Promise<{ zipcode: string }> }
 ) {
   const { zipcode } = await context.params;
@@ -162,6 +221,9 @@ export async function GET(
   try {
     const response = await requestPromise;
     const data = await response.json();
+
+    // Evict oldest entry if cache is full
+    evictOldestIfNeeded();
 
     // Cache the result
     countyCache.set(zipcode, { data, timestamp: Date.now() });

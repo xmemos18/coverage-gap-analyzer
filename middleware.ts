@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
   // Authentication disabled - site is publicly accessible
   // To re-enable authentication, uncomment the code below:
 

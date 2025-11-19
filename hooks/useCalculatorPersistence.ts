@@ -29,7 +29,7 @@ interface UseCalculatorPersistenceProps {
 export function useCalculatorPersistence({
   onDataLoaded,
   autoLoad = true,
-  autoSave = false,
+  autoSave: _autoSave = false,
 }: UseCalculatorPersistenceProps = {}) {
 
   /**

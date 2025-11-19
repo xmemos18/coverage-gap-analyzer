@@ -52,7 +52,7 @@ export default function CoverageScoreChart({
   }
 
   const CustomTooltip = ({ active, payload }: TooltipProps) => {
-    if (active && payload && payload.length) {
+    if (active && payload && payload.length && payload[0]) {
       const data = payload[0].payload;
       return (
         <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">

@@ -15,6 +15,7 @@ export function useAutoFocus(enabled = true) {
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [enabled]);
 
   return ref;
@@ -38,6 +39,7 @@ export function useFocusReturn(shouldReturn: boolean) {
         }
       };
     }
+    return undefined;
   }, [shouldReturn]);
 
   return previousFocusRef;
@@ -129,17 +131,13 @@ export function useLiveRegionAnnouncement() {
  */
 export function useFocusVisible() {
   useEffect(() => {
-    let isMouseActive = false;
-
     const handleMouseDown = () => {
-      isMouseActive = true;
       document.body.classList.add('mouse-user');
       document.body.classList.remove('keyboard-user');
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Tab') {
-        isMouseActive = false;
         document.body.classList.add('keyboard-user');
         document.body.classList.remove('mouse-user');
       }

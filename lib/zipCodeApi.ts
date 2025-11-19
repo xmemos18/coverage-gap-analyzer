@@ -207,6 +207,11 @@ export async function validateZipCode(zip: string): Promise<ZipCodeLocation | nu
 
     const place = apiData.places[0];
 
+    // Guard against missing place data
+    if (!place) {
+      throw new Error(`No location data found for ZIP code ${zip}`);
+    }
+
     const location: ZipCodeLocation = {
       zip,
       city: place['place name'],

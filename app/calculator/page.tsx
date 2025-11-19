@@ -116,7 +116,9 @@ export default function Calculator() {
     },
     'alt+c': () => {
       if (!isLoading) {
-        clearSavedData();
+        clearSavedData().catch(err => {
+          logger.error('Error in keyboard shortcut handler', { error: err });
+        });
       }
     },
   }, !showResumePrompt && !isLoading);
@@ -171,45 +173,72 @@ export default function Calculator() {
 
   // Trigger save whenever form changes
   useEffect(() => {
-    void saveToLocalStorage();
+    saveToLocalStorage(); // Async save handled by debounced callback
   }, [formData, saveToLocalStorage]);
 
   const resumeSavedData = async () => {
-    const result = await loadCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+    try {
+      const result = await loadCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
 
-    if (result.success && result.data) {
-      // Remove timestamp before setting form data (if it exists)
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { timestamp: _timestamp, ...formDataWithoutTimestamp } = result.data;
-      dispatch({ type: 'SET_FORM_DATA', data: formDataWithoutTimestamp });
+      if (result.success && result.data) {
+        // Remove timestamp before setting form data (if it exists)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { timestamp: _timestamp, ...formDataWithoutTimestamp } = result.data;
+        dispatch({ type: 'SET_FORM_DATA', data: formDataWithoutTimestamp });
 
-      // Track resume action
-      trackEvent('resume_data_used', {
-        step: formDataWithoutTimestamp.currentStep,
-        step_name: getStepName(formDataWithoutTimestamp.currentStep),
-      });
-    } else {
-      // Failed to load or validate data
-      logger.error('Failed to resume saved calculator data', result.error);
-      // Clear corrupted data and reset form
-      const clearResult = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
-      if (!clearResult.success) {
-        logger.error('Failed to clear corrupted data', clearResult.error);
+        // Track resume action
+        trackEvent('resume_data_used', {
+          step: formDataWithoutTimestamp.currentStep,
+          step_name: getStepName(formDataWithoutTimestamp.currentStep),
+        });
+      } else {
+        // Failed to load or validate data
+        logger.error('Failed to resume saved calculator data', result.error);
+        // Clear corrupted data and reset form
+        const clearResult = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+        if (!clearResult.success) {
+          logger.error('Failed to clear corrupted data', clearResult.error);
+        }
+        // Reset to initial state
+        dispatch({ type: 'RESET_FORM', initialData: INITIAL_FORM_DATA });
       }
-      // Reset to initial state
+
+      dispatch({ type: 'SET_RESUME_PROMPT', show: false });
+    } catch (err) {
+      logger.error('Unexpected error resuming saved data', { error: err });
+      dispatch({ type: 'SET_RESUME_PROMPT', show: false });
       dispatch({ type: 'RESET_FORM', initialData: INITIAL_FORM_DATA });
     }
-
-    dispatch({ type: 'SET_RESUME_PROMPT', show: false });
   };
 
   const clearSavedData = async () => {
-    const result = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
-    if (!result.success) {
-      logger.error('Failed to clear saved calculator data', result.error);
-      // Continue - we'll still reset the form state
+    try {
+      const result = await clearCalculatorData(STORAGE_KEYS.CALCULATOR_DATA);
+      if (!result.success) {
+        logger.error('Failed to clear saved calculator data', result.error);
+        // Continue - we'll still reset the form state
+      }
+      dispatch({ type: 'RESET_FORM', initialData: INITIAL_FORM_DATA });
+    } catch (err) {
+      logger.error('Unexpected error clearing saved data', { error: err });
+      // Still reset the form even if clearing localStorage failed
+      dispatch({ type: 'RESET_FORM', initialData: INITIAL_FORM_DATA });
     }
-    dispatch({ type: 'RESET_FORM', initialData: INITIAL_FORM_DATA });
+  };
+
+  // Safe wrappers for onClick handlers (handles promise rejections)
+  const handleResumeClick = () => {
+    resumeSavedData().catch(err => {
+      logger.error('Error in resume button handler', { error: err });
+      showError('Failed to resume saved data');
+    });
+  };
+
+  const handleClearClick = () => {
+    clearSavedData().catch(err => {
+      logger.error('Error in clear button handler', { error: err });
+      showError('Failed to clear saved data');
+    });
   };
 
   const updateField = <K extends keyof CalculatorFormData>(
@@ -512,13 +541,13 @@ export default function Calculator() {
             </p>
             <div className="flex gap-3">
               <ScaleButton
-                onClick={resumeSavedData}
+                onClick={handleResumeClick}
                 className="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors shadow-md hover:shadow-lg"
               >
                 Resume
               </ScaleButton>
               <ScaleButton
-                onClick={clearSavedData}
+                onClick={handleClearClick}
                 className="px-6 py-2 border-2 border-gray-300 dark:border-dark-600 text-gray-700 dark:text-gray-300 font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-dark-800 transition-colors"
               >
                 Start Fresh
@@ -577,7 +606,7 @@ export default function Calculator() {
           {(formData.currentStep > CALCULATOR_STEPS.RESIDENCES || formData.residences.some(r => r.zip || r.state)) && (
             <div className="text-center mt-4">
               <button
-                onClick={clearSavedData}
+                onClick={handleClearClick}
                 className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 underline"
                 aria-label="Clear form and start over"
               >

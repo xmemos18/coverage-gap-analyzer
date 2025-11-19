@@ -6,6 +6,7 @@
 
 import { CalculatorFormData, Residence, CurrentInsurance } from '@/types';
 import { logger } from './logger';
+import { STORAGE_ERRORS } from './errorMessages';
 
 // Simple lock mechanism to prevent race conditions
 const operationLocks = new Map<string, Promise<unknown>>();
@@ -132,7 +133,7 @@ export async function loadCalculatorData(storageKey: string): Promise<{
     try {
       const saved = localStorage.getItem(storageKey);
       if (!saved) {
-        return { success: false, error: 'No saved data found' };
+        return { success: false, error: STORAGE_ERRORS.NO_DATA };
       }
 
       const parsed = JSON.parse(saved);
@@ -140,7 +141,7 @@ export async function loadCalculatorData(storageKey: string): Promise<{
       // Validate the structure
       if (!validateCalculatorFormData(parsed)) {
         logger.warn('Invalid calculator data structure in localStorage', { storageKey });
-        return { success: false, error: 'Invalid data structure' };
+        return { success: false, error: STORAGE_ERRORS.INVALID_DATA };
       }
 
       return { success: true, data: parsed };
@@ -175,10 +176,10 @@ export async function saveCalculatorData(
     } catch (error) {
       if (error instanceof DOMException && error.name === 'QuotaExceededError') {
         logger.error('localStorage quota exceeded', { storageKey, error });
-        return { success: false, error: 'Storage quota exceeded' };
+        return { success: false, error: STORAGE_ERRORS.QUOTA_EXCEEDED };
       }
       logger.error('Failed to save to localStorage', { storageKey, error });
-      return { success: false, error: 'Failed to save data' };
+      return { success: false, error: STORAGE_ERRORS.SAVE_FAILED };
     }
   });
 }

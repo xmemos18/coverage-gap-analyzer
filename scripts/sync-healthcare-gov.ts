@@ -23,13 +23,19 @@ const options: any = {
 // Parse states
 const statesArg = args.find(arg => arg.startsWith('--states='));
 if (statesArg) {
-  options.states = statesArg.split('=')[1].split(',');
+  const statesValue = statesArg.split('=')[1];
+  if (statesValue) {
+    options.states = statesValue.split(',');
+  }
 }
 
 // Parse year
 const yearArg = args.find(arg => arg.startsWith('--year='));
 if (yearArg) {
-  options.year = parseInt(yearArg.split('=')[1], 10);
+  const yearValue = yearArg.split('=')[1];
+  if (yearValue) {
+    options.year = parseInt(yearValue, 10);
+  }
 }
 
 // Show help

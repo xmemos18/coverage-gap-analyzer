@@ -196,7 +196,7 @@ function getHealthBasedReasoning(healthProfile: HealthProfile): string {
 export function getMedicareRecommendation(
   formData: CalculatorFormData,
   medicareEligibleCount: number,
-  coverageScore: number,
+  _coverageScore: number,
   budget: string,
   states: string[]
 ): InsuranceRecommendation {
@@ -300,7 +300,7 @@ export function getMixedHouseholdRecommendation(
   medicareEligibleCount: number,
   nonMedicareAdultCount: number,
   childCount: number,
-  coverageScore: number,
+  _coverageScore: number,
   budget: string,
   states: string[]
 ): InsuranceRecommendation {

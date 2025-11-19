@@ -85,9 +85,12 @@ export default function Step1Residences({
     // Sanitize ZIP code input
     if (field === 'zip' && typeof value === 'string') {
       const { sanitized } = validateZipCode(value);
+      const existing = updatedResidences[index];
       updatedResidences[index] = {
-        ...updatedResidences[index],
-        [field]: sanitized,
+        zip: sanitized,
+        state: existing?.state || '',
+        isPrimary: existing?.isPrimary ?? false,
+        monthsPerYear: existing?.monthsPerYear ?? 0,
       };
 
       // Clear previous debounce timer
@@ -117,8 +120,12 @@ export default function Step1Residences({
         }));
       }
     } else {
+      const existing = updatedResidences[index];
       updatedResidences[index] = {
-        ...updatedResidences[index],
+        zip: existing?.zip || '',
+        state: existing?.state || '',
+        isPrimary: existing?.isPrimary ?? false,
+        monthsPerYear: existing?.monthsPerYear ?? 0,
         [field]: value,
       };
     }
@@ -140,9 +147,12 @@ export default function Step1Residences({
     if (stateToAutoPopulate.current) {
       const { index, state } = stateToAutoPopulate.current;
       const updatedResidences = [...residences];
+      const existing = updatedResidences[index];
       updatedResidences[index] = {
-        ...updatedResidences[index],
+        zip: existing?.zip || '',
         state,
+        isPrimary: existing?.isPrimary ?? false,
+        monthsPerYear: existing?.monthsPerYear ?? 0,
       };
       onUpdate('residences', updatedResidences);
       stateToAutoPopulate.current = null; // Clear after updating
@@ -157,11 +167,11 @@ export default function Step1Residences({
   const removeResidence = (index: number) => {
     // Can only remove if more than 1 residence (primary residence is required)
     if (residences.length > 1) {
-      const wasRemovingPrimary = residences[index].isPrimary;
+      const wasRemovingPrimary = residences[index]?.isPrimary ?? false;
       const updatedResidences = residences.filter((_, i) => i !== index);
 
       // If we removed the primary residence, set the first one as primary
-      if (wasRemovingPrimary && updatedResidences.length > 0) {
+      if (wasRemovingPrimary && updatedResidences.length > 0 && updatedResidences[0]) {
         updatedResidences[0].isPrimary = true;
       }
 

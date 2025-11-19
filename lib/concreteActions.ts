@@ -143,7 +143,7 @@ export function getPartDShoppingSteps(zipCode?: string): ActionStep {
  * Generate concrete marketplace shopping steps
  */
 export function getMarketplaceShoppingSteps(
-  zipCode?: string,
+  _zipCode?: string,
   state?: string
 ): ActionStep {
   const stateExchanges: Record<string, { name: string; url: string }> = {

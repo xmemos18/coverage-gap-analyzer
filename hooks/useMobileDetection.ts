@@ -120,6 +120,7 @@ export function useLockBodyScroll(lock: boolean) {
         document.body.style.overflow = originalStyle;
       };
     }
+    return undefined;
   }, [lock]);
 }
 

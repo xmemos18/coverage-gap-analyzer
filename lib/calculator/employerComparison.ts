@@ -4,7 +4,7 @@
  */
 
 import { CostRange } from '@/types';
-import { INCOME_RANGE_MIDPOINTS } from './subsidyCalculator';
+import { INCOME_RANGE_MIDPOINTS } from '../medicalCostConstants';
 
 // ACA affordability threshold (2024)
 const AFFORDABILITY_THRESHOLD = 0.0912; // 9.12% of household income
@@ -23,7 +23,7 @@ export interface EmployerPlanAnalysis {
  * Get estimated income from income range
  */
 function getEstimatedIncome(incomeRange: string): number {
-  return INCOME_RANGE_MIDPOINTS[incomeRange] || INCOME_RANGE_MIDPOINTS['prefer-not-say'];
+  return INCOME_RANGE_MIDPOINTS[incomeRange as keyof typeof INCOME_RANGE_MIDPOINTS] || INCOME_RANGE_MIDPOINTS['prefer-not-say'];
 }
 
 /**

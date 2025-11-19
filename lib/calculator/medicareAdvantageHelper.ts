@@ -165,7 +165,7 @@ export function getMedicareAdvantageShoppingTips(states: string[]): string[] {
  * Compare Original Medicare + Medigap vs Medicare Advantage
  */
 export function compareToMedigap(
-  memberCount: number,
+  _memberCount: number,
   isMultiState: boolean
 ): {
   medigapAdvantages: string[];

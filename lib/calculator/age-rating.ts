@@ -102,12 +102,13 @@ export function getAgeRatingFactor(age: number): number {
   }
 
   // Look up exact age in curve
-  if (ACA_AGE_CURVE[clampedAge] !== undefined) {
-    return ACA_AGE_CURVE[clampedAge];
+  const ageCurveValue = ACA_AGE_CURVE[clampedAge];
+  if (ageCurveValue !== undefined) {
+    return ageCurveValue;
   }
 
-  // For ages > 64 not in table, use age 64 rate
-  return ACA_AGE_CURVE[64];
+  // For ages > 64 not in table, use age 64 rate (fallback to 3.0 if not found)
+  return ACA_AGE_CURVE[64] ?? 3.000;
 }
 
 /**
@@ -298,7 +299,9 @@ export function calculateHouseholdPremium(
 
   for (let i = 0; i < ratedChildren; i++) {
     const childAge = children[i];
-    totalPremium += calculateAgeRatedPremium(baseRate, childAge, state, metalTier, false);
+    if (childAge !== undefined) {
+      totalPremium += calculateAgeRatedPremium(baseRate, childAge, state, metalTier, false);
+    }
   }
 
   return Math.round(totalPremium * 100) / 100; // Round to cents

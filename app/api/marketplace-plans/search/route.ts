@@ -6,6 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { API_CONFIG } from '@/lib/constants';
+import { CacheManager, RateLimiter, generateCacheKey } from '@/lib/cache/redis';
 
 const API_BASE_URL = 'https://marketplace.api.healthcare.gov/api/v1';
 const API_KEY = process.env.HEALTHCARE_GOV_API_KEY; // Server-side only
@@ -14,82 +15,23 @@ const MAX_RETRIES = API_CONFIG.HEALTHCARE_GOV_MAX_RETRIES;
 const RETRY_DELAY_MS = API_CONFIG.HEALTHCARE_GOV_RETRY_DELAY_MS;
 
 /**
- * Simple in-memory cache for API responses
+ * Distributed cache for API responses
  * Cache TTL: 24 hours (plan data doesn't change frequently)
  */
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-}
-
-const cache = new Map<string, CacheEntry<unknown>>();
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-const MAX_CACHE_SIZE = 1000; // Prevent unlimited growth
+const cache = new CacheManager('marketplace-plans', 24 * 60 * 60); // 24 hours
 
 /**
- * Rate limiting configuration
- * Limits: 60 requests per minute per IP
+ * Distributed rate limiting
+ * Limits: 10 requests per minute per IP (reduced from 60 for better protection)
  */
-interface RateLimitEntry {
-  count: number;
-  resetTime: number;
-}
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute
+const RATE_LIMIT_WINDOW_SECONDS = 60; // 1 minute
 
-const rateLimitMap = new Map<string, RateLimitEntry>();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minute
-const RATE_LIMIT_MAX_REQUESTS = 60; // 60 requests per minute
-
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetTime: number } {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-
-  if (!entry || now > entry.resetTime) {
-    // New window or expired window
-    const resetTime = now + RATE_LIMIT_WINDOW_MS;
-    rateLimitMap.set(ip, { count: 1, resetTime });
-    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetTime };
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
-    // Rate limit exceeded
-    return { allowed: false, remaining: 0, resetTime: entry.resetTime };
-  }
-
-  // Increment counter
-  entry.count++;
-  return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - entry.count, resetTime: entry.resetTime };
-}
-
-function getCacheKey(type: string, params: Record<string, unknown>): string {
-  return `${type}:${JSON.stringify(params)}`;
-}
-
-function getFromCache<T>(key: string): T | null {
-  const entry = cache.get(key);
-  if (!entry) return null;
-
-  const age = Date.now() - entry.timestamp;
-  if (age > CACHE_TTL_MS) {
-    cache.delete(key);
-    return null;
-  }
-
-  return entry.data as T;
-}
-
-function setInCache<T>(key: string, data: T): void {
-  // Prevent cache from growing too large
-  if (cache.size >= MAX_CACHE_SIZE) {
-    // Remove oldest entry
-    const firstKey = cache.keys().next().value;
-    if (firstKey) cache.delete(firstKey);
-  }
-
-  cache.set(key, {
-    data,
-    timestamp: Date.now(),
-  });
-}
+const rateLimiter = new RateLimiter(
+  'rate-limit:marketplace-api',
+  RATE_LIMIT_MAX_REQUESTS,
+  RATE_LIMIT_WINDOW_SECONDS
+);
 
 /**
  * Fetch with timeout support
@@ -156,7 +98,7 @@ export async function POST(request: NextRequest) {
              request.headers.get('x-real-ip') ||
              'unknown';
 
-  const rateLimit = checkRateLimit(ip);
+  const rateLimit = await rateLimiter.checkLimit(ip);
 
   if (!rateLimit.allowed) {
     const retryAfter = Math.ceil((rateLimit.resetTime - Date.now()) / 1000);
@@ -195,37 +137,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 1: Get county for the ZIP code
-    const countyCacheKey = getCacheKey('county', { zipcode: body.zipcode });
-    let countyData = getFromCache<{ counties?: Array<{ fips: string; state: string; name: string }> }>(countyCacheKey);
+    const countyCacheKey = generateCacheKey('county', { zipcode: body.zipcode });
 
-    if (!countyData) {
-      const countyResponse = await fetchWithRetry(async () => {
-        const res = await fetchWithTimeout(
-          `${API_BASE_URL}/counties/by/zip/${body.zipcode}?apikey=${API_KEY}`,
-          {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-            },
+    const countyData = await cache.wrap<{ counties?: Array<{ fips: string; state: string; name: string }> }>(
+      countyCacheKey,
+      async () => {
+        const countyResponse = await fetchWithRetry(async () => {
+          const res = await fetchWithTimeout(
+            `${API_BASE_URL}/counties/by/zip/${body.zipcode}?apikey=${API_KEY}`,
+            {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+              },
+            }
+          );
+
+          if (!res.ok) {
+            if (res.status === 404) {
+              throw new Error('ZIP_NOT_FOUND');
+            }
+            throw new Error(`API error: ${res.status} ${res.statusText}`);
           }
-        );
 
-        if (!res.ok) {
-          if (res.status === 404) {
-            throw new Error('ZIP_NOT_FOUND');
-          }
-          throw new Error(`API error: ${res.status} ${res.statusText}`);
-        }
+          return res;
+        });
 
-        return res;
-      });
-
-      countyData = await countyResponse.json() as { counties?: Array<{ fips: string; state: string; name: string }> };
-      setInCache(countyCacheKey, countyData);
-      logger.info('County data cached', { zipcode: body.zipcode });
-    } else {
-      logger.info('County data retrieved from cache', { zipcode: body.zipcode });
-    }
+        const data = await countyResponse.json() as { counties?: Array<{ fips: string; state: string; name: string }> };
+        logger.info('County data fetched and cached', { zipcode: body.zipcode });
+        return data;
+      },
+      24 * 60 * 60 // 24 hours
+    );
 
     if (!countyData.counties || countyData.counties.length === 0) {
       logger.error('No counties found for ZIP code', { zipcode: body.zipcode });
@@ -288,8 +231,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Step 3: Search for plans
-    const plansCacheKey = getCacheKey('plans', requestBody as unknown as Record<string, unknown>);
-    let data = getFromCache<unknown>(plansCacheKey);
+    const plansCacheKey = generateCacheKey('plans', requestBody as unknown as Record<string, unknown>);
+    let data = await cache.get<unknown>(plansCacheKey);
 
     if (!data) {
       const response = await fetchWithRetry(async () => {
@@ -313,7 +256,7 @@ export async function POST(request: NextRequest) {
       });
 
       data = await response.json();
-      setInCache(plansCacheKey, data);
+      await cache.set(plansCacheKey, data);
       logger.info('Plan data cached', { zipcode: body.zipcode, year: requestBody.year });
     } else {
       logger.info('Plan data retrieved from cache', { zipcode: body.zipcode, year: requestBody.year });

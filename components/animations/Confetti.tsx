@@ -21,6 +21,7 @@ export default function Confetti({ active, duration = 3000 }: ConfettiProps) {
       const timer = setTimeout(() => setShow(false), duration);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [active, duration]);
 
   if (!show) return null;

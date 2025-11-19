@@ -54,8 +54,13 @@ function piecewise(age: number, points: Array<[number, number]>): number {
 
   // Find surrounding points
   for (let i = 0; i < sorted.length - 1; i++) {
-    const [age1, value1] = sorted[i];
-    const [age2, value2] = sorted[i + 1];
+    const current = sorted[i];
+    const next = sorted[i + 1];
+
+    if (!current || !next) continue;
+
+    const [age1, value1] = current;
+    const [age2, value2] = next;
 
     if (age >= age1 && age <= age2) {
       const t = (age - age1) / (age2 - age1);
@@ -64,8 +69,14 @@ function piecewise(age: number, points: Array<[number, number]>): number {
   }
 
   // Outside range - return nearest endpoint
-  if (age < sorted[0][0]) return sorted[0][1];
-  return sorted[sorted.length - 1][1];
+  const firstPoint = sorted[0];
+  const lastPoint = sorted[sorted.length - 1];
+
+  if (firstPoint && age < firstPoint[0]) return firstPoint[1];
+  if (lastPoint) return lastPoint[1];
+
+  // Fallback if no points exist
+  return 0;
 }
 
 /**

@@ -342,12 +342,12 @@ export default function SavingsCalculator({
         <h4 className="font-semibold text-gray-900 mb-3">Year-by-Year Savings Breakdown</h4>
         <div className="space-y-2">
           {currentProjection.yearlyBreakdown.slice(0, 5).map(({ year, annualCost: currentAnnual }) => {
-            const recommendedAnnual = recommendedProjection.yearlyBreakdown[year - 1].annualCost;
+            const recommendedAnnual = recommendedProjection.yearlyBreakdown[year - 1]?.annualCost ?? 0;
             const yearSavings = currentAnnual - recommendedAnnual;
             const cumulativeSavings = currentProjection.yearlyBreakdown
               .slice(0, year)
               .reduce((sum, c, idx) => {
-                const rec = recommendedProjection.yearlyBreakdown[idx].annualCost;
+                const rec = recommendedProjection.yearlyBreakdown[idx]?.annualCost ?? 0;
                 return sum + (c.annualCost - rec);
               }, 0);
 
@@ -378,7 +378,7 @@ export default function SavingsCalculator({
                   const remainingSavings = currentProjection.yearlyBreakdown
                     .slice(5)
                     .reduce((sum, c, idx) => {
-                      const rec = recommendedProjection.yearlyBreakdown[idx + 5].annualCost;
+                      const rec = recommendedProjection.yearlyBreakdown[idx + 5]?.annualCost ?? 0;
                       return sum + (c.annualCost - rec);
                     }, 0);
                   return `${remainingSavings >= 0 ? '+' : '-'}$${Math.abs(Math.round(remainingSavings)).toLocaleString()}`;

@@ -11,7 +11,7 @@ import { acaPlans } from '../schema/insurance-costs';
  * Generates age-rated premiums for ACA plans
  * ACA uses age curves where premiums increase with age (3:1 ratio max)
  */
-function generateAgeRatedPremiums(basePremium: number, metalTier: string) {
+function generateAgeRatedPremiums(basePremium: number, _metalTier: string) {
   const premiums = [];
 
   // Age rating factors based on CMS age curves

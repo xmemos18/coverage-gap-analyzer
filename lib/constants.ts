@@ -172,7 +172,7 @@ export const STEP_NAMES = [
 export function getStepName(step: number): string {
   const index = step - 1;
   if (index >= 0 && index < STEP_NAMES.length) {
-    return STEP_NAMES[index];
+    return STEP_NAMES[index] ?? 'Unknown Step';
   }
   return 'Unknown Step';
 }

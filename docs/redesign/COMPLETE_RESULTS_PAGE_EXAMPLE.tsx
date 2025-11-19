@@ -21,7 +21,6 @@ import QuickComparisonTable from '@/components/results/QuickComparisonTable';
 import ShoppingTips from '@/components/results/ShoppingTips';
 import CostBreakdownSection from '@/components/results/CostBreakdownSection';
 import CTASection from '@/components/results/CTASection';
-import Accordion from '@/components/ui/Accordion';
 
 // ============================================================================
 // SAMPLE DATA: MEDICARE SCENARIO

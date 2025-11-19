@@ -440,6 +440,11 @@ export function generateTCCRecommendations(
   const best = analyses[0]; // Lowest total cost
   const worst = analyses[analyses.length - 1]; // Highest total cost
 
+  // Guard against empty analyses
+  if (!best || !worst) {
+    return ['Unable to generate recommendations - no plan data available'];
+  }
+
   const savings = worst.totalAnnualCost - best.totalAnnualCost;
 
   // Recommend best value

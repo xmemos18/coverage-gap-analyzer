@@ -70,16 +70,20 @@ export function ImprovedTabNavigation({
 
     if (e.key === 'ArrowRight' && currentIndex < tabs.length - 1) {
       e.preventDefault();
-      onTabChange(tabs[currentIndex + 1].id);
+      const nextTab = tabs[currentIndex + 1];
+      if (nextTab) onTabChange(nextTab.id);
     } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
       e.preventDefault();
-      onTabChange(tabs[currentIndex - 1].id);
+      const prevTab = tabs[currentIndex - 1];
+      if (prevTab) onTabChange(prevTab.id);
     } else if (e.key === 'Home') {
       e.preventDefault();
-      onTabChange(tabs[0].id);
+      const firstTab = tabs[0];
+      if (firstTab) onTabChange(firstTab.id);
     } else if (e.key === 'End') {
       e.preventDefault();
-      onTabChange(tabs[tabs.length - 1].id);
+      const lastTab = tabs[tabs.length - 1];
+      if (lastTab) onTabChange(lastTab.id);
     }
   };
 

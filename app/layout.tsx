@@ -100,8 +100,10 @@ export default function RootLayout({
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
+          id="structured-data"
+        >
+          {JSON.stringify(structuredData)}
+        </script>
       </head>
       <body className={inter.className}>
         <Analytics />

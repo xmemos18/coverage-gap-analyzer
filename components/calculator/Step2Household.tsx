@@ -303,7 +303,7 @@ export default function Step2Household({
                     )}
 
                     {/* Tobacco Usage - Only show for teens (13+) */}
-                    {childAges[index] >= 13 && (
+                    {(childAges[index] ?? 0) >= 13 && (
                       <div className="mt-4">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Does this child use tobacco?

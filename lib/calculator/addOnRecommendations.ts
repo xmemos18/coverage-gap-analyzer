@@ -170,7 +170,7 @@ function calculateRecommendation(
   insurance: AddOnInsurance,
   householdAgeGroups: HouseholdAgeGroup[],
   formData: CalculatorFormData,
-  primaryRecommendation: InsuranceRecommendation
+  _primaryRecommendation: InsuranceRecommendation
 ): AddOnRecommendation {
   const allAges = [...formData.adultAges, ...formData.childAges];
 
@@ -185,7 +185,7 @@ function calculateRecommendation(
   const topReasonCode = 'PREVENTIVE_CARE'; // Default
 
   // Apply modifiers based on form data
-  const modifiers = calculateModifiers(insurance, formData, primaryRecommendation);
+  const modifiers = calculateModifiers(insurance, formData);
   const finalScore = Math.min(100, probabilityScore + modifiers.adjustment);
 
   // Determine final priority based on adjusted score
@@ -259,9 +259,7 @@ function calculateRecommendation(
  */
 function calculateModifiers(
   insurance: AddOnInsurance,
-  formData: CalculatorFormData,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  primaryRecommendation: InsuranceRecommendation
+  formData: CalculatorFormData
 ): { adjustment: number; reasons: string[] } {
   let adjustment = 0;
   const reasons: string[] = [];
@@ -412,7 +410,7 @@ function determineAgeGroup(
   }
 
   // Find the age group with highest recommendation score
-  let topGroup = householdAgeGroups[0];
+  let topGroup: HouseholdAgeGroup | undefined = householdAgeGroups[0];
   let topScore = 0;
 
   for (const group of householdAgeGroups) {
@@ -428,6 +426,9 @@ function determineAgeGroup(
       }
     }
   }
+
+  // Fallback if no group was selected (should not happen due to early return)
+  if (!topGroup) return 'All household members';
 
   return topGroup.groupName;
 }

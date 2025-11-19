@@ -15,11 +15,15 @@ import {
   getRecommendedMedicareType,
 } from '@/lib/medicare/medicarePlanService';
 import type { MedicarePlanSearchParams } from '@/types/medicare';
+import { safeParseFloat, safeParseInt } from '@/lib/validation/numeric';
+import { getCorrelationId, createLoggerContext } from '@/lib/middleware/correlation';
+import { logger } from '@/lib/logger';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
+  const correlationId = getCorrelationId(request);
   try {
     const searchParams = request.nextUrl.searchParams;
 
@@ -30,12 +34,19 @@ export async function GET(request: NextRequest) {
     const planType = searchParams.get('planType') || 'medicare-advantage';
 
     // Filters
-    const maxPremium = searchParams.get('maxPremium')
-      ? parseFloat(searchParams.get('maxPremium')!)
-      : undefined;
-    const minStarRating = searchParams.get('minStarRating')
-      ? parseFloat(searchParams.get('minStarRating')!)
-      : 3.0;
+    const maxPremium = safeParseFloat(searchParams.get('maxPremium'), {
+      min: 0,
+      max: 100000,
+      fieldName: 'maxPremium',
+      throwOnError: false,
+    });
+    const minStarRating = safeParseFloat(searchParams.get('minStarRating'), {
+      min: 0,
+      max: 5,
+      defaultValue: 3.0,
+      fieldName: 'minStarRating',
+      throwOnError: false,
+    }) || 3.0;
 
     // Coverage requirements
     const requiresDrugCoverage = searchParams.get('requiresDrugCoverage') === 'true';
@@ -43,8 +54,20 @@ export async function GET(request: NextRequest) {
     const requiresVision = searchParams.get('requiresVision') === 'true';
 
     // Pagination
-    const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1;
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 20;
+    const page = safeParseInt(searchParams.get('page'), {
+      min: 1,
+      max: 1000,
+      defaultValue: 1,
+      fieldName: 'page',
+      throwOnError: false,
+    }) || 1;
+    const limit = safeParseInt(searchParams.get('limit'), {
+      min: 1,
+      max: 100,
+      defaultValue: 20,
+      fieldName: 'limit',
+      throwOnError: false,
+    }) || 20;
 
     // Multi-state search (for snowbirds)
     const multiState = searchParams.get('multiState') === 'true';
@@ -143,22 +166,30 @@ export async function GET(request: NextRequest) {
       plans: plansWithCosts,
     });
   } catch (error) {
-    console.error('[Medicare API] Error:', error);
+    logger.error('[Medicare API] Error', createLoggerContext(correlationId, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    }));
 
     return NextResponse.json(
       {
         error: 'Failed to search Medicare plans',
         message: error instanceof Error ? error.message : 'Unknown error',
+        correlationId,
       },
       { status: 500 }
     );
   }
 }
 
+// Export handler directly (correlation ID is handled internally)
+export const GET = handleGET;
+
 /**
  * POST endpoint for complex searches with prescription data
  */
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
+  const correlationId = getCorrelationId(request);
   try {
     const body = await request.json();
 
@@ -230,14 +261,21 @@ export async function POST(request: NextRequest) {
       userProfile,
     });
   } catch (error) {
-    console.error('[Medicare API] POST Error:', error);
+    logger.error('[Medicare API] POST Error', createLoggerContext(correlationId, {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    }));
 
     return NextResponse.json(
       {
         error: 'Failed to search Medicare plans',
         message: error instanceof Error ? error.message : 'Unknown error',
+        correlationId,
       },
       { status: 500 }
     );
   }
 }
+
+// Export handler directly (correlation ID is handled internally)
+export const POST = handlePOST;

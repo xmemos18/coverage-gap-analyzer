@@ -6,6 +6,14 @@
 import { db } from '@/db';
 import { medicareAdvantagePlans, medigapPlans, partDPlans } from '@/db/schema';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
+import { logger } from '@/lib/logger';
+import {
+  MEDICARE_PART_B_MONTHLY_PREMIUM,
+  MEDICARE_PART_B_ANNUAL_PREMIUM,
+  MEDICARE_PART_B_DEDUCTIBLE,
+  MEDIGAP_OOP_ESTIMATES,
+  MEDIGAP_MAX_OOP,
+} from '@/lib/medicalCostConstants';
 import type {
   MedicareAdvantagePlan,
   MedigapPlan,
@@ -110,7 +118,7 @@ export async function searchMedicareAdvantagePlans(
       filters: params,
     };
   } catch (error) {
-    console.error('[Medicare Service] Error searching MA plans:', error);
+    logger.error('[Medicare Service] Error searching MA plans', { error });
     throw new Error('Failed to search Medicare Advantage plans');
   }
 }
@@ -136,7 +144,7 @@ export async function getMedicareAdvantagePlanById(
 
     return (plan[0] as unknown as MedicareAdvantagePlan) || null;
   } catch (error) {
-    console.error('[Medicare Service] Error getting MA plan:', error);
+    logger.error('[Medicare Service] Error getting MA plan', { error });
     return null;
   }
 }
@@ -150,7 +158,7 @@ export async function getMedicareAdvantagePlanById(
  */
 export async function searchMedigapPlans(
   state: string,
-  county?: string,
+  _county?: string,
   maxPremium?: number
 ): Promise<MedigapPlan[]> {
   try {
@@ -171,7 +179,7 @@ export async function searchMedigapPlans(
 
     return plans as unknown as MedigapPlan[];
   } catch (error) {
-    console.error('[Medicare Service] Error searching Medigap plans:', error);
+    logger.error('[Medicare Service] Error searching Medigap plans', { error });
     return [];
   }
 }
@@ -197,7 +205,7 @@ export async function getMedigapPlansByLetter(
 
     return plans as unknown as MedigapPlan[];
   } catch (error) {
-    console.error('[Medicare Service] Error getting Medigap plans:', error);
+    logger.error('[Medicare Service] Error getting Medigap plans:', error);
     return [];
   }
 }
@@ -242,7 +250,7 @@ export async function searchPartDPlans(
 
     return plans as unknown as PartDPlan[];
   } catch (error) {
-    console.error('[Medicare Service] Error searching Part D plans:', error);
+    logger.error('[Medicare Service] Error searching Part D plans:', error);
     return [];
   }
 }
@@ -266,9 +274,14 @@ export async function findMultiStateMedicarePlans(
     // Get plans for each state
     const statePlans = await Promise.all(
       states.map(async (state, index) => {
+        const zipCode = zipCodes[index];
+        // Skip if no zip code for this state
+        if (!zipCode) {
+          return { state, plans: [] };
+        }
         const plans = await searchMedicareAdvantagePlans({
           state,
-          zipCode: zipCodes[index],
+          zipCode,
           minStarRating: 3.5,
           limit: 10,
         });
@@ -277,7 +290,18 @@ export async function findMultiStateMedicarePlans(
     );
 
     // Find PPO plans (more travel-friendly)
-    const ppoPlans = statePlans[0].plans.filter(
+    const firstStatePlans = statePlans[0];
+    if (!firstStatePlans || !primaryState) {
+      return {
+        primaryState: primaryState || '',
+        secondaryStates: secondaryStates,
+        availableInAllStates: [],
+        stateSpecificPlans: [],
+        recommendations: [],
+      };
+    }
+
+    const ppoPlans = firstStatePlans.plans.filter(
       plan => (plan as MedicareAdvantagePlan).networkType === 'PPO'
     );
 
@@ -311,7 +335,7 @@ export async function findMultiStateMedicarePlans(
       recommendations,
     };
   } catch (error) {
-    console.error('[Medicare Service] Error analyzing multi-state plans:', error);
+    logger.error('[Medicare Service] Error analyzing multi-state plans:', error);
     throw new Error('Failed to analyze multi-state Medicare options');
   }
 }
@@ -352,17 +376,17 @@ export function calculateMedicareCostSummary(
     };
   } else {
     // Medigap plan - combine with Original Medicare costs
-    const partBPremium = 174.70 * 12; // 2025 standard Part B premium
-    const partBDeductible = 240; // 2025 Part B deductible
+    const partBPremium = MEDICARE_PART_B_ANNUAL_PREMIUM; // 2025 standard Part B premium
+    const partBDeductible = MEDICARE_PART_B_DEDUCTIBLE; // 2025 Part B deductible
 
     // Medigap covers most costs after deductible
-    const estimatedOOP = estimatedUsage === 'high' ? 1000 : 500;
+    const estimatedOOP = estimatedUsage === 'high' ? MEDIGAP_OOP_ESTIMATES.HIGH_USAGE : MEDIGAP_OOP_ESTIMATES.STANDARD;
 
     return {
-      monthlyPremium: monthlyPremium + 174.70, // Medigap + Part B
+      monthlyPremium: monthlyPremium + MEDICARE_PART_B_MONTHLY_PREMIUM, // Medigap + Part B
       annualDeductible: partBDeductible,
       estimatedAnnualCost: annualPremium + partBPremium + partBDeductible + estimatedOOP,
-      worstCaseScenario: annualPremium + partBPremium + partBDeductible + 2000,
+      worstCaseScenario: annualPremium + partBPremium + partBDeductible + MEDIGAP_MAX_OOP,
       bestCaseScenario: annualPremium + partBPremium + partBDeductible,
     };
   }
@@ -382,7 +406,7 @@ export async function estimateDrugCosts(
   // 3. Coverage phase calculations (initial, gap, catastrophic)
 
   // Placeholder implementation
-  console.warn('[Medicare Service] Drug cost estimation not yet implemented');
+  logger.warn('[Medicare Service] Drug cost estimation not yet implemented');
   return [];
 }
 

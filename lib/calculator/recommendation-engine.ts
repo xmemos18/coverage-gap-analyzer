@@ -18,6 +18,7 @@ import { assessActuarialRisk } from './actuarial-models';
 import { STATE_METADATA, isInCoverageGap, isMedicaidEligible } from '../data/state-constants';
 import { analyzeRelocationOpportunity } from './multi-state-analysis';
 import { analyzeAgeTransitions, calculateSpecialEnrollmentPeriod, isOpenEnrollmentPeriod, getNextOpenEnrollment, SpecialEnrollmentReason } from './edge-case-handlers';
+import { DEFAULT_MARKETPLACE_PREMIUM, ESTIMATED_SAVINGS, getEstimatedMedicalCostByAge } from '../medicalCostConstants';
 
 // ============================================================================
 // TYPES
@@ -29,21 +30,6 @@ interface EligibilityResult {
   premiumTaxCredit: boolean;
   monthlyPTC: number;
   inCoverageGap: boolean;
-}
-
-// @future - Planned for detailed cost summary feature
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface CostSummary {
-  lowestTotalCost: number;
-  highestTotalCost: number;
-  recommendedTotalCost: number;
-}
-
-// @future - Planned for risk assessment feature
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-interface RiskAssessment {
-  category: 'low' | 'moderate' | 'high' | 'very-high';
-  recommendedReserve: number;
 }
 
 interface RecommendedPlan {
@@ -323,7 +309,7 @@ function analyzeEligibility(input: RecommendationInput, magi: number) {
   // Calculate PTC if not Medicaid eligible
   if (!medicaidEligible && !inCoverageGap) {
     // Use a sample premium for calculation
-    const samplePremium = STATE_METADATA[input.state]?.baseMonthlyPremium ?? 400;
+    const samplePremium = STATE_METADATA[input.state]?.baseMonthlyPremium ?? DEFAULT_MARKETPLACE_PREMIUM;
     const ptcResult = calculatePremiumTaxCredit(magi, input.householdSize, input.state, samplePremium);
 
     monthlyPTC = ptcResult.monthlyPTC;
@@ -344,7 +330,7 @@ function analyzeEligibility(input: RecommendationInput, magi: number) {
       ],
       action: 'Apply for Medicaid immediately',
       urgency: 'critical',
-      potentialSavings: 5000,
+      potentialSavings: ESTIMATED_SAVINGS.MEDICAID_ANNUAL,
     });
   }
 
@@ -401,7 +387,7 @@ function analyzeEligibility(input: RecommendationInput, magi: number) {
 /**
  * Module 3: Cost & Coverage Analysis
  */
-function analyzeCostsAndCoverage(input: RecommendationInput, magi: number, eligibility: EligibilityResult) {
+function analyzeCostsAndCoverage(input: RecommendationInput, _magi: number, eligibility: EligibilityResult) {
   const recommendations: Recommendation[] = [];
 
   // Get premium range
@@ -427,7 +413,7 @@ function analyzeCostsAndCoverage(input: RecommendationInput, magi: number, eligi
   );
 
   // Analyze total cost of care
-  const expectedMedicalCosts = input.expectedMedicalCosts ?? (input.age < 30 ? 3000 : input.age < 50 ? 5000 : 8000);
+  const expectedMedicalCosts = input.expectedMedicalCosts ?? getEstimatedMedicalCostByAge(input.age);
   const tccAnalysis = analyzeTotalCostOfCare(adjustedRange, expectedMedicalCosts, utilization);
 
   // Recommended plan is the one with lowest total cost
@@ -442,21 +428,23 @@ function analyzeCostsAndCoverage(input: RecommendationInput, magi: number, eligi
     baselineCost: expectedMedicalCosts,
   });
 
-  // Generate cost recommendation
-  recommendations.push({
-    priority: 3,
-    category: 'cost',
-    title: `Best Value: ${recommended.metalTier} Plan`,
-    summary: `Lowest total annual cost: $${recommended.totalAnnualCost.toLocaleString()}`,
-    details: [
-      `Monthly premium: $${Math.round(recommended.annualPremium / 12).toLocaleString()}`,
-      `Estimated out-of-pocket: $${recommended.estimatedOOP.toLocaleString()}`,
-      `Deductible: $${recommended.deductible.toLocaleString()}`,
-      `Out-of-pocket maximum: $${recommended.oopMaximum.toLocaleString()}`,
-    ],
-    action: `Enroll in ${recommended.metalTier} plan`,
-    urgency: 'moderate',
-  });
+  // Generate cost recommendation (only if we have a recommendation)
+  if (recommended) {
+    recommendations.push({
+      priority: 3,
+      category: 'cost',
+      title: `Best Value: ${recommended.metalTier} Plan`,
+      summary: `Lowest total annual cost: $${recommended.totalAnnualCost.toLocaleString()}`,
+      details: [
+        `Monthly premium: $${Math.round(recommended.annualPremium / 12).toLocaleString()}`,
+        `Estimated out-of-pocket: $${recommended.estimatedOOP.toLocaleString()}`,
+        `Deductible: $${recommended.deductible.toLocaleString()}`,
+        `Out-of-pocket maximum: $${recommended.oopMaximum.toLocaleString()}`,
+      ],
+      action: `Enroll in ${recommended.metalTier} plan`,
+      urgency: 'moderate',
+    });
+  }
 
   // Risk-based recommendations
   if (riskProfile.riskCategory === 'high' || riskProfile.riskCategory === 'very-high') {
@@ -475,10 +463,13 @@ function analyzeCostsAndCoverage(input: RecommendationInput, magi: number, eligi
     });
   }
 
+  const lowestCostPlan = tccAnalysis[0];
+  const highestCostPlan = tccAnalysis[tccAnalysis.length - 1];
+
   const costSummary = {
-    lowestTotalCost: tccAnalysis[0].totalAnnualCost,
-    highestTotalCost: tccAnalysis[tccAnalysis.length - 1].totalAnnualCost,
-    recommendedTotalCost: recommended.totalAnnualCost,
+    lowestTotalCost: lowestCostPlan?.totalAnnualCost ?? 0,
+    highestTotalCost: highestCostPlan?.totalAnnualCost ?? 0,
+    recommendedTotalCost: recommended?.totalAnnualCost ?? 0,
   };
 
   const riskAssessment = {
@@ -487,9 +478,9 @@ function analyzeCostsAndCoverage(input: RecommendationInput, magi: number, eligi
   };
 
   const recommendedPlan = {
-    metalTier: recommended.metalTier,
-    monthlyPremium: recommended.annualPremium / 12,
-    estimatedAnnualCost: recommended.totalAnnualCost,
+    metalTier: recommended?.metalTier ?? 'Silver',
+    monthlyPremium: recommended ? recommended.annualPremium / 12 : 0,
+    estimatedAnnualCost: recommended?.totalAnnualCost ?? 0,
     reasoning: `Based on your ${utilization} utilization scenario and ${riskProfile.riskCategory} risk profile`,
   };
 
@@ -533,7 +524,7 @@ function analyzeRelocationOptions(input: RecommendationInput, magi: number) {
 /**
  * Module 5: Planning & Prevention
  */
-function analyzePlanningOpportunities(input: RecommendationInput, magi: number) {
+function analyzePlanningOpportunities(_input: RecommendationInput, magi: number) {
   const recommendations: Recommendation[] = [];
   const nextSteps: Array<{ step: string; deadline?: Date; priority: 'low' | 'moderate' | 'high' | 'critical' }> = [];
 

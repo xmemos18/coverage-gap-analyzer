@@ -18,11 +18,16 @@ export function calculateCoverageScore(states: string[]): number {
 
   // Check if all states are adjacent (regional coverage possible)
   if (states.length === 2) {
-    const isAdjacent = ADJACENT_STATE_PAIRS.some(
-      pair => (pair.includes(states[0]) && pair.includes(states[1]))
-    );
-    if (isAdjacent) {
-      return COVERAGE_SCORES.ADJACENT_STATES;
+    const state1 = states[0];
+    const state2 = states[1];
+
+    if (state1 && state2) {
+      const isAdjacent = ADJACENT_STATE_PAIRS.some(
+        pair => (pair.includes(state1) && pair.includes(state2))
+      );
+      if (isAdjacent) {
+        return COVERAGE_SCORES.ADJACENT_STATES;
+      }
     }
   }
 

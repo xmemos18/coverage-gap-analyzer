@@ -393,9 +393,10 @@ export function assessActuarialRisk(params: {
 
     // Use highest factor plus diminishing returns for additional
     conditionFactors.sort((a, b) => b - a);
-    hccRisk = conditionFactors[0];
+    hccRisk = conditionFactors[0] ?? 1.0;
     for (let i = 1; i < conditionFactors.length; i++) {
-      hccRisk += (conditionFactors[i] - 1.0) * 0.5; // 50% marginal impact
+      const factor = conditionFactors[i] ?? 1.0;
+      hccRisk += (factor - 1.0) * 0.5; // 50% marginal impact
     }
   }
 

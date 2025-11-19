@@ -6,6 +6,11 @@
 import { getMedicaidApplicationUrl } from './medicaidResources';
 import { getMedicaidApplicationSteps, formatActionStep } from '../concreteActions';
 import { logger } from '../logger';
+import {
+  FPL_THRESHOLDS,
+  PREMIUM_CONTRIBUTION_RATE,
+  INCOME_RANGE_MIDPOINTS,
+} from '../medicalCostConstants';
 
 // 2025 Federal Poverty Level (FPL) Guidelines
 // Source: https://aspe.hhs.gov/poverty-guidelines
@@ -20,17 +25,7 @@ const MEDICAID_EXPANSION_STATES = [
   'VT', 'VA', 'WA', 'WV', 'WI',
 ];
 
-// Income range to midpoint mapping (for estimation)
-// FIXED: These keys must match the actual form options
-export const INCOME_RANGE_MIDPOINTS: { [key: string]: number } = {
-  'under-30k': 25000,
-  '30k-50k': 40000,
-  '50k-75k': 62500,
-  '75k-100k': 87500,
-  '100k-150k': 125000,
-  '150k-plus': 175000,
-  'prefer-not-say': 75000, // Assume mid-range for calculation
-};
+// Note: INCOME_RANGE_MIDPOINTS is now imported from medicalCostConstants.ts
 
 export interface SubsidyResult {
   // Eligibility
@@ -70,7 +65,7 @@ function calculateFPL(householdSize: number): number {
  * Get estimated income from income range
  */
 function getEstimatedIncome(incomeRange: string): number {
-  const estimate = INCOME_RANGE_MIDPOINTS[incomeRange];
+  const estimate = INCOME_RANGE_MIDPOINTS[incomeRange as keyof typeof INCOME_RANGE_MIDPOINTS];
 
   if (estimate === undefined) {
     logger.warn('Unknown income range, using default', {
@@ -90,8 +85,8 @@ function calculateAffordablePercentage(fplPercentage: number): number {
   if (fplPercentage <= 150) return 0.02; // 0-2%
   if (fplPercentage <= 200) return 0.04; // 2-4%
   if (fplPercentage <= 250) return 0.065; // 4-6.5%
-  if (fplPercentage <= 300) return 0.085; // 6.5-8.5%
-  if (fplPercentage <= 400) return 0.085; // 8.5%
+  if (fplPercentage <= 300) return PREMIUM_CONTRIBUTION_RATE.STANDARD; // 6.5-8.5%
+  if (fplPercentage <= FPL_THRESHOLDS.PTC_MAX) return PREMIUM_CONTRIBUTION_RATE.STANDARD; // 8.5%
   return 1.0; // No subsidy - 100% of premium
 }
 
@@ -111,7 +106,7 @@ export function calculateSubsidy(
 
   // Check if in Medicaid expansion state
   // Ensure states array is not empty
-  const primaryState = (states && states.length > 0) ? states[0] : '';
+  const primaryState = (states && states.length > 0 && states[0]) ? states[0] : '';
   const medicaidState = primaryState ? MEDICAID_EXPANSION_STATES.includes(primaryState.toUpperCase()) : false;
 
   if (!primaryState) {
@@ -119,10 +114,12 @@ export function calculateSubsidy(
   }
 
   // Determine Medicaid eligibility
-  const medicaidEligible = medicaidState && fplPercentage < 138;
+  const medicaidEligible = medicaidState && fplPercentage < FPL_THRESHOLDS.MEDICAID_EXPANSION;
 
   // Determine subsidy eligibility (138-400% FPL, or 100-400% in non-expansion states)
-  const subsidyEligible = !medicaidEligible && fplPercentage >= (medicaidState ? 138 : 100) && fplPercentage <= 400;
+  const subsidyEligible = !medicaidEligible &&
+    fplPercentage >= (medicaidState ? FPL_THRESHOLDS.MEDICAID_EXPANSION : FPL_THRESHOLDS.MEDICAID_NON_EXPANSION) &&
+    fplPercentage <= FPL_THRESHOLDS.PTC_MAX;
 
   // Calculate subsidy
   let estimatedMonthlySubsidy = 0;
@@ -173,9 +170,9 @@ export function calculateSubsidy(
       `Compare plans after subsidy - you may find very affordable options`,
       `Bring proof of income when applying (tax returns, pay stubs)`
     );
-  } else if (fplPercentage > 400) {
+  } else if (fplPercentage > FPL_THRESHOLDS.PTC_MAX) {
     explanation = `Based on your household income (approximately ${fplPercentage.toFixed(0)}% of FPL), ` +
-      `you do not qualify for premium tax credits as your income exceeds 400% of the Federal Poverty Level. ` +
+      `you do not qualify for premium tax credits as your income exceeds ${FPL_THRESHOLDS.PTC_MAX}% of the Federal Poverty Level. ` +
       `You can still purchase marketplace plans at full price, or explore employer coverage if available.`;
 
     actionItems.push(

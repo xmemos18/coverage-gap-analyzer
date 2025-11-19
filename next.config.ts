@@ -29,7 +29,46 @@ const nextConfig: NextConfig = {
       // "report-uri /api/csp-report",
     ];
 
+    // Get allowed origins from environment variable
+    const allowedOrigins = process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+      : isDev
+      ? ['http://localhost:3000', 'http://localhost:3001']
+      : ['https://keyinsurancematters.com', 'https://www.keyinsurancematters.com'];
+
+    const corsHeaders = [
+      {
+        key: 'Access-Control-Allow-Origin',
+        value: allowedOrigins.join(', '),
+      },
+      {
+        key: 'Access-Control-Allow-Methods',
+        value: 'GET, POST, PUT, DELETE, OPTIONS',
+      },
+      {
+        key: 'Access-Control-Allow-Headers',
+        value: 'Content-Type, Authorization, X-Correlation-ID',
+      },
+      {
+        key: 'Access-Control-Allow-Credentials',
+        value: 'true',
+      },
+      {
+        key: 'Access-Control-Max-Age',
+        value: '86400', // 24 hours
+      },
+      {
+        key: 'Access-Control-Expose-Headers',
+        value: 'X-Correlation-ID, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset',
+      },
+    ];
+
     return [
+      {
+        // CORS headers for API routes
+        source: '/api/:path*',
+        headers: corsHeaders,
+      },
       {
         // Apply security headers to all routes
         source: '/:path*',

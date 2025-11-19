@@ -31,7 +31,7 @@ export default function StickyNavigation({ sections }: StickyNavigationProps) {
 
       for (let i = sectionElements.length - 1; i >= 0; i--) {
         const section = sectionElements[i];
-        if (section.element) {
+        if (section?.element) {
           const rect = section.element.getBoundingClientRect();
           if (rect.top <= 150) {
             setActiveSection(section.id);

@@ -179,10 +179,15 @@ async function getStateCounties(
     try {
       const response = await client.getCountiesByZip(zipcode);
       if (response.counties && response.counties.length > 0) {
-        counties.push({
-          ...response.counties[0],
-          zipcode,
-        });
+        const county = response.counties[0];
+        // Only add if we have required fields
+        if (county && county.fips && county.name) {
+          counties.push({
+            fips: county.fips,
+            name: county.name,
+            zipcode,
+          });
+        }
       }
     } catch (_error) {
       console.warn(`  Warning: Could not get counties for ${zipcode}`);

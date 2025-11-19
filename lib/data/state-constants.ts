@@ -953,7 +953,7 @@ export const ADJACENT_STATES: Record<string, string[]> = {
  */
 export function getNonExpansionStates(): string[] {
   return Object.keys(STATE_METADATA).filter(
-    code => !STATE_METADATA[code].medicaidExpanded
+    code => STATE_METADATA[code] && !STATE_METADATA[code].medicaidExpanded
   );
 }
 
@@ -962,7 +962,7 @@ export function getNonExpansionStates(): string[] {
  */
 export function getExpansionStates(): string[] {
   return Object.keys(STATE_METADATA).filter(
-    code => STATE_METADATA[code].medicaidExpanded
+    code => STATE_METADATA[code] && STATE_METADATA[code].medicaidExpanded
   );
 }
 
@@ -971,7 +971,7 @@ export function getExpansionStates(): string[] {
  */
 export function getPublicOptionStates(): string[] {
   return Object.keys(STATE_METADATA).filter(
-    code => STATE_METADATA[code].hasPublicOption
+    code => STATE_METADATA[code] && STATE_METADATA[code].hasPublicOption
   );
 }
 
@@ -980,7 +980,7 @@ export function getPublicOptionStates(): string[] {
  */
 export function getStatesWithStateSubsidies(): string[] {
   return Object.keys(STATE_METADATA).filter(
-    code => STATE_METADATA[code].hasStateSubsidies
+    code => STATE_METADATA[code] && STATE_METADATA[code].hasStateSubsidies
   );
 }
 

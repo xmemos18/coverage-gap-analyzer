@@ -5,7 +5,7 @@ import { INSURANCE_COSTS, COVERAGE_SCORES, DEDUCTIBLE_RANGES, SUBSIDY_REDUCTION,
  * Generate alternative options for Medicare-eligible households
  */
 export function getMedicareAlternatives(
-  formData: CalculatorFormData,
+  _formData: CalculatorFormData,
   memberCount: number,
   states: string[]
 ): AlternativeOption[] {
@@ -58,7 +58,7 @@ export function getMedicareAlternatives(
  * Generate alternative options for mixed households
  */
 export function getMixedHouseholdAlternatives(
-  formData: CalculatorFormData,
+  _formData: CalculatorFormData,
   medicareCount: number,
   adultCount: number,
   childCount: number,
@@ -128,7 +128,7 @@ export function getMixedHouseholdAlternatives(
  * Generate alternative options for non-Medicare households
  */
 export function getNonMedicareAlternatives(
-  formData: CalculatorFormData,
+  _formData: CalculatorFormData,
   adultCount: number,
   childCount: number,
   states: string[],

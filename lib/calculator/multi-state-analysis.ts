@@ -16,6 +16,7 @@ import { STATE_METADATA, getAdjacentStates } from '../data/state-constants';
 import { calculatePremiumForState } from './age-rating';
 import { calculatePremiumTaxCredit, calculateFPL } from './advanced-subsidy';
 import { analyzeTotalCostOfCare } from './total-cost-of-care';
+import { ESTIMATED_MEDICAL_COSTS_BY_AGE, ESTIMATED_SAVINGS } from '../medicalCostConstants';
 import type { MetalTier } from './age-rating';
 import type { UtilizationScenario } from './total-cost-of-care';
 
@@ -151,11 +152,17 @@ export function analyzeStateCoverage(
   };
 
   // Use age-based expected costs (simplified - could be enhanced)
-  const expectedMedicalCosts = age < 30 ? 3000 : age < 50 ? 5000 : age < 65 ? 8000 : 12000;
+  const expectedMedicalCosts = age < 30
+    ? ESTIMATED_MEDICAL_COSTS_BY_AGE.YOUNG_ADULT
+    : age < 50
+      ? ESTIMATED_MEDICAL_COSTS_BY_AGE.MIDDLE_AGE
+      : age < 65
+        ? ESTIMATED_MEDICAL_COSTS_BY_AGE.OLDER_ADULT
+        : ESTIMATED_MEDICAL_COSTS_BY_AGE.MEDICARE_ELIGIBLE;
 
   const tccAnalysis = analyzeTotalCostOfCare(premiumsByTier, expectedMedicalCosts, utilizationScenario);
   const tierAnalysis = tccAnalysis.find(t => t.metalTier === metalTier);
-  const estimatedAnnualOOP = tierAnalysis?.estimatedOOP ?? 5000;
+  const estimatedAnnualOOP = tierAnalysis?.estimatedOOP ?? ESTIMATED_SAVINGS.DEFAULT_ANNUAL_OOP;
 
   const totalAnnualCost = (netMonthlyPremium * 12) + estimatedAnnualOOP;
 
@@ -271,19 +278,29 @@ export function compareMultipleStates(
   // Sort by overall score (descending)
   analyses.sort((a, b) => b.overallScore - a.overallScore);
 
-  const bestOverall = analyses[0].state;
-  const worstState = analyses[analyses.length - 1].state;
+  // Get best and worst states (guaranteed to exist since states.length > 0)
+  const bestAnalysis = analyses[0];
+  const worstAnalysis = analyses[analyses.length - 1];
+
+  if (!bestAnalysis || !worstAnalysis) {
+    throw new Error('Failed to analyze states');
+  }
+
+  const bestOverall = bestAnalysis.state;
+  const worstState = worstAnalysis.state;
 
   // Find best for specific criteria
   const sortedByAffordability = [...analyses].sort((a, b) => b.affordabilityScore - a.affordabilityScore);
-  const bestAffordability = sortedByAffordability[0].state;
+  const bestAffordabilityAnalysis = sortedByAffordability[0];
+  const bestAffordability = bestAffordabilityAnalysis?.state ?? bestOverall;
 
   const sortedByAccess = [...analyses].sort((a, b) => b.accessScore - a.accessScore);
-  const bestAccess = sortedByAccess[0].state;
+  const bestAccessAnalysis = sortedByAccess[0];
+  const bestAccess = bestAccessAnalysis?.state ?? bestOverall;
 
   // Calculate savings
-  const bestCost = analyses[0].totalAnnualCost;
-  const worstCost = analyses[analyses.length - 1].totalAnnualCost;
+  const bestCost = bestAnalysis.totalAnnualCost;
+  const worstCost = worstAnalysis.totalAnnualCost;
   const annualSavingsBestVsWorst = worstCost - bestCost;
   const monthlyDifferenceBestVsWorst = annualSavingsBestVsWorst / 12;
 
@@ -342,7 +359,7 @@ function generateInsights(analyses: StateCoverageAnalysis[], _input: StateCompar
   const maxCost = Math.max(...costs);
   const costRange = maxCost - minCost;
 
-  if (costRange > 5000) {
+  if (costRange > ESTIMATED_SAVINGS.COST_VARIATION_THRESHOLD) {
     insights.push(
       `Significant cost variation: Annual costs range from $${minCost.toLocaleString()} to ` +
       `$${maxCost.toLocaleString()} (difference of $${costRange.toLocaleString()}).`
@@ -378,6 +395,11 @@ function generateRecommendations(analyses: StateCoverageAnalysis[], _input: Stat
 
   const best = analyses[0];
   const worst = analyses[analyses.length - 1];
+
+  // Guard against empty analyses
+  if (!best || !worst) {
+    return ['Unable to generate recommendations - no state data available'];
+  }
 
   // Primary recommendation
   recommendations.push(
@@ -459,11 +481,12 @@ export function analyzeBorderStates(
     }))
     .sort((a, b) => b.annualSavings - a.annualSavings);
 
-  const shouldConsiderMoving = betterOptions.length > 0 && betterOptions[0].annualSavings > 3000;
+  const bestOption = betterOptions[0];
+  const shouldConsiderMoving = Boolean(bestOption && bestOption.annualSavings > ESTIMATED_SAVINGS.RELOCATION_THRESHOLD);
 
-  const primaryRecommendation = shouldConsiderMoving
-    ? `Consider moving to ${STATE_METADATA[betterOptions[0].state].name} to save ` +
-      `$${Math.round(betterOptions[0].annualSavings).toLocaleString()}/year. ${betterOptions[0].reason}`
+  const primaryRecommendation = shouldConsiderMoving && bestOption
+    ? `Consider moving to ${STATE_METADATA[bestOption.state]?.name ?? bestOption.state} to save ` +
+      `$${Math.round(bestOption.annualSavings).toLocaleString()}/year. ${bestOption.reason}`
     : null;
 
   return {
@@ -533,7 +556,7 @@ export function analyzeRelocationOpportunity(
   // Find best alternative (excluding current state)
   const alternatives = comparison.states.filter(s => s.state !== currentState);
   if (alternatives.length > 0) {
-    bestAlternative = alternatives[0]; // Already sorted by overall score
+    bestAlternative = alternatives[0] ?? null; // Already sorted by overall score
   }
 
   if (!bestAlternative) {
@@ -651,7 +674,6 @@ export function compareTwoStates(
   const annualDifference = Math.abs(analysis1.totalAnnualCost - analysis2.totalAnnualCost);
 
   const better = betterState === state1 ? analysis1 : analysis2;
-  const _worse = betterState === state1 ? analysis2 : analysis1;
 
   const recommendation =
     `${better.stateName} is the better choice, saving $${Math.round(annualDifference).toLocaleString()}/year. ` +

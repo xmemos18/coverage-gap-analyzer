@@ -1,5 +1,6 @@
 import { VALIDATION } from './constants';
 import DOMPurify from 'dompurify';
+import { VALIDATION_ERRORS } from './errorMessages';
 
 /**
  * Input validation and sanitization utilities
@@ -8,27 +9,31 @@ import DOMPurify from 'dompurify';
 
 /**
  * Sanitize text input to prevent XSS attacks
- * Strips HTML tags, JavaScript protocols, and event handlers while keeping text content
+ * Uses DOMPurify to remove all potentially dangerous content while preserving text
+ *
+ * @param input - Raw text input from user
+ * @param maxLength - Maximum length (default: 200 characters)
+ * @returns Sanitized text safe for display and storage
+ *
+ * @example
+ * ```typescript
+ * sanitizeTextInput('<script>alert("xss")</script>Hello'); // 'Hello'
+ * sanitizeTextInput('javascript:alert(1)'); // ''
+ * sanitizeTextInput('<img src=x onerror=alert(1)>'); // ''
+ * ```
  */
-export function sanitizeTextInput(input: string): string {
+export function sanitizeTextInput(input: string, maxLength: number = 200): string {
   if (!input) return '';
 
-  // Strip opening/closing angle brackets only (keep slashes for closing tags)
-  // This removes < > but keeps tag names, slashes, and content
-  let sanitized = input.replace(/[<>]/g, '');
-
-  // Remove javascript: protocol
-  sanitized = sanitized.replace(/javascript:/gi, '');
-
-  // Remove inline event handlers (onclick=, onerror=, etc.)
-  // Only remove the event handler attribute name and equals sign, keep the value
-  sanitized = sanitized.replace(/\bon\w+\s*=/gi, '');
-
-  // Trim whitespace
-  sanitized = sanitized.trim();
+  // Use DOMPurify to sanitize - strips all HTML tags and dangerous content
+  const sanitized = DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: [], // Remove all HTML tags
+    ALLOWED_ATTR: [], // Remove all attributes
+    KEEP_CONTENT: true, // Keep text content
+  }).trim();
 
   // Limit length to prevent DoS
-  return sanitized.slice(0, 200);
+  return sanitized.slice(0, maxLength);
 }
 
 /**
@@ -40,24 +45,28 @@ export function validateZipCode(zip: string): { isValid: boolean; sanitized: str
 
   // Check length
   if (sanitized.length !== VALIDATION.ZIP_CODE_LENGTH) {
-    return { isValid: false, sanitized, error: 'ZIP code must be exactly 5 digits' };
+    return { isValid: false, sanitized, error: VALIDATION_ERRORS.ZIP_INVALID_FORMAT };
   }
 
   // Reject obviously invalid ZIP codes
   if (sanitized === '00000') {
-    return { isValid: false, sanitized, error: 'Invalid ZIP code' };
+    return { isValid: false, sanitized, error: VALIDATION_ERRORS.ZIP_INVALID };
   }
 
   // Reject ZIP codes with all same digits (likely invalid)
   if (/^(\d)\1{4}$/.test(sanitized) && sanitized !== '11111') {
     // 11111 is a valid ZIP code (Massapequa, NY)
-    return { isValid: false, sanitized, error: 'Invalid ZIP code' };
+    return { isValid: false, sanitized, error: VALIDATION_ERRORS.ZIP_INVALID };
   }
 
   // First digit should be 0-9 (all US ZIP codes start with these)
-  const firstDigit = parseInt(sanitized[0]);
+  const firstChar = sanitized[0];
+  if (!firstChar) {
+    return { isValid: false, sanitized, error: VALIDATION_ERRORS.ZIP_INVALID };
+  }
+  const firstDigit = parseInt(firstChar);
   if (firstDigit < 0 || firstDigit > 9) {
-    return { isValid: false, sanitized, error: 'Invalid ZIP code' };
+    return { isValid: false, sanitized, error: VALIDATION_ERRORS.ZIP_INVALID };
   }
 
   return { isValid: true, sanitized };
@@ -158,7 +167,7 @@ export function validateResidenceTimeDistribution(residences: Array<{ monthsPerY
     return {
       isValid: false,
       totalMonths,
-      error: `Total time across all residences is ${totalMonths} months, but cannot exceed 12 months per year`,
+      error: `${VALIDATION_ERRORS.RESIDENCE_TIME_INVALID} (${totalMonths} months specified)`,
     };
   }
 
@@ -166,7 +175,7 @@ export function validateResidenceTimeDistribution(residences: Array<{ monthsPerY
     return {
       isValid: false,
       totalMonths,
-      error: 'Time spent at residences cannot be negative',
+      error: VALIDATION_ERRORS.RESIDENCE_TIME_NEGATIVE,
     };
   }
 
@@ -186,14 +195,14 @@ export function validateIncomeRange(incomeRange: string | undefined): {
   if (!incomeRange) {
     return {
       isValid: false,
-      error: 'Please select an income range to calculate subsidy eligibility',
+      error: VALIDATION_ERRORS.INCOME_REQUIRED,
     };
   }
 
   if (!validRanges.includes(incomeRange)) {
     return {
       isValid: false,
-      error: 'Invalid income range selected',
+      error: VALIDATION_ERRORS.INCOME_INVALID,
     };
   }
 

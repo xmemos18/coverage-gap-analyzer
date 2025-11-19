@@ -21,6 +21,7 @@ import ValidationError from '@/components/results/ValidationError';
 import { trackEvent, trackCalculatorCompleted } from '@/lib/analytics';
 import { validateURLParameters, getValidationSummary } from '@/lib/urlValidation';
 import { logger, devLogger } from '@/lib/logger';
+import { safeParseInt, safeParseFloat } from '@/lib/validation/numeric';
 import CollapsibleSection from '@/components/results/CollapsibleSection';
 import ResultsNavigation from '@/components/results/ResultsNavigation';
 import MedicarePlanFinderLink from '@/components/results/MedicarePlanFinderLink';
@@ -29,10 +30,15 @@ import StickyNavigation from '@/components/results/StickyNavigation';
 import BackToTop from '@/components/results/BackToTop';
 import { FadeIn, SlideIn, Confetti, ScaleButton } from '@/components/animations';
 
-// Lazy load heavy components
+// Lazy load heavy components with their skeletons
 const PlanComparisonTable = lazy(() => import('@/components/results/PlanComparisonTable'));
 const CostComparisonChart = lazy(() => import('@/components/charts/CostComparisonChart'));
 const MarketplacePlans = lazy(() => import('@/components/results/MarketplacePlans'));
+
+// Import skeleton components for better loading UX
+import PlanComparisonTableSkeleton from '@/components/results/PlanComparisonTableSkeleton';
+import CostComparisonChartSkeleton from '@/components/results/CostComparisonChartSkeleton';
+import MarketplacePlansSkeleton from '@/components/results/MarketplacePlansSkeleton';
 
 function ResultsContent() {
   const searchParams = useSearchParams();
@@ -73,23 +79,26 @@ function ResultsContent() {
 
   const { residenceZips, residenceStates, residences, adultAges, childAges, chronicConditions } = parsedParams;
 
-  const safeParseInt = (value: string | null, defaultValue: number = 0): number => {
-    if (!value) return defaultValue;
-    const parsed = parseInt(value, 10);
-    return isNaN(parsed) ? defaultValue : Math.max(0, parsed);
-  };
-
-  const safeParseFloat = (value: string | null, defaultValue: number = 0): number => {
-    if (!value) return defaultValue;
-    const parsed = parseFloat(value);
-    return isNaN(parsed) ? defaultValue : Math.max(0, parsed);
-  };
-
-  const numAdults = safeParseInt(searchParams.get('numAdults'), 0);
-  const numChildren = safeParseInt(searchParams.get('numChildren'), 0);
+  const numAdults = safeParseInt(searchParams.get('numAdults'), {
+    min: 0,
+    max: 20,
+    defaultValue: 0,
+    throwOnError: false,
+  }) || 0;
+  const numChildren = safeParseInt(searchParams.get('numChildren'), {
+    min: 0,
+    max: 20,
+    defaultValue: 0,
+    throwOnError: false,
+  }) || 0;
   const hasMedicareEligible = searchParams.get('hasMedicareEligible') === 'true';
   const hasEmployerInsurance = searchParams.get('hasEmployerInsurance') === 'true';
-  const employerContribution = safeParseInt(searchParams.get('employerContribution'), 0);
+  const employerContribution = safeParseInt(searchParams.get('employerContribution'), {
+    min: 0,
+    max: 1000000,
+    defaultValue: 0,
+    throwOnError: false,
+  }) || 0;
   const hasChronicConditions = searchParams.get('hasChronicConditions') === 'true';
   const prescriptionCount = searchParams.get('prescriptionCount') || '';
   const providerPreference = searchParams.get('providerPreference') || '';
@@ -99,9 +108,9 @@ function ResultsContent() {
   const hasCurrentInsurance = searchParams.get('hasCurrentInsurance') === 'true';
   const currentCarrier = searchParams.get('currentCarrier') || '';
   const currentPlanType = searchParams.get('currentPlanType') || '';
-  const currentMonthlyCost = safeParseFloat(searchParams.get('currentMonthlyCost'), 0);
-  const currentDeductible = safeParseFloat(searchParams.get('currentDeductible'), 0);
-  const currentOutOfPocketMax = safeParseFloat(searchParams.get('currentOutOfPocketMax'), 0);
+  const currentMonthlyCost = safeParseFloat(searchParams.get('currentMonthlyCost'), { defaultValue: 0, throwOnError: false }) ?? 0;
+  const currentDeductible = safeParseFloat(searchParams.get('currentDeductible'), { defaultValue: 0, throwOnError: false }) ?? 0;
+  const currentOutOfPocketMax = safeParseFloat(searchParams.get('currentOutOfPocketMax'), { defaultValue: 0, throwOnError: false }) ?? 0;
   const currentCoverageNotes = searchParams.get('currentCoverageNotes') || '';
 
   const formData = useMemo(() => ({
@@ -432,7 +441,7 @@ function ResultsContent() {
           {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
             <SlideIn delay={0.3} duration={0.6}>
               <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8 mb-6">
-                <Suspense fallback={<div className="h-[300px] flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+                <Suspense fallback={<CostComparisonChartSkeleton />}>
                   <CostComparisonChart
                 data={[
                   {
@@ -471,7 +480,7 @@ function ResultsContent() {
           {/* Real Marketplace Plans (if available) */}
           {recommendation.marketplaceDataAvailable && recommendation.marketplacePlans && recommendation.marketplacePlans.length > 0 && (
             <div className="mt-6">
-              <Suspense fallback={<div className="bg-white rounded-2xl p-8 flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div></div>}>
+              <Suspense fallback={<MarketplacePlansSkeleton />}>
                 <MarketplacePlans plans={recommendation.marketplacePlans} />
               </Suspense>
             </div>
@@ -575,7 +584,7 @@ function ResultsContent() {
                   </div>
                 }
               >
-                <Suspense fallback={<div className="bg-white rounded-xl shadow-lg p-8 animate-pulse h-96" />}>
+                <Suspense fallback={<PlanComparisonTableSkeleton />}>
                   <PlanComparisonTable
                     recommended={recommendation}
                     alternatives={recommendation.alternativeOptions}

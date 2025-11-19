@@ -90,7 +90,7 @@ export default function PlanComparisonTable({ recommended, alternatives }: PlanC
                   <span className="font-bold text-white drop-shadow-md">Recommended</span>
                 </div>
               </th>
-              {topAlternatives.map((alt, idx) => (
+              {topAlternatives.map((_, idx) => (
                 <th key={idx} className="text-left p-4 md:p-5 font-bold text-gray-800 bg-gradient-to-r from-gray-50 to-slate-50">
                   Alternative {idx + 1}
                 </th>
