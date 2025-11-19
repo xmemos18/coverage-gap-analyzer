@@ -49,6 +49,18 @@ export default function PasswordGate({ children }: PasswordGateProps) {
     sessionStorage.setItem(NDA_KEY, 'true');
     setShowNDA(false);
     setShowPassword(true);
+
+    // If password was already entered, validate it immediately
+    if (password) {
+      if (password === CORRECT_PASSWORD) {
+        sessionStorage.setItem(AUTH_KEY, 'true');
+        setIsAuthenticated(true);
+        setError('');
+      } else {
+        setError('Incorrect password. Please try again.');
+        setPassword('');
+      }
+    }
   };
 
   const handleNDADecline = () => {

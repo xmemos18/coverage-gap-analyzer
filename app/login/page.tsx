@@ -33,6 +33,17 @@ export default function LoginPage() {
     setNdaAccepted(true);
     setShowNDA(false);
     setShowPassword(true);
+
+    // If password was already entered, validate it immediately
+    if (password) {
+      if (password === CORRECT_PASSWORD) {
+        document.cookie = `auth=authenticated; path=/; max-age=${60 * 60 * 24}`;
+        router.push('/');
+      } else {
+        setError('Incorrect password. Please try again.');
+        setPassword('');
+      }
+    }
   };
 
   const handleNDADecline = () => {
