@@ -501,7 +501,11 @@ function ResultsContent() {
           {recommendation.marketplaceDataAvailable && recommendation.marketplacePlans && recommendation.marketplacePlans.length > 0 && (
             <div className="mt-6">
               <Suspense fallback={<MarketplacePlansSkeleton />}>
-                <MarketplacePlans plans={recommendation.marketplacePlans} />
+                <MarketplacePlans
+                  plans={recommendation.marketplacePlans}
+                  zipCode={residenceZips[0]}
+                  state={residenceStates[0]}
+                />
               </Suspense>
             </div>
           )}

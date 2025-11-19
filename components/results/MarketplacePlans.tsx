@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { getMarketplaceEnrollmentUrl, getMarketplaceName } from '@/lib/enrollmentUrls';
 
 interface MarketplacePlan {
   id: string;
@@ -18,11 +19,14 @@ interface MarketplacePlan {
 
 interface MarketplacePlansProps {
   plans: MarketplacePlan[];
+  zipCode?: string;
+  state?: string;
 }
 
-export default function MarketplacePlans({ plans }: MarketplacePlansProps) {
+export default function MarketplacePlans({ plans, zipCode, state }: MarketplacePlansProps) {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'premium' | 'deductible' | 'rating'>('premium');
+  const marketplaceName = getMarketplaceName(state);
 
   // Sort plans based on selected criteria
   const sortedPlans = [...plans].sort((a, b) => {
@@ -329,14 +333,16 @@ export default function MarketplacePlans({ plans }: MarketplacePlansProps) {
 
                     {/* Premium Enroll Button */}
                     <a
-                      href={`https://www.healthcare.gov/`}
+                      href={getMarketplaceEnrollmentUrl(state, zipCode, plan.id)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="group/btn relative block w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 px-6 py-4 text-center font-bold text-white shadow-lg transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="relative flex items-center justify-center gap-2">
-                        <span className="text-lg">Enroll on Healthcare.gov</span>
+                        <span className="text-lg">
+                          {zipCode && state ? `View & Enroll via ${marketplaceName}` : `Enroll on ${marketplaceName}`}
+                        </span>
                         <span className="text-xl transition-transform duration-300 group-hover/btn:translate-x-1">→</span>
                       </div>
                     </a>
