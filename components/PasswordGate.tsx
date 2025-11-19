@@ -1,90 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import NDAModal from './NDAModal';
-
-const CORRECT_PASSWORD = '1234abcd';
-const AUTH_KEY = 'site-authenticated';
-const NDA_KEY = 'nda-accepted';
+import { useAuthentication } from '@/hooks/useAuthentication';
 
 interface PasswordGateProps {
   children: React.ReactNode;
 }
 
 export default function PasswordGate({ children }: PasswordGateProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [showNDA, setShowNDA] = useState(false);
-  const [ndaAccepted, setNdaAccepted] = useState(false);
-
-  useEffect(() => {
-    // Check if user is already authenticated
-    const authStatus = sessionStorage.getItem(AUTH_KEY);
-    const ndaStatus = sessionStorage.getItem(NDA_KEY);
-
-    if (authStatus === 'true') {
-      setIsAuthenticated(true);
-    }
-
-    if (ndaStatus === 'true') {
-      setNdaAccepted(true);
-    }
-
-    setIsLoading(false);
-  }, []);
-
-  const handleTogglePassword = () => {
-    if (!ndaAccepted) {
-      setShowNDA(true);
-    } else {
-      setShowPassword(!showPassword);
-    }
-  };
-
-  const handleNDAAccept = () => {
-    setNdaAccepted(true);
-    sessionStorage.setItem(NDA_KEY, 'true');
-    setShowNDA(false);
-    setShowPassword(true);
-
-    // If password was already entered, validate it immediately
-    if (password) {
-      if (password === CORRECT_PASSWORD) {
-        sessionStorage.setItem(AUTH_KEY, 'true');
-        setIsAuthenticated(true);
-        setError('');
-      } else {
-        setError('Incorrect password. Please try again.');
-        setPassword('');
-      }
-    }
-  };
-
-  const handleNDADecline = () => {
-    setShowNDA(false);
-    setShowPassword(false);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!ndaAccepted) {
-      setShowNDA(true);
-      return;
-    }
-
-    if (password === CORRECT_PASSWORD) {
-      sessionStorage.setItem(AUTH_KEY, 'true');
-      setIsAuthenticated(true);
-      setError('');
-    } else {
-      setError('Incorrect password. Please try again.');
-      setPassword('');
-    }
-  };
+  const {
+    isAuthenticated,
+    password,
+    showPassword,
+    error,
+    isLoading,
+    showNDA,
+    ndaAccepted,
+    isLockedOut,
+    lockoutTimeRemaining,
+    setPassword,
+    handleTogglePassword,
+    handleNDAAccept,
+    handleNDADecline,
+    handleSubmit
+  } = useAuthentication();
 
   // Show loading state briefly to check auth
   if (isLoading) {
@@ -136,6 +75,15 @@ export default function PasswordGate({ children }: PasswordGateProps) {
                 Please enter the password to access this site
               </p>
 
+              {/* Lockout Warning */}
+              {isLockedOut && (
+                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+                  <p className="text-sm text-red-800 dark:text-red-300 text-center font-semibold">
+                    Too many failed attempts. Please wait {lockoutTimeRemaining} seconds.
+                  </p>
+                </div>
+              )}
+
               {/* Password Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -148,17 +96,22 @@ export default function PasswordGate({ children }: PasswordGateProps) {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="current-password"
                       className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-600 dark:bg-dark-700 dark:border-dark-600 dark:text-gray-100 text-lg ${
                         error ? 'border-red-500' : 'border-gray-300 dark:border-dark-600'
                       }`}
                       placeholder="Enter password"
                       autoFocus
                       required
+                      disabled={isLockedOut}
+                      aria-invalid={error ? 'true' : 'false'}
+                      aria-describedby={error ? 'password-error' : undefined}
                     />
                     <button
                       type="button"
                       onClick={handleTogglePassword}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                      disabled={isLockedOut}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? (
@@ -174,7 +127,7 @@ export default function PasswordGate({ children }: PasswordGateProps) {
                     </button>
                   </div>
                   {error && (
-                    <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
+                    <p id="password-error" className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
                       {error}
                     </p>
                   )}
@@ -182,9 +135,10 @@ export default function PasswordGate({ children }: PasswordGateProps) {
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-lg text-lg"
+                  disabled={isLockedOut}
+                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Enter
+                  {isLockedOut ? `Locked (${lockoutTimeRemaining}s)` : 'Enter'}
                 </button>
               </form>
 
