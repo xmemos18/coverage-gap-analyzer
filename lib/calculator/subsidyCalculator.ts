@@ -47,7 +47,7 @@ export interface SubsidyResult {
   // Benchmark plan data (NEW)
   benchmarkPremium?: number;
   isRealSLCSP?: boolean; // Whether SLCSP is from API or estimate
-  slcspSource?: 'api' | 'estimate' | 'cache';
+  slcspSource?: 'api' | 'database' | 'estimate' | 'cache';
   slcspPlanName?: string;
 
   // Explanation

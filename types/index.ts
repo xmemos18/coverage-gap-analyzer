@@ -117,7 +117,7 @@ export interface SubsidyAnalysis {
   // Real SLCSP data (optional)
   benchmarkPremium?: number;
   isRealSLCSP?: boolean;
-  slcspSource?: 'api' | 'estimate' | 'cache';
+  slcspSource?: 'api' | 'database' | 'estimate' | 'cache';
   slcspPlanName?: string;
 }
 

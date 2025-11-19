@@ -5,6 +5,7 @@ import { formatCost } from '@/lib/results-utils';
 import { monthlyCostRangeToAnnual } from '@/lib/costUtils';
 import InsuranceTerm from '@/components/InsuranceTerm';
 import { CostRange } from '@/types';
+import { DataSourceBadge } from '@/components/ui/DataSourceBadge';
 
 interface CostAnalysisProps {
   monthlyCost: CostRange;
@@ -12,7 +13,7 @@ interface CostAnalysisProps {
   currentCost?: number;
   subsidyAmount?: number;
   costAfterSubsidy?: CostRange;
-  slcspSource?: 'api' | 'estimate' | 'cache';
+  slcspSource?: 'api' | 'database' | 'estimate' | 'cache';
   slcspPlanName?: string;
 }
 
@@ -375,22 +376,7 @@ function CostAnalysis({
                         <h4 className="text-xl md:text-2xl font-bold text-gray-900">Subsidy Impact</h4>
                         {slcspSource && (
                           <div className="flex items-center gap-2 mt-2">
-                            {slcspSource === 'api' ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-300">
-                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                Real Healthcare.gov Data
-                              </span>
-                            ) : slcspSource === 'cache' ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-300">
-                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                                Cached API Data
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-300">
-                                <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
-                                Estimated Data
-                              </span>
-                            )}
+                            <DataSourceBadge source={slcspSource} />
                             {slcspPlanName && slcspSource !== 'estimate' && (
                               <span className="text-xs text-gray-600">
                                 Based on: {slcspPlanName}

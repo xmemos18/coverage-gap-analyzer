@@ -2,15 +2,16 @@
  * SLCSP (Second Lowest Cost Silver Plan) Lookup Utility
  *
  * Uses Healthcare.gov API to get real SLCSP benchmark premiums for accurate
- * subsidy calculations. Falls back to estimates if API is unavailable.
+ * subsidy calculations. Falls back to database (CMS data) then estimates.
  */
 
 import { createHealthcareGovClient } from '@/lib/integrations/healthcare-gov/client';
 import type { Place, Household } from '@/lib/integrations/healthcare-gov/types';
 import { logger } from '@/lib/logger';
+import { getSLCSPFromDatabase } from './slcsp-database';
 
 // Cache for SLCSP lookups to avoid hitting rate limits
-const slcspCache = new Map<string, { premium: number; timestamp: number; source: 'api' | 'estimate' }>();
+const slcspCache = new Map<string, { premium: number; timestamp: number; source: 'api' | 'database' | 'estimate' }>();
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
 // Fallback estimate: $500/month per person
@@ -27,7 +28,7 @@ export interface SLCSPResult {
   isEstimate: boolean;
 
   /** Data source */
-  source: 'api' | 'estimate' | 'cache';
+  source: 'api' | 'database' | 'estimate' | 'cache';
 
   /** Plan ID (if available) */
   planId?: string;
@@ -107,7 +108,22 @@ export async function getSLCSP(
 
   // Check if API key is available
   if (!process.env.HEALTHCARE_GOV_API_KEY) {
-    logger.warn('Healthcare.gov API key not configured, using estimates');
+    logger.warn('Healthcare.gov API key not configured, trying database fallback');
+
+    // Try database before falling back to estimate
+    const dbResult = await getSLCSPFromDatabase(zipCode, householdSize, stateCode);
+    if (dbResult) {
+      logger.info('Using database SLCSP (API key not configured)', { zipCode });
+      slcspCache.set(cacheKey, {
+        premium: dbResult.monthlyPremium,
+        timestamp: Date.now(),
+        source: 'database'
+      });
+      return dbResult;
+    }
+
+    // Final fallback to estimate
+    logger.warn('Database also empty, using $500/person estimate');
     const result = getEstimatedSLCSP(householdSize);
     slcspCache.set(cacheKey, {
       premium: result.monthlyPremium,
@@ -146,6 +162,19 @@ export async function getSLCSP(
 
     if (!slcspPlan || !slcspPlan.premium) {
       logger.warn('No SLCSP data returned from API', { zipCode });
+
+      // Try database before falling back to estimate
+      const dbResult = await getSLCSPFromDatabase(zipCode, householdSize, stateCode);
+      if (dbResult) {
+        slcspCache.set(cacheKey, {
+          premium: dbResult.monthlyPremium,
+          timestamp: Date.now(),
+          source: 'database'
+        });
+        return dbResult;
+      }
+
+      // Final fallback to estimate
       const fallback = getEstimatedSLCSP(householdSize);
       slcspCache.set(cacheKey, {
         premium: fallback.monthlyPremium,
@@ -191,7 +220,23 @@ export async function getSLCSP(
       householdSize
     });
 
-    // Fallback to estimate
+    // Try database before falling back to estimate
+    try {
+      const dbResult = await getSLCSPFromDatabase(zipCode, householdSize, stateCode);
+      if (dbResult) {
+        logger.info('Using database SLCSP after API failure', { zipCode });
+        slcspCache.set(cacheKey, {
+          premium: dbResult.monthlyPremium,
+          timestamp: Date.now(),
+          source: 'database'
+        });
+        return dbResult;
+      }
+    } catch (dbError) {
+      logger.error('Database SLCSP lookup also failed', { dbError, zipCode });
+    }
+
+    // Final fallback to estimate
     const fallback = getEstimatedSLCSP(householdSize);
     slcspCache.set(cacheKey, {
       premium: fallback.monthlyPremium,
@@ -248,7 +293,7 @@ export function clearSLCSPCache(): void {
  */
 export function getSLCSPCacheStats(): {
   size: number;
-  entries: Array<{ key: string; age: number; source: 'api' | 'estimate' }>;
+  entries: Array<{ key: string; age: number; source: 'api' | 'database' | 'estimate' }>;
 } {
   const entries = Array.from(slcspCache.entries()).map(([key, value]) => ({
     key,
