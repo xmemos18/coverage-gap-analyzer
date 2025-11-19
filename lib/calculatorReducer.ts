@@ -94,7 +94,7 @@ export function calculatorReducer(state: CalculatorState, action: CalculatorActi
       };
 
     case 'NEXT_STEP': {
-      const maxStep = 5; // Total steps in the calculator
+      const maxStep = 7; // Total steps in the calculator
 
       // Check bounds first - don't allow incrementing past max
       if (state.formData.currentStep >= maxStep) {
