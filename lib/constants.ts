@@ -151,15 +151,19 @@ export const CALCULATOR_STEPS = {
   RESIDENCES: 1,
   HOUSEHOLD: 2,
   HEALTH_PROFILE: 3,
-  CURRENT_INSURANCE: 4,
-  BUDGET: 5,
-  TOTAL_STEPS: 5,
+  HEALTHCARE_USAGE: 4,
+  NETWORK_FINANCIAL: 5,
+  CURRENT_INSURANCE: 6,
+  BUDGET: 7,
+  TOTAL_STEPS: 7,
 } as const;
 
 export const STEP_NAMES = [
   'Residences',
   'Household',
   'Health Profile',
+  'Healthcare Usage',
+  'Preferences',
   'Current Insurance',
   'Budget',
 ] as const;

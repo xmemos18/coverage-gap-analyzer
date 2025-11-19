@@ -7,6 +7,7 @@ import { getMedigapShoppingSteps, getPartDShoppingSteps, getMarketplaceShoppingS
 import { adjustCostForStates } from '@/lib/stateSpecificData';
 import { searchMarketplacePlans, isHealthcareGovApiAvailable, calculateSubsidyEstimates, type MarketplacePlan } from '@/lib/healthcareGovApi';
 import { logger } from '@/lib/logger';
+import { calculateUtilizationScore, getUtilizationCostMultiplier, getRecommendedMetalLevel } from './utilizationScorer';
 
 /**
  * Health Profile Analysis Helper
@@ -17,6 +18,7 @@ interface HealthProfile {
   hasProviderPreference: boolean;
   hasChronicConditions: boolean;
   prescriptionCount: string;
+  utilizationScore: ReturnType<typeof calculateUtilizationScore>;
 }
 
 function analyzeHealthProfile(formData: CalculatorFormData): HealthProfile {
@@ -24,11 +26,15 @@ function analyzeHealthProfile(formData: CalculatorFormData): HealthProfile {
   const hasHighRxCount = formData.prescriptionCount === '4-or-more';
   const hasProviderPreference = formData.providerPreference === 'specific-doctors';
 
+  // Calculate detailed utilization score using new enhanced data
+  const utilizationScore = calculateUtilizationScore(formData);
+
   return {
-    isHighUtilization: hasChronicConditions || hasHighRxCount,
+    isHighUtilization: hasChronicConditions || hasHighRxCount || utilizationScore.level === 'high' || utilizationScore.level === 'very-high',
     hasProviderPreference,
     hasChronicConditions,
     prescriptionCount: formData.prescriptionCount || 'none',
+    utilizationScore,
   };
 }
 
@@ -140,9 +146,9 @@ function parseIncomeRange(incomeRange: string): number {
 }
 
 /**
- * Add health-specific action items based on health profile
+ * Add health-specific action items based on health profile and form data
  */
-function getHealthSpecificActions(healthProfile: HealthProfile): string[] {
+function getHealthSpecificActions(healthProfile: HealthProfile, formData: CalculatorFormData): string[] {
   const actions: string[] = [];
 
   if (healthProfile.isHighUtilization) {
@@ -159,6 +165,29 @@ function getHealthSpecificActions(healthProfile: HealthProfile): string[] {
   if (healthProfile.hasProviderPreference) {
     actions.push('Call your preferred doctors to confirm they accept the insurance plan');
     actions.push('Check provider directory online before enrolling');
+  }
+
+  // Add medication-specific guidance
+  if (formData.takesSpecialtyMeds) {
+    actions.push('CRITICAL: Verify specialty medication coverage and tier placement');
+    actions.push('Ask about specialty pharmacy requirements and prior authorization');
+    actions.push('Check if your specific biologic/injectable is on the formulary');
+  }
+
+  if (formData.monthlyMedicationCost === 'over-1000' || formData.monthlyMedicationCost === '500-1000') {
+    actions.push('Compare prescription drug coverage carefully - this is a major cost driver');
+    actions.push('Look for plans with lower medication tiers and copays');
+    actions.push('Consider plans with mail-order pharmacy discounts (90-day supply savings)');
+  }
+
+  if (formData.monthlyMedicationCost && formData.monthlyMedicationCost !== 'under-50' && !formData.usesMailOrderPharmacy) {
+    actions.push('Consider enrolling in mail-order pharmacy for 90-day supply discounts');
+  }
+
+  if (formData.plannedProcedures) {
+    actions.push('IMPORTANT: Get pre-authorization for planned procedures before enrolling');
+    actions.push('Ask about coverage limits and facility network requirements');
+    actions.push('Consider lower deductible plans to reduce upfront costs');
   }
 
   if (!healthProfile.isHighUtilization && healthProfile.prescriptionCount === 'none') {
@@ -248,7 +277,7 @@ export function getMedicareRecommendation(
   actionItems.push('');
 
   // Add health-specific action items
-  const healthActions = getHealthSpecificActions(healthProfile);
+  const healthActions = getHealthSpecificActions(healthProfile, formData);
   if (healthActions.length > 0) {
     actionItems.push('📋 Additional Steps Based on Your Health:');
     actionItems.push(...healthActions);
@@ -342,7 +371,7 @@ export function getMixedHouseholdRecommendation(
   );
 
   // Add health-specific action items
-  const healthActions = getHealthSpecificActions(healthProfile);
+  const healthActions = getHealthSpecificActions(healthProfile, formData);
   actionItems.push(...healthActions);
 
   const budgetNote = checkBudgetCompatibility(budget, totalCost);
@@ -403,6 +432,8 @@ export async function getNonMedicareRecommendation(
   states: string[]
 ): Promise<InsuranceRecommendation> {
   const healthProfile = analyzeHealthProfile(formData);
+  const utilizationMultiplier = getUtilizationCostMultiplier(healthProfile.utilizationScore);
+  const recommendedMetalLevel = getRecommendedMetalLevel(healthProfile.utilizationScore);
 
   // Try to fetch real marketplace plans
   const marketplaceData = await fetchMarketplacePlans(formData, healthProfile);
@@ -505,6 +536,12 @@ export async function getNonMedicareRecommendation(
   } else {
     // Apply state-specific cost adjustments to estimated cost
     totalCost = adjustCostForStates(totalCost, states);
+
+    // Apply utilization-based cost multiplier (recommending higher coverage tiers for higher utilization)
+    totalCost = {
+      low: Math.round(totalCost.low * utilizationMultiplier),
+      high: Math.round(totalCost.high * utilizationMultiplier),
+    };
   }
 
   const primaryZip = formData.residences[0]?.zip || '';
@@ -519,32 +556,109 @@ export async function getNonMedicareRecommendation(
     '',
     formatActionStep(marketplaceSteps),
     '',
-    '🏥 Find the Right Plan Type:',
   ];
 
-  // Health-based plan guidance
-  if (healthProfile.isHighUtilization) {
-    actionItems.push('→ Choose Silver or Gold tier plans (lower deductibles)');
-    actionItems.push('→ Select PPO plans for specialist access without referrals');
-    actionItems.push('→ Focus on total cost (premium + deductible + copays), not just monthly price');
-  } else {
-    actionItems.push('→ Bronze or Silver plans work well for healthy individuals');
-    actionItems.push('→ Consider Bronze HDHP + HSA for tax savings');
-    actionItems.push('→ HSA lets you save tax-free for medical expenses');
+  // Add utilization-based recommendations
+  if (healthProfile.utilizationScore.reasoning.length > 0) {
+    actionItems.push('📊 Your Healthcare Usage Profile:');
+    healthProfile.utilizationScore.reasoning.forEach(reason => {
+      actionItems.push(`→ ${reason}`);
+    });
+    actionItems.push(`→ Utilization level: ${healthProfile.utilizationScore.level}`);
+    actionItems.push(`→ Estimated annual medical spending: $${healthProfile.utilizationScore.expectedAnnualClaims.toLocaleString()}`);
+    actionItems.push('');
   }
+
+  actionItems.push('🏥 Recommended Plan Tier:');
+  actionItems.push(`→ ${recommendedMetalLevel} plans match your healthcare needs`);
+
+  // Add recommended deductible guidance
+  if (healthProfile.utilizationScore.recommendedDeductible === 'low') {
+    actionItems.push('→ Look for lower deductibles ($0-$2,000) to minimize out-of-pocket costs');
+  } else if (healthProfile.utilizationScore.recommendedDeductible === 'medium') {
+    actionItems.push('→ Medium deductibles ($2,000-$5,000) offer good balance');
+  } else {
+    actionItems.push('→ High deductibles ($5,000+) with HSA can save on premiums');
+  }
+
+  // Add recommended plan type guidance
+  if (healthProfile.utilizationScore.recommendedPlanType === 'PPO') {
+    actionItems.push('→ PPO plans recommended for specialist access without referrals');
+  } else if (healthProfile.utilizationScore.recommendedPlanType === 'HDHP') {
+    actionItems.push('→ HDHP + HSA recommended for tax savings and lower premiums');
+  } else {
+    actionItems.push('→ HMO plans offer good value with coordinated care');
+  }
+
+  actionItems.push('→ Focus on total cost of care (premium + deductible + copays), not just monthly premium');
 
   actionItems.push('');
   actionItems.push(`📍 Verify Network Coverage:`);
+
+  // Add preferred hospital guidance
+  if (formData.hasPreferredHospital && formData.preferredHospitalName) {
+    actionItems.push(`→ IMPORTANT: Verify ${formData.preferredHospitalName} is in-network`);
+    if (formData.hospitalImportance === 'must-stay') {
+      actionItems.push('→ Critical: Only choose plans that include this provider');
+      actionItems.push('→ Call the hospital to get list of accepted insurance plans');
+    } else if (formData.hospitalImportance === 'prefer') {
+      actionItems.push('→ Prioritize plans that include this provider, but consider alternatives');
+    }
+    actionItems.push('');
+  }
+
   actionItems.push(`→ Check provider directories for all your states: ${statesList}`);
   actionItems.push('→ Call your preferred doctors to confirm they accept the plan');
   actionItems.push('→ Ask about in-network hospitals near each residence');
+
+  // Add nationwide coverage guidance
+  if (formData.needsNationalCoverage === 'critical') {
+    actionItems.push('→ IMPORTANT: Verify plan has nationwide network (PPO recommended)');
+    actionItems.push('→ Ask about coverage for emergencies and urgent care while traveling');
+  } else if (formData.needsNationalCoverage === 'moderate') {
+    actionItems.push('→ Consider plans with broader networks for occasional travel');
+  }
+
   actionItems.push('');
 
   // Add health-specific action items
-  const healthActions = getHealthSpecificActions(healthProfile);
+  const healthActions = getHealthSpecificActions(healthProfile, formData);
   if (healthActions.length > 0) {
     actionItems.push('📋 Additional Steps Based on Your Health:');
     actionItems.push(...healthActions);
+    actionItems.push('');
+  }
+
+  // Add financial priority guidance
+  if (formData.financialPriority) {
+    actionItems.push('💰 Shopping Based on Your Financial Priority:');
+    if (formData.financialPriority === 'lowest-premium') {
+      actionItems.push('→ Sort plans by monthly premium (lowest first)');
+      actionItems.push('→ Consider Bronze or Bronze HDHP plans');
+      actionItems.push('→ Ensure you have emergency savings for higher deductibles');
+    } else if (formData.financialPriority === 'lowest-deductible') {
+      actionItems.push('→ Filter for plans with deductibles under $2,000');
+      actionItems.push('→ Focus on Silver or Gold tier plans');
+      actionItems.push('→ Insurance will start covering costs sooner when you need care');
+    } else if (formData.financialPriority === 'lowest-oop-max') {
+      actionItems.push('→ Filter for plans with out-of-pocket maximums under $5,000');
+      actionItems.push('→ Consider Gold or Platinum plans for best catastrophic protection');
+      actionItems.push('→ Best choice if worried about major medical expenses');
+    } else if (formData.financialPriority === 'balanced') {
+      actionItems.push('→ Compare total cost of care (premium x 12 + expected medical costs)');
+      actionItems.push('→ Silver plans typically offer good balance');
+      actionItems.push('→ Look for moderate deductibles ($2,000-$4,000)');
+    }
+
+    // Add affordability guidance
+    if (formData.canAffordUnexpectedBill === 'no-need-plan') {
+      actionItems.push('→ IMPORTANT: Prioritize lower deductibles and out-of-pocket maximums');
+      actionItems.push('→ Consider Silver or Gold plans to minimize surprise costs');
+    } else if (formData.canAffordUnexpectedBill === 'yes-difficulty') {
+      actionItems.push('→ Balance premium savings with manageable deductibles');
+      actionItems.push('→ Avoid deductibles over $5,000 to reduce financial stress');
+    }
+    actionItems.push('');
   }
 
   const budgetNote = checkBudgetCompatibility(budget, totalCost);

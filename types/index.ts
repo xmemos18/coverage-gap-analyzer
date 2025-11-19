@@ -55,7 +55,28 @@ export interface CalculatorFormData {
   prescriptionCount: string;
   providerPreference: string;
 
-  // Step 2.5: Current Insurance (optional)
+  // Step 2.4: Healthcare Usage Patterns (NEW - Enhanced Phase 1)
+  doctorVisitsPerYear: string; // '0-2', '3-5', '6-10', '10+'
+  specialistVisitsPerYear: string; // 'none', '1-3', 'monthly-or-more'
+  erVisitsPerYear: string; // 'none', '1-2', '3+'
+  plannedProcedures: boolean; // Planned surgeries/procedures in next year
+
+  // Step 2.5: Medication Details (NEW - Enhanced Phase 1)
+  takesSpecialtyMeds: boolean; // Biologics, injectables, specialty drugs
+  monthlyMedicationCost: string; // 'under-50', '50-200', '200-500', '500-1000', 'over-1000'
+  usesMailOrderPharmacy: boolean;
+
+  // Step 2.6: Network Preferences (NEW - Enhanced Phase 1)
+  hasPreferredHospital: boolean;
+  preferredHospitalName: string;
+  hospitalImportance: string; // 'must-stay', 'prefer', 'no-preference'
+  needsNationalCoverage: string; // 'critical', 'moderate', 'not-important'
+
+  // Step 2.7: Financial Priorities (NEW - Enhanced Phase 1)
+  financialPriority: string; // 'lowest-premium', 'lowest-deductible', 'lowest-oop-max', 'balanced'
+  canAffordUnexpectedBill: string; // 'yes-easily', 'yes-difficulty', 'no-need-plan'
+
+  // Step 2.8: Current Insurance (optional)
   hasCurrentInsurance: boolean;
   currentInsurance: CurrentInsurance;
 

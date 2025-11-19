@@ -128,6 +128,23 @@ function ResultsContent() {
     chronicConditions,
     prescriptionCount,
     providerPreference,
+    // Healthcare Usage Patterns (default values - not captured from URL yet)
+    doctorVisitsPerYear: '',
+    specialistVisitsPerYear: '',
+    erVisitsPerYear: '',
+    plannedProcedures: false,
+    // Medication Details (default values)
+    takesSpecialtyMeds: false,
+    monthlyMedicationCost: '',
+    usesMailOrderPharmacy: false,
+    // Network Preferences (default values)
+    hasPreferredHospital: false,
+    preferredHospitalName: '',
+    hospitalImportance: '',
+    needsNationalCoverage: '',
+    // Financial Priorities (default values)
+    financialPriority: '',
+    canAffordUnexpectedBill: '',
     budget,
     incomeRange,
     simpleMode,

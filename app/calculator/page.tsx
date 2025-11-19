@@ -7,6 +7,8 @@ import { CalculatorFormData, FormErrors } from '@/types';
 import Step1Residences from '@/components/calculator/Step1Residences';
 import Step2Household from '@/components/calculator/Step2Household';
 import Step2_3HealthProfile from '@/components/calculator/Step2_3HealthProfile';
+import Step2_4HealthcareUsage from '@/components/calculator/Step2_4HealthcareUsage';
+import Step2_6NetworkFinancial from '@/components/calculator/Step2_6NetworkFinancial';
 import Step2_5CurrentInsurance from '@/components/calculator/Step2_5CurrentInsurance';
 import Step3Budget from '@/components/calculator/Step3Budget';
 import MobileProgressBar from '@/components/MobileProgressBar';
@@ -53,6 +55,23 @@ const INITIAL_FORM_DATA: CalculatorFormData = {
   chronicConditions: [],
   prescriptionCount: '',
   providerPreference: '',
+  // Healthcare Usage Patterns
+  doctorVisitsPerYear: '',
+  specialistVisitsPerYear: '',
+  erVisitsPerYear: '',
+  plannedProcedures: false,
+  // Medication Details
+  takesSpecialtyMeds: false,
+  monthlyMedicationCost: '',
+  usesMailOrderPharmacy: false,
+  // Network Preferences
+  hasPreferredHospital: false,
+  preferredHospitalName: '',
+  hospitalImportance: '',
+  needsNationalCoverage: '',
+  // Financial Priorities
+  financialPriority: '',
+  canAffordUnexpectedBill: '',
   hasCurrentInsurance: false,
   currentInsurance: {
     carrier: '',
@@ -673,8 +692,50 @@ export default function Calculator() {
                 </PageTransition>
               )}
 
-              {formData.currentStep === CALCULATOR_STEPS.CURRENT_INSURANCE && (
+              {formData.currentStep === CALCULATOR_STEPS.HEALTHCARE_USAGE && (
                 <PageTransition key="step-4">
+                  <Step2_4HealthcareUsage
+                    formData={formData}
+                    updateField={updateField}
+                    errors={errors}
+                  />
+                  <div className="flex gap-4 mt-8">
+                    <button
+                      onClick={handleBack}
+                      className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-all"
+                    >
+                      Back
+                    </button>
+                    <ScaleButton onClick={handleNext} className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all">
+                      Next Step
+                    </ScaleButton>
+                  </div>
+                </PageTransition>
+              )}
+
+              {formData.currentStep === CALCULATOR_STEPS.NETWORK_FINANCIAL && (
+                <PageTransition key="step-5">
+                  <Step2_6NetworkFinancial
+                    formData={formData}
+                    updateField={updateField}
+                    errors={errors}
+                  />
+                  <div className="flex gap-4 mt-8">
+                    <button
+                      onClick={handleBack}
+                      className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 transition-all"
+                    >
+                      Back
+                    </button>
+                    <ScaleButton onClick={handleNext} className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all">
+                      Next Step
+                    </ScaleButton>
+                  </div>
+                </PageTransition>
+              )}
+
+              {formData.currentStep === CALCULATOR_STEPS.CURRENT_INSURANCE && (
+                <PageTransition key="step-6">
                   <Step2_5CurrentInsurance
                     hasCurrentInsurance={formData.hasCurrentInsurance}
                     currentInsurance={formData.currentInsurance}
@@ -687,7 +748,7 @@ export default function Calculator() {
               )}
 
               {formData.currentStep === CALCULATOR_STEPS.BUDGET && (
-                <PageTransition key="step-5">
+                <PageTransition key="step-7">
                   <Step3Budget
                     budget={formData.budget}
                     incomeRange={formData.incomeRange}

@@ -1,0 +1,244 @@
+'use client';
+
+import { CalculatorFormData, UpdateFieldFunction } from '@/types';
+
+interface Step2_6Props {
+  formData: CalculatorFormData;
+  updateField: UpdateFieldFunction;
+  errors: { [key: string]: string };
+}
+
+export default function Step2_6NetworkFinancial({
+  formData,
+  updateField,
+  errors,
+}: Step2_6Props) {
+  return (
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-3xl font-bold mb-2">Network & Financial Preferences</h2>
+        <p className="text-gray-600">
+          Your priorities help us find the perfect balance between cost and coverage.
+        </p>
+      </div>
+
+      {/* Network Preferences Section */}
+      <div className="border-b pb-8">
+        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <span className="text-2xl">🏥</span>
+          Healthcare Network Preferences
+        </h3>
+
+        {/* Preferred Hospital */}
+        <div className="mb-6">
+          <label className="flex items-start gap-3 cursor-pointer mb-4">
+            <input
+              type="checkbox"
+              checked={formData.hasPreferredHospital}
+              onChange={(e) => updateField('hasPreferredHospital', e.target.checked)}
+              className="mt-1 h-5 w-5 text-blue-600 rounded"
+            />
+            <div>
+              <span className="font-semibold text-gray-900">
+                I have a preferred hospital or healthcare system
+              </span>
+              <p className="text-sm text-gray-600 mt-1">
+                We&apos;ll help ensure your doctors and hospitals are in-network
+              </p>
+            </div>
+          </label>
+
+          {formData.hasPreferredHospital && (
+            <div className="ml-8">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Hospital or health system name
+              </label>
+              <input
+                type="text"
+                value={formData.preferredHospitalName}
+                onChange={(e) => updateField('preferredHospitalName', e.target.value)}
+                placeholder="e.g., Mayo Clinic, Kaiser Permanente, Johns Hopkins"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Hospital Importance */}
+        {formData.hasPreferredHospital && (
+          <div className="mb-6">
+            <label className="block text-sm font-semibold text-gray-900 mb-3">
+              How important is staying with this provider?
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {[
+                { value: 'must-stay', label: 'Must stay in-network', desc: 'Critical requirement' },
+                { value: 'prefer', label: 'Prefer but flexible', desc: 'Would consider others' },
+                { value: 'no-preference', label: 'No strong preference', desc: 'Open to options' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => updateField('hospitalImportance', option.value)}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    formData.hospitalImportance === option.value
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-blue-300'
+                  }`}
+                >
+                  <div className="font-semibold text-gray-900">{option.label}</div>
+                  <div className="text-xs text-gray-600 mt-1">{option.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* National Coverage */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-3">
+            How important is nationwide coverage for travel?
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              { value: 'critical', label: 'Critical', desc: 'Travel frequently' },
+              { value: 'moderate', label: 'Moderate', desc: 'Occasional travel' },
+              { value: 'not-important', label: 'Not important', desc: 'Mostly stay local' },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => updateField('needsNationalCoverage', option.value)}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  formData.needsNationalCoverage === option.value
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-blue-300'
+                }`}
+              >
+                <div className="font-semibold text-gray-900">{option.label}</div>
+                <div className="text-xs text-gray-600 mt-1">{option.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Financial Priorities Section */}
+      <div className="border-b pb-8">
+        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <span className="text-2xl">💰</span>
+          Financial Priorities
+        </h3>
+
+        {/* Main Priority */}
+        <div className="mb-6">
+          <label className="block text-sm font-semibold text-gray-900 mb-3">
+            What&apos;s most important to you when choosing a plan?
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              {
+                value: 'lowest-premium',
+                label: 'Lowest monthly premium',
+                desc: 'Pay less each month, more when you need care',
+                icon: '📉',
+              },
+              {
+                value: 'lowest-deductible',
+                label: 'Lowest deductible',
+                desc: 'Insurance starts helping sooner when you need care',
+                icon: '🏥',
+              },
+              {
+                value: 'lowest-oop-max',
+                label: 'Lowest out-of-pocket maximum',
+                desc: 'Best protection against catastrophic costs',
+                icon: '🛡️',
+              },
+              {
+                value: 'balanced',
+                label: 'Balanced approach',
+                desc: 'Reasonable premium with moderate cost-sharing',
+                icon: '⚖️',
+              },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => updateField('financialPriority', option.value)}
+                className={`p-4 rounded-lg border-2 transition-all text-left ${
+                  formData.financialPriority === option.value
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-blue-300'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{option.icon}</span>
+                  <div>
+                    <div className="font-semibold text-gray-900">{option.label}</div>
+                    <div className="text-sm text-gray-600 mt-1">{option.desc}</div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+          {errors.financialPriority && (
+            <p className="text-red-600 text-sm mt-2">{errors.financialPriority}</p>
+          )}
+        </div>
+
+        {/* Unexpected Bill */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-900 mb-3">
+            Could you afford an unexpected $1,000-$3,000 medical bill?
+          </label>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {[
+              { value: 'yes-easily', label: 'Yes, easily', desc: 'Emergency fund available' },
+              { value: 'yes-difficulty', label: 'Yes, with difficulty', desc: 'Would be a stretch' },
+              { value: 'no-need-plan', label: 'No, would need payment plan', desc: 'Major hardship' },
+            ].map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => updateField('canAffordUnexpectedBill', option.value)}
+                className={`p-4 rounded-lg border-2 transition-all ${
+                  formData.canAffordUnexpectedBill === option.value
+                    ? 'border-blue-500 bg-blue-50'
+                    : 'border-gray-200 hover:border-blue-300'
+                }`}
+              >
+                <div className="font-semibold text-gray-900">{option.label}</div>
+                <div className="text-xs text-gray-600 mt-1">{option.desc}</div>
+              </button>
+            ))}
+          </div>
+          {errors.canAffordUnexpectedBill && (
+            <p className="text-red-600 text-sm mt-2">{errors.canAffordUnexpectedBill}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Info Box */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex gap-3">
+        <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+        </svg>
+        <div className="text-sm text-gray-700">
+          <p className="font-semibold text-gray-900 mb-1">Finding the right balance:</p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>
+              <strong>Lower premiums</strong> work best if you&apos;re healthy and have emergency savings
+            </li>
+            <li>
+              <strong>Lower deductibles</strong> help if you have regular medical needs
+            </li>
+            <li>
+              <strong>Lower out-of-pocket max</strong> protects against worst-case scenarios
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
