@@ -197,4 +197,127 @@ export interface InsuranceRecommendation {
     hasNationalNetwork: boolean;
   }>;
   marketplaceDataAvailable?: boolean;
+
+  // Multi-year cost projections (Professional Grade Enhancement)
+  costProjections?: CostProjectionSummary;
+
+  // Risk analysis / Monte Carlo simulation (Professional Grade Enhancement)
+  riskAnalysis?: RiskAnalysisSummary;
+}
+
+// ============================================================================
+// COST PROJECTION TYPES (Professional Grade Enhancement)
+// ============================================================================
+
+export interface CostProjectionSummary {
+  /** Year-by-year projections */
+  yearlyProjections: YearlyProjection[];
+  /** Total projected cost over all years */
+  totalProjectedCost: number;
+  /** Average annual cost */
+  averageAnnualCost: number;
+  /** Major life transitions (age 26, 65, etc.) */
+  transitions: ProjectionTransition[];
+  /** Key insights about projected costs */
+  insights: string[];
+  /** Confidence interval for total cost */
+  confidenceRange: {
+    optimistic: number; // 10th percentile
+    expected: number;   // 50th percentile
+    pessimistic: number; // 90th percentile
+  };
+}
+
+export interface YearlyProjection {
+  year: number;
+  calendarYear: number;
+  age: number;
+  monthlyPremium: number;
+  annualPremium: number;
+  estimatedMedicalCosts: number;
+  estimatedOOP: number;
+  totalAnnualCost: number;
+  cumulativeCost: number;
+  hasTransition: boolean;
+}
+
+export interface ProjectionTransition {
+  age: number;
+  year: number;
+  type: 'age-26-off-parents' | 'medicare-eligible' | 'early-retirement';
+  description: string;
+  impact: string;
+  recommendedAction: string;
+}
+
+// ============================================================================
+// RISK ANALYSIS / MONTE CARLO TYPES (Professional Grade Enhancement)
+// ============================================================================
+
+export interface RiskAnalysisSummary {
+  /** Simulation results */
+  result: MonteCarloResultSummary;
+  /** Human-readable interpretation */
+  interpretation: RiskInterpretation;
+  /** Visualization data for histogram */
+  histogramData: HistogramBucket[];
+  /** Input parameters used */
+  inputParameters: {
+    baseCost: number;
+    deductible: number;
+    outOfPocketMax: number;
+    iterations: number;
+  };
+}
+
+export interface MonteCarloResultSummary {
+  /** Median out-of-pocket cost */
+  median: number;
+  /** Mean out-of-pocket cost */
+  mean: number;
+  /** Standard deviation of costs */
+  standardDeviation: number;
+  /** Percentile distribution */
+  percentiles: {
+    p5: number;
+    p10: number;
+    p25: number;
+    p50: number;
+    p75: number;
+    p90: number;
+    p95: number;
+    p99: number;
+  };
+  /** Probability of spending more than deductible (0-100) */
+  probabilityOfExceedingDeductible: number;
+  /** Probability of hitting out-of-pocket max (0-100) */
+  probabilityOfHittingOOPMax: number;
+  /** Value at Risk at 95th percentile */
+  expectedValueAtRisk: number;
+  /** Number of simulations run */
+  simulationCount: number;
+  /** Time to execute in milliseconds */
+  executionTimeMs: number;
+}
+
+export interface RiskInterpretation {
+  /** Overall risk level */
+  riskLevel: 'low' | 'moderate' | 'high' | 'very-high';
+  /** Summary statement */
+  summary: string;
+  /** Key insights */
+  insights: string[];
+  /** Recommended actions */
+  recommendations: string[];
+}
+
+export interface HistogramBucket {
+  /** Range label (e.g., "$0-1000") */
+  label: string;
+  /** Lower bound of bucket */
+  min: number;
+  /** Upper bound of bucket */
+  max: number;
+  /** Percentage of results in this bucket (0-100) */
+  percentage: number;
 }

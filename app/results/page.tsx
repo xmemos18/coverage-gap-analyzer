@@ -18,6 +18,8 @@ import AlternativeOptions from '@/components/results/AlternativeOptions';
 import AddOnInsuranceSection from '@/components/results/AddOnInsuranceSection';
 import DisclaimerSection from '@/components/results/DisclaimerSection';
 import ValidationError from '@/components/results/ValidationError';
+import CostProjections from '@/components/results/CostProjections';
+import RiskAnalysis from '@/components/results/RiskAnalysis';
 import { trackEvent, trackCalculatorCompleted } from '@/lib/analytics';
 import { validateURLParameters, getValidationSummary } from '@/lib/urlValidation';
 import { logger, devLogger } from '@/lib/logger';
@@ -485,6 +487,20 @@ function ResultsContent() {
               </div>
             </SlideIn>
           )}
+
+        {/* Cost Projections (5-Year Outlook) */}
+        {recommendation.costProjections && (
+          <FadeIn delay={0.45} className="mt-6">
+            <CostProjections projections={recommendation.costProjections} />
+          </FadeIn>
+        )}
+
+        {/* Risk Analysis (Monte Carlo Simulation) */}
+        {recommendation.riskAnalysis && (
+          <FadeIn delay={0.48} className="mt-6">
+            <RiskAnalysis analysis={recommendation.riskAnalysis} />
+          </FadeIn>
+        )}
 
         {/* Cost Analysis with Marketplace Plans */}
         <FadeIn delay={0.5} className="mt-8 md:mt-12">
