@@ -207,7 +207,7 @@ export function getAllStates(): Array<{ code: string; name: string }> {
   return Object.entries(STATE_CODES).map(([code, name]) => ({ code, name }));
 }
 
-export default {
+const countyFipsLookup = {
   STATE_CODES,
   STATE_FIPS_TO_CODE,
   getStateCodeFromFIPS,
@@ -223,3 +223,5 @@ export default {
   getAllStateCodes,
   getAllStates
 };
+
+export default countyFipsLookup;

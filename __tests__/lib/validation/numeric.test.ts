@@ -355,9 +355,9 @@ describe('edge cases', () => {
       expect(safeParseInt('0042')).toBe(42);
     });
 
-    it('handles scientific notation strings (parseFloat behavior)', () => {
-      // parseInt stops at the 'e', so '1e3' becomes 1
-      expect(safeParseInt('1e3')).toBe(1);
+    it('rejects scientific notation strings', () => {
+      // safeParseInt should reject scientific notation as invalid integer format
+      expect(() => safeParseInt('1e3')).toThrow(NumericValidationError);
     });
   });
 
@@ -392,7 +392,7 @@ describe('edge cases', () => {
   describe('parsePercentage edge cases', () => {
     it('handles decimal percentages', () => {
       expect(parsePercentage('0.5%')).toBe(0.005);
-      expect(parsePercentage('99.99%')).toBe(0.9999);
+      expect(parsePercentage('99.99%')).toBeCloseTo(0.9999, 10);
     });
 
     it('handles over 100%', () => {

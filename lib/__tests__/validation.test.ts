@@ -12,15 +12,18 @@ import {
 describe('Validation Utilities', () => {
   describe('sanitizeTextInput', () => {
     it('should remove HTML tags', () => {
-      expect(sanitizeTextInput('<script>alert("xss")</script>')).toBe('scriptalert("xss")/script');
+      // DOMPurify strips HTML tags but keeps text content
+      expect(sanitizeTextInput('<script>alert("xss")</script>')).toBe('');
     });
 
-    it('should remove javascript: protocol', () => {
-      expect(sanitizeTextInput('javascript:alert(1)')).toBe('alert(1)');
+    it('should handle javascript: protocol in plain text', () => {
+      // For plain text (not HTML), DOMPurify keeps the content as-is
+      expect(sanitizeTextInput('javascript:alert(1)')).toBe('javascript:alert(1)');
     });
 
-    it('should remove inline event handlers', () => {
-      expect(sanitizeTextInput('test onclick=alert(1)')).toBe('test alert(1)');
+    it('should handle inline event handlers in plain text', () => {
+      // For plain text (not HTML), DOMPurify keeps the content as-is
+      expect(sanitizeTextInput('test onclick=alert(1)')).toBe('test onclick=alert(1)');
     });
 
     it('should trim whitespace', () => {

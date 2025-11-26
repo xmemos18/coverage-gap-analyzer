@@ -1,4 +1,17 @@
 import { render } from '@testing-library/react';
+
+// Mock CSS imports before importing layout
+jest.mock('@/app/globals.css', () => ({}));
+jest.mock('@/app/print.css', () => ({}));
+
+// Mock next/font/google
+jest.mock('next/font/google', () => ({
+  Inter: () => ({
+    className: 'inter-mock',
+    style: { fontFamily: 'Inter' },
+  }),
+}));
+
 import RootLayout from '@/app/layout';
 
 // Mock child components to isolate layout testing

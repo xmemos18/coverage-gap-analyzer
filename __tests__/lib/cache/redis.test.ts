@@ -1,14 +1,21 @@
-import {
-  CacheManager,
-  RateLimiter,
-  generateCacheKey,
-  getRedisClient,
-} from '@/lib/cache/redis';
-
 describe('Redis Cache', () => {
-  let cache: CacheManager;
+  let CacheManager: typeof import('@/lib/cache/redis').CacheManager;
+  let RateLimiter: typeof import('@/lib/cache/redis').RateLimiter;
+  let generateCacheKey: typeof import('@/lib/cache/redis').generateCacheKey;
+  let getRedisClient: typeof import('@/lib/cache/redis').getRedisClient;
+  let cache: InstanceType<typeof import('@/lib/cache/redis').CacheManager>;
 
   beforeEach(() => {
+    // Reset modules to get fresh singleton cache for each test
+    jest.resetModules();
+
+    // Re-import with fresh module
+    const redisModule = require('@/lib/cache/redis');
+    CacheManager = redisModule.CacheManager;
+    RateLimiter = redisModule.RateLimiter;
+    generateCacheKey = redisModule.generateCacheKey;
+    getRedisClient = redisModule.getRedisClient;
+
     cache = new CacheManager('test', 60); // 60 second TTL
   });
 

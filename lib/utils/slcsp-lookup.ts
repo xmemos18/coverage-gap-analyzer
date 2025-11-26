@@ -326,7 +326,7 @@ export function formatPremium(premium: number): string {
   }).format(premium);
 }
 
-export default {
+const slcspLookup = {
   getSLCSP,
   getBatchSLCSP,
   clearSLCSPCache,
@@ -334,3 +334,5 @@ export default {
   isValidZipCode,
   formatPremium,
 };
+
+export default slcspLookup;

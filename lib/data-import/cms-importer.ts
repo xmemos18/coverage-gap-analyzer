@@ -423,7 +423,7 @@ export async function validateImportedData(): Promise<void> {
 }
 
 // Export individual functions for selective imports
-export default {
+const cmsImporter = {
   importCountyData,
   importSLCSPData,
   importZIPMappings,
@@ -431,3 +431,5 @@ export default {
   runFullImport,
   validateImportedData
 };
+
+export default cmsImporter;

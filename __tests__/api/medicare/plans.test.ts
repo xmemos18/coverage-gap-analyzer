@@ -1,5 +1,94 @@
+// Mock NextRequest for Jest environment
+jest.mock('next/server', () => {
+  class MockHeaders extends Map<string, string> {
+    get(name: string): string | null {
+      return super.get(name.toLowerCase()) ?? null;
+    }
+    set(name: string, value: string): this {
+      super.set(name.toLowerCase(), value);
+      return this;
+    }
+    has(name: string): boolean {
+      return super.has(name.toLowerCase());
+    }
+    delete(name: string): boolean {
+      return super.delete(name.toLowerCase());
+    }
+    append(name: string, value: string): void {
+      const existing = this.get(name);
+      if (existing) {
+        super.set(name.toLowerCase(), `${existing}, ${value}`);
+      } else {
+        super.set(name.toLowerCase(), value);
+      }
+    }
+    forEach(callback: (value: string, key: string, parent: Map<string, string>) => void): void {
+      super.forEach(callback);
+    }
+  }
+
+  class MockNextRequest {
+    url: string;
+    nextUrl: URL;
+    method: string;
+    headers: MockHeaders;
+
+    constructor(url: string | URL, init?: RequestInit) {
+      this.url = url.toString();
+      this.nextUrl = new URL(this.url);
+      this.method = init?.method || 'GET';
+      this.headers = new MockHeaders();
+      if (init?.headers) {
+        const headersInit = init.headers as Record<string, string>;
+        Object.entries(headersInit).forEach(([key, value]) => {
+          this.headers.set(key, value);
+        });
+      }
+    }
+  }
+
+  // Create a mock Response-like object
+  class MockResponse {
+    private body: string;
+    status: number;
+    headers: MockHeaders;
+
+    constructor(body: string, init?: { status?: number; headers?: Record<string, string> }) {
+      this.body = body;
+      this.status = init?.status || 200;
+      this.headers = new MockHeaders();
+      if (init?.headers) {
+        Object.entries(init.headers).forEach(([k, v]) => this.headers.set(k, v));
+      }
+    }
+
+    async json() {
+      return JSON.parse(this.body);
+    }
+
+    async text() {
+      return this.body;
+    }
+  }
+
+  return {
+    NextRequest: MockNextRequest,
+    NextResponse: {
+      json: (body: unknown, init?: { status?: number; headers?: Record<string, string> }) => {
+        return new MockResponse(JSON.stringify(body), {
+          status: init?.status || 200,
+          headers: {
+            'content-type': 'application/json',
+            ...init?.headers,
+          },
+        });
+      },
+    },
+  };
+});
+
 import { GET } from '@/app/api/medicare/plans/route';
-import { NextRequest } from 'next/server';
+const { NextRequest } = jest.requireMock('next/server');
 
 // Mock the Medicare plan service
 jest.mock('@/lib/medicare/medicarePlanService', () => ({

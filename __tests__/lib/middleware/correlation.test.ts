@@ -1,3 +1,72 @@
+// Mock next/server before importing anything that uses it
+jest.mock('next/server', () => {
+  // Create a mock Headers class
+  class MockHeaders extends Map<string, string> {
+    constructor(init?: Record<string, string> | [string, string][]) {
+      super();
+      if (init) {
+        if (Array.isArray(init)) {
+          init.forEach(([key, value]) => this.set(key.toLowerCase(), value));
+        } else {
+          Object.entries(init).forEach(([key, value]) => this.set(key.toLowerCase(), value));
+        }
+      }
+    }
+    get(key: string): string | null {
+      return super.get(key.toLowerCase()) || null;
+    }
+    set(key: string, value: string): this {
+      super.set(key.toLowerCase(), value);
+      return this;
+    }
+    has(key: string): boolean {
+      return super.has(key.toLowerCase());
+    }
+  }
+
+  // Create a mock NextRequest class
+  class MockNextRequest {
+    url: string;
+    method: string;
+    headers: MockHeaders;
+    nextUrl: { pathname: string };
+    cookies: { get: jest.Mock };
+
+    constructor(url: string, init?: { method?: string; headers?: Record<string, string> }) {
+      this.url = url;
+      this.method = init?.method || 'GET';
+      this.headers = new MockHeaders(init?.headers);
+      this.nextUrl = { pathname: new URL(url).pathname };
+      this.cookies = { get: jest.fn() };
+    }
+  }
+
+  // Create mock NextResponse
+  const MockNextResponse = {
+    json: (body: unknown, init?: { status?: number; headers?: Record<string, string> }) => {
+      const headers = new MockHeaders(init?.headers);
+      return {
+        status: init?.status || 200,
+        headers,
+        json: async () => body,
+      };
+    },
+    next: () => ({
+      status: 200,
+      headers: new MockHeaders(),
+    }),
+    redirect: (url: URL) => ({
+      status: 302,
+      headers: new MockHeaders({ location: url.toString() }),
+    }),
+  };
+
+  return {
+    NextRequest: MockNextRequest,
+    NextResponse: MockNextResponse,
+  };
+});
+
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getCorrelationId,
@@ -186,18 +255,24 @@ describe('Correlation Middleware', () => {
 
   describe('extractCorrelationIdFromResponse', () => {
     it('extracts correlation ID from response headers', () => {
-      const response = new Response('{}', {
+      // Create a mock response with proper headers
+      const response = {
         headers: {
-          [CORRELATION_ID_HEADER]: 'response-id-123',
-        },
-      });
+          get: (name: string) => name === CORRELATION_ID_HEADER ? 'response-id-123' : null
+        }
+      } as unknown as Response;
 
       const correlationId = extractCorrelationIdFromResponse(response);
       expect(correlationId).toBe('response-id-123');
     });
 
     it('returns null when correlation ID is not present', () => {
-      const response = new Response('{}');
+      // Create a mock response with empty headers
+      const response = {
+        headers: {
+          get: () => null
+        }
+      } as unknown as Response;
 
       const correlationId = extractCorrelationIdFromResponse(response);
       expect(correlationId).toBeNull();
@@ -225,11 +300,12 @@ describe('Correlation Middleware', () => {
 
   describe('createCorrelationContext', () => {
     it('creates context from response', () => {
-      const response = new Response('{}', {
+      // Create a mock response with proper headers
+      const response = {
         headers: {
-          [CORRELATION_ID_HEADER]: '550e8400-e29b-41d4-a716-446655440000',
-        },
-      });
+          get: (name: string) => name === CORRELATION_ID_HEADER ? '550e8400-e29b-41d4-a716-446655440000' : null
+        }
+      } as unknown as Response;
 
       const context = createCorrelationContext(response);
 
@@ -240,7 +316,12 @@ describe('Correlation Middleware', () => {
     });
 
     it('returns null when correlation ID is not present', () => {
-      const response = new Response('{}');
+      // Create a mock response with empty headers
+      const response = {
+        headers: {
+          get: () => null
+        }
+      } as unknown as Response;
 
       const context = createCorrelationContext(response);
       expect(context).toBeNull();

@@ -1,36 +1,11 @@
 /**
  * Shared Authentication Hook
  *
- * SECURITY WARNING: This currently uses client-side authentication which is NOT secure.
- * The password is stored in environment variables but still validated in the browser.
- *
- * TODO: Migrate to proper server-side authentication with:
- * - Server-side password validation
- * - JWT tokens or secure session management
- * - httpOnly cookies
- * - Rate limiting at the server level
- *
- * For production use, this must be replaced with proper authentication.
+ * Uses server-side authentication with JWT tokens and httpOnly cookies.
+ * All password validation happens server-side for security.
  */
 
 import { useState, useEffect, useCallback } from 'react';
-
-// Storage keys
-const enum StorageKeys {
-  AUTH = 'site-authenticated',
-  NDA = 'nda-accepted',
-  AUTH_TIMESTAMP = 'auth-timestamp',
-  FAILED_ATTEMPTS = 'failed-attempts',
-  LOCKOUT_UNTIL = 'lockout-until'
-}
-
-// Configuration
-const SESSION_TIMEOUT_MS = 24 * 60 * 60 * 1000; // 24 hours
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MS = 30 * 1000; // 30 seconds
-
-// Get password from environment variable or fallback to hardcoded (NOT SECURE)
-const CORRECT_PASSWORD = process.env.NEXT_PUBLIC_SITE_PASSWORD || '1234abcd';
 
 interface UseAuthenticationReturn {
   isAuthenticated: boolean;
@@ -61,57 +36,25 @@ export function useAuthentication(): UseAuthenticationReturn {
   const [isLockedOut, setIsLockedOut] = useState(false);
   const [lockoutTimeRemaining, setLockoutTimeRemaining] = useState(0);
 
-  // Check if user is locked out
-  const checkLockout = useCallback((): boolean => {
-    const lockoutUntil = sessionStorage.getItem(StorageKeys.LOCKOUT_UNTIL);
-    if (lockoutUntil) {
-      const lockoutTime = parseInt(lockoutUntil, 10);
-      const now = Date.now();
-
-      if (now < lockoutTime) {
-        const remaining = Math.ceil((lockoutTime - now) / 1000);
-        setIsLockedOut(true);
-        setLockoutTimeRemaining(remaining);
-        return true;
-      } else {
-        // Lockout expired, clear it
-        sessionStorage.removeItem(StorageKeys.LOCKOUT_UNTIL);
-        sessionStorage.removeItem(StorageKeys.FAILED_ATTEMPTS);
-        setIsLockedOut(false);
-        setLockoutTimeRemaining(0);
-      }
-    }
-    return false;
-  }, []);
-
   // Check authentication status on mount
   useEffect(() => {
-    const authStatus = sessionStorage.getItem(StorageKeys.AUTH);
-    const authTimestamp = sessionStorage.getItem(StorageKeys.AUTH_TIMESTAMP);
-    const ndaStatus = sessionStorage.getItem(StorageKeys.NDA);
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('/api/auth/status');
+        const data = await response.json();
 
-    // Check if session has expired
-    if (authStatus === 'true' && authTimestamp) {
-      const loginTime = parseInt(authTimestamp, 10);
-      const now = Date.now();
-
-      if (now - loginTime > SESSION_TIMEOUT_MS) {
-        // Session expired, clear auth
-        sessionStorage.removeItem(StorageKeys.AUTH);
-        sessionStorage.removeItem(StorageKeys.AUTH_TIMESTAMP);
+        setIsAuthenticated(data.authenticated);
+        setNdaAccepted(data.ndaAccepted || false);
+      } catch {
+        // If status check fails, assume not authenticated
         setIsAuthenticated(false);
-      } else {
-        setIsAuthenticated(true);
+      } finally {
+        setIsLoading(false);
       }
-    }
+    };
 
-    if (ndaStatus === 'true') {
-      setNdaAccepted(true);
-    }
-
-    checkLockout();
-    setIsLoading(false);
-  }, [checkLockout]);
+    checkAuthStatus();
+  }, []);
 
   // Lockout countdown timer
   useEffect(() => {
@@ -123,8 +66,6 @@ export function useAuthentication(): UseAuthenticationReturn {
       setLockoutTimeRemaining(prev => {
         if (prev <= 1) {
           setIsLockedOut(false);
-          sessionStorage.removeItem(StorageKeys.LOCKOUT_UNTIL);
-          sessionStorage.removeItem(StorageKeys.FAILED_ATTEMPTS);
           return 0;
         }
         return prev - 1;
@@ -134,40 +75,57 @@ export function useAuthentication(): UseAuthenticationReturn {
     return () => clearInterval(timer);
   }, [isLockedOut, lockoutTimeRemaining]);
 
-  // Validate password and handle authentication
-  const validatePassword = useCallback((passwordToValidate: string): boolean => {
-    if (passwordToValidate === CORRECT_PASSWORD) {
-      // Successful login
-      sessionStorage.setItem(StorageKeys.AUTH, 'true');
-      sessionStorage.setItem(StorageKeys.AUTH_TIMESTAMP, Date.now().toString());
-      sessionStorage.removeItem(StorageKeys.FAILED_ATTEMPTS);
-      sessionStorage.removeItem(StorageKeys.LOCKOUT_UNTIL);
-      setIsAuthenticated(true);
-      setError('');
-      setPassword(''); // Clear password from state immediately
-      return true;
-    } else {
-      // Failed login
-      const failedAttempts = parseInt(
-        sessionStorage.getItem(StorageKeys.FAILED_ATTEMPTS) || '0',
-        10
-      ) + 1;
+  // Server-side login
+  const login = useCallback(async (passwordToValidate: string, nda: boolean): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          password: passwordToValidate,
+          ndaAccepted: nda,
+        }),
+      });
 
-      sessionStorage.setItem(StorageKeys.FAILED_ATTEMPTS, failedAttempts.toString());
+      const data = await response.json();
 
-      if (failedAttempts >= MAX_ATTEMPTS) {
-        // Trigger lockout
-        const lockoutUntil = Date.now() + LOCKOUT_DURATION_MS;
-        sessionStorage.setItem(StorageKeys.LOCKOUT_UNTIL, lockoutUntil.toString());
-        setIsLockedOut(true);
-        setLockoutTimeRemaining(Math.ceil(LOCKOUT_DURATION_MS / 1000));
-        setError(`Too many failed attempts. Please wait ${Math.ceil(LOCKOUT_DURATION_MS / 1000)} seconds.`);
-      } else {
-        const attemptsRemaining = MAX_ATTEMPTS - failedAttempts;
-        setError(`Incorrect password. ${attemptsRemaining} attempt${attemptsRemaining !== 1 ? 's' : ''} remaining.`);
+      if (response.ok && data.success) {
+        setIsAuthenticated(true);
+        setNdaAccepted(true);
+        setError('');
+        setPassword('');
+        return true;
       }
 
-      setPassword(''); // Clear password from state
+      // Handle error responses
+      if (response.status === 429) {
+        // Rate limited
+        setIsLockedOut(true);
+        setLockoutTimeRemaining(data.lockoutRemaining || 30);
+        setError(`Too many failed attempts. Please wait ${data.lockoutRemaining || 30} seconds.`);
+      } else if (response.status === 401) {
+        // Invalid password
+        if (data.isLockedOut) {
+          setIsLockedOut(true);
+          setLockoutTimeRemaining(data.lockoutRemaining || 30);
+          setError(`Too many failed attempts. Please wait ${data.lockoutRemaining || 30} seconds.`);
+        } else {
+          const remaining = data.remainingAttempts ?? 0;
+          setError(`Incorrect password. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`);
+        }
+      } else if (response.status === 400) {
+        setError(data.error || 'Invalid request');
+      } else {
+        setError('Authentication failed. Please try again.');
+      }
+
+      setPassword('');
+      return false;
+    } catch {
+      setError('Network error. Please check your connection.');
+      setPassword('');
       return false;
     }
   }, []);
@@ -182,26 +140,25 @@ export function useAuthentication(): UseAuthenticationReturn {
 
   const handleNDAAccept = useCallback(() => {
     setNdaAccepted(true);
-    sessionStorage.setItem(StorageKeys.NDA, 'true');
     setShowNDA(false);
     setShowPassword(true);
 
-    // If password was already entered, validate it immediately
-    if (password && !checkLockout()) {
-      validatePassword(password);
+    // If password was already entered, try to login
+    if (password && !isLockedOut) {
+      login(password, true);
     }
-  }, [password, checkLockout, validatePassword]);
+  }, [password, isLockedOut, login]);
 
   const handleNDADecline = useCallback(() => {
     setShowNDA(false);
     setShowPassword(false);
   }, []);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Check if locked out
-    if (checkLockout()) {
+    if (isLockedOut) {
       return;
     }
 
@@ -210,12 +167,18 @@ export function useAuthentication(): UseAuthenticationReturn {
       return;
     }
 
-    validatePassword(password);
-  }, [ndaAccepted, password, checkLockout, validatePassword]);
+    await login(password, ndaAccepted);
+  }, [ndaAccepted, password, isLockedOut, login]);
 
-  const handleLogout = useCallback(() => {
-    sessionStorage.removeItem(StorageKeys.AUTH);
-    sessionStorage.removeItem(StorageKeys.AUTH_TIMESTAMP);
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+      });
+    } catch {
+      // Logout failed silently - still clear client state
+    }
+
     setIsAuthenticated(false);
     setPassword('');
     setShowPassword(false);

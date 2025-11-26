@@ -89,7 +89,7 @@ export function safeParseInt(
       }
       return undefined;
     }
-    const intValue = Math.floor(value);
+    const intValue = Math.trunc(value);
     return validateRange(intValue, min, max, fieldName, throwOnError);
   }
 
@@ -104,6 +104,18 @@ export function safeParseInt(
     if (throwOnError) {
       throw new NumericValidationError(
         `${fieldName} cannot be empty`,
+        value,
+        fieldName
+      );
+    }
+    return undefined;
+  }
+
+  // Validate string format - must be a valid integer (optional leading minus, digits only)
+  if (!/^-?\d+$/.test(trimmed)) {
+    if (throwOnError) {
+      throw new NumericValidationError(
+        `${fieldName} must be a valid integer (received: "${value}")`,
         value,
         fieldName
       );
@@ -216,6 +228,18 @@ export function safeParseFloat(
     if (throwOnError) {
       throw new NumericValidationError(
         `${fieldName} cannot be empty`,
+        value,
+        fieldName
+      );
+    }
+    return undefined;
+  }
+
+  // Validate string format - must be a valid number (optional minus, digits, optional decimal, optional exponent)
+  if (!/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(trimmed)) {
+    if (throwOnError) {
+      throw new NumericValidationError(
+        `${fieldName} must be a valid number (received: "${value}")`,
         value,
         fieldName
       );
@@ -352,14 +376,16 @@ export function parsePercentage(
   value: string | number | null | undefined,
   options: ParseOptions & { asDecimal?: boolean } = {}
 ): number | undefined {
-  const { asDecimal = true, ...parseOptions } = options;
+  const { asDecimal = true, min, max, fieldName = 'percentage', throwOnError = true, ...restOptions } = options;
 
+  // Handle number input
   if (typeof value === 'number') {
-    return asDecimal ? value / 100 : value;
+    const result = asDecimal ? value / 100 : value;
+    return validateRange(result, min, max, fieldName, throwOnError);
   }
 
   if (value === null || value === undefined || value === '') {
-    return safeParseFloat(value, parseOptions);
+    return safeParseFloat(value, { ...restOptions, fieldName, throwOnError });
   }
 
   // Remove percentage symbol
@@ -367,16 +393,22 @@ export function parsePercentage(
     .trim()
     .replace(/%/g, '');
 
+  // Parse without range validation (we'll validate after decimal conversion)
   const parsed = safeParseFloat(cleaned, {
-    ...parseOptions,
-    fieldName: parseOptions.fieldName || 'percentage',
+    ...restOptions,
+    fieldName,
+    throwOnError,
   });
 
   if (parsed === undefined) {
     return undefined;
   }
 
-  return asDecimal ? parsed / 100 : parsed;
+  // Convert to decimal if needed
+  const result = asDecimal ? parsed / 100 : parsed;
+
+  // Apply range validation on the final result
+  return validateRange(result, min, max, fieldName, throwOnError);
 }
 
 /**

@@ -1,24 +1,62 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
 
-export function middleware(_request: NextRequest) {
-  // Authentication disabled - site is publicly accessible
-  // To re-enable authentication, uncomment the code below:
+const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXT_PUBLIC_SITE_PASSWORD || 'fallback-secret-change-me';
 
-  // const authCookie = request.cookies.get('auth');
-  // const isAuthenticated = authCookie?.value === 'authenticated';
-  // const publicPaths = ['/login'];
-  // const isPublicPath = publicPaths.some(path => request.nextUrl.pathname.startsWith(path));
+// Paths that don't require authentication
+const PUBLIC_PATHS = ['/login', '/api/auth/login', '/api/auth/logout', '/api/auth/status'];
 
-  // if (!isAuthenticated && !isPublicPath) {
-  //   return NextResponse.redirect(new URL('/login', request.url));
-  // }
+// Check if authentication is enabled (set REQUIRE_AUTH=true to enable)
+const REQUIRE_AUTH = process.env.REQUIRE_AUTH === 'true';
 
-  // if (isAuthenticated && request.nextUrl.pathname === '/login') {
-  //   return NextResponse.redirect(new URL('/', request.url));
-  // }
+async function verifyToken(token: string): Promise<boolean> {
+  try {
+    const secret = new TextEncoder().encode(JWT_SECRET);
+    const { payload } = await jwtVerify(token, secret);
+    return payload.authenticated === true;
+  } catch {
+    return false;
+  }
+}
 
-  // Clone the response
+export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // Check if path is public
+  const isPublicPath = PUBLIC_PATHS.some(path => pathname.startsWith(path));
+
+  // Authentication check (only if enabled)
+  if (REQUIRE_AUTH && !isPublicPath) {
+    const token = request.cookies.get('auth-token')?.value;
+
+    if (!token) {
+      // No token, redirect to login
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    const isValid = await verifyToken(token);
+    if (!isValid) {
+      // Invalid or expired token, redirect to login
+      const response = NextResponse.redirect(new URL('/login', request.url));
+      // Clear invalid token
+      response.cookies.delete('auth-token');
+      return response;
+    }
+  }
+
+  // If authenticated and trying to access login page, redirect to home
+  if (REQUIRE_AUTH && pathname === '/login') {
+    const token = request.cookies.get('auth-token')?.value;
+    if (token) {
+      const isValid = await verifyToken(token);
+      if (isValid) {
+        return NextResponse.redirect(new URL('/', request.url));
+      }
+    }
+  }
+
+  // Continue with the request
   const response = NextResponse.next();
 
   // Add additional security headers

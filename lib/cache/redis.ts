@@ -83,10 +83,18 @@ class InMemoryCache implements RedisClient {
   }
 
   async incr(key: string): Promise<number> {
-    const current = await this.get<number>(key);
-    const newValue = (current || 0) + 1;
-    await this.set(key, newValue, { ex: 60 }); // Default 60 seconds for counters
-    return newValue;
+    const entry = this.cache.get(key);
+    if (entry && Date.now() <= entry.expiresAt) {
+      // Key exists and hasn't expired - preserve TTL
+      const currentValue = typeof entry.data === 'number' ? entry.data : 0;
+      entry.data = currentValue + 1;
+      return entry.data as number;
+    } else {
+      // Key doesn't exist or has expired - set with default TTL
+      const newValue = 1;
+      this.cache.set(key, { data: newValue, expiresAt: Date.now() + 60 * 1000 });
+      return newValue;
+    }
   }
 
   async expire(key: string, seconds: number): Promise<void> {

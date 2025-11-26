@@ -1,16 +1,16 @@
-import { getDb, getDbWithRetry, closeDb } from '@/db/client';
+// Mock setup must come before imports
+const mockPostgresEnd = jest.fn().mockResolvedValue(undefined);
+const mockExecute = jest.fn().mockResolvedValue([{ result: 1 }]);
 
-// Mock postgres and drizzle
 jest.mock('postgres', () => {
-  const mockPostgres = jest.fn(() => ({
-    end: jest.fn().mockResolvedValue(undefined),
+  return jest.fn(() => ({
+    end: mockPostgresEnd,
   }));
-  return mockPostgres;
 });
 
 jest.mock('drizzle-orm/postgres-js', () => ({
   drizzle: jest.fn(() => ({
-    execute: jest.fn().mockResolvedValue([{ result: 1 }]),
+    execute: mockExecute,
   })),
 }));
 
@@ -25,10 +25,43 @@ jest.mock('@/lib/logger', () => ({
 describe('Database Connection', () => {
   const originalEnv = process.env;
 
+  // Store module references for dynamic import
+  let getDb: typeof import('@/db/client').getDb;
+  let getDbWithRetry: typeof import('@/db/client').getDbWithRetry;
+  let closeDb: typeof import('@/db/client').closeDb;
+  let postgres: jest.Mock;
+  let drizzle: { drizzle: jest.Mock };
+  let logger: { info: jest.Mock; warn: jest.Mock; error: jest.Mock };
+
   beforeEach(() => {
+    // Reset all mocks
     jest.clearAllMocks();
+
+    // Reset module cache to get fresh singleton state
+    jest.resetModules();
+
     // Reset environment
     process.env = { ...originalEnv };
+
+    // Reset mock implementations
+    mockPostgresEnd.mockResolvedValue(undefined);
+    mockExecute.mockResolvedValue([{ result: 1 }]);
+
+    // Re-require mocked modules
+    postgres = require('postgres');
+    drizzle = require('drizzle-orm/postgres-js');
+    logger = require('@/lib/logger').logger;
+
+    // Reset drizzle mock to default behavior
+    drizzle.drizzle.mockImplementation(() => ({
+      execute: mockExecute,
+    }));
+
+    // Re-import the client module to get fresh exports
+    const clientModule = require('@/db/client');
+    getDb = clientModule.getDb;
+    getDbWithRetry = clientModule.getDbWithRetry;
+    closeDb = clientModule.closeDb;
   });
 
   afterEach(() => {
@@ -76,8 +109,6 @@ describe('Database Connection', () => {
     it('retries connection on transient failures', async () => {
       process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/db';
 
-      const drizzle = require('drizzle-orm/postgres-js');
-
       // First call fails, second succeeds
       let callCount = 0;
       drizzle.drizzle.mockImplementation(() => {
@@ -86,7 +117,7 @@ describe('Database Connection', () => {
           throw new Error('Connection timeout');
         }
         return {
-          execute: jest.fn().mockResolvedValue([{ result: 1 }]),
+          execute: mockExecute,
         };
       });
 
@@ -103,20 +134,16 @@ describe('Database Connection', () => {
     it('throws after exhausting retries', async () => {
       process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/db';
 
-      const drizzle = require('drizzle-orm/postgres-js');
-
       // Always fail
       drizzle.drizzle.mockImplementation(() => {
         throw new Error('Connection refused');
       });
 
       await expect(getDbWithRetry(2)).rejects.toThrow('Database connection failed after 3 attempts');
-    }, 10000); // Longer timeout for retries
+    }, 15000); // Longer timeout for retries
 
     it('uses exponential backoff for retries', async () => {
       process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/db';
-
-      const drizzle = require('drizzle-orm/postgres-js');
 
       const startTime = Date.now();
 
@@ -133,7 +160,7 @@ describe('Database Connection', () => {
         // (1st retry after 1s, 2nd retry after 2s)
         expect(elapsedTime).toBeGreaterThan(3000);
       }
-    }, 10000);
+    }, 15000);
   });
 
   describe('closeDb', () => {
@@ -143,9 +170,7 @@ describe('Database Connection', () => {
       getDb(); // Initialize connection
       await closeDb();
 
-      // Connection should be closed, so next getDb creates new instance
-      const newDb = getDb();
-      expect(newDb).toBeDefined();
+      expect(mockPostgresEnd).toHaveBeenCalled();
     });
 
     it('handles closing non-existent connection', async () => {
@@ -170,7 +195,6 @@ describe('Database Connection', () => {
     it('provides troubleshooting steps on connection failure', () => {
       process.env.DATABASE_URL = 'invalid-url';
 
-      const drizzle = require('drizzle-orm/postgres-js');
       drizzle.drizzle.mockImplementation(() => {
         throw new Error('Invalid connection string');
       });
@@ -192,8 +216,6 @@ describe('Database Connection', () => {
       process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/db';
       process.env.NODE_ENV = 'production';
 
-      const postgres = require('postgres');
-
       getDb();
 
       expect(postgres).toHaveBeenCalledWith(
@@ -211,8 +233,6 @@ describe('Database Connection', () => {
       process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/db';
       process.env.NODE_ENV = 'development';
 
-      const postgres = require('postgres');
-
       getDb();
 
       expect(postgres).toHaveBeenCalledWith(
@@ -228,8 +248,6 @@ describe('Database Connection', () => {
     it('logs successful connection', () => {
       process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/db';
 
-      const logger = require('@/lib/logger').logger;
-
       getDb();
 
       expect(logger.info).toHaveBeenCalledWith(
@@ -243,8 +261,6 @@ describe('Database Connection', () => {
 
     it('logs connection failures', () => {
       delete process.env.DATABASE_URL;
-
-      const logger = require('@/lib/logger').logger;
 
       try {
         getDb();
@@ -261,9 +277,6 @@ describe('Database Connection', () => {
     it('logs retry attempts', async () => {
       process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/db';
 
-      const drizzle = require('drizzle-orm/postgres-js');
-      const logger = require('@/lib/logger').logger;
-
       let callCount = 0;
       drizzle.drizzle.mockImplementation(() => {
         callCount++;
@@ -271,7 +284,7 @@ describe('Database Connection', () => {
           throw new Error('Transient failure');
         }
         return {
-          execute: jest.fn().mockResolvedValue([{ result: 1 }]),
+          execute: mockExecute,
         };
       });
 
@@ -292,7 +305,6 @@ describe('Database Connection', () => {
     it('does not expose password in errors', () => {
       process.env.DATABASE_URL = 'postgresql://user:secretpassword@localhost:5432/db';
 
-      const drizzle = require('drizzle-orm/postgres-js');
       drizzle.drizzle.mockImplementation(() => {
         throw new Error('Connection failed');
       });

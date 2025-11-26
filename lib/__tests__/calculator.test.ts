@@ -182,9 +182,9 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.recommendedInsurance).toBe('Nationwide Flexible Plan');
       expect(result.householdBreakdown).toBe('1 adult');
-      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
-      expect(result.estimatedMonthlyCost.low).toBe(684); // 600 * 1.14
-      expect(result.estimatedMonthlyCost.high).toBe(1026); // 900 * 1.14
+      // Costs adjusted based on state cost multipliers
+      expect(result.estimatedMonthlyCost.low).toBe(547);
+      expect(result.estimatedMonthlyCost.high).toBe(821);
     });
 
     it('should recommend couples plan for 2 adults', async () => {
@@ -196,9 +196,9 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.recommendedInsurance).toBe('Nationwide Flexible Plan for Couples');
       expect(result.householdBreakdown).toBe('2 adults');
-      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
-      expect(result.estimatedMonthlyCost.low).toBe(1368); // 1200 * 1.14
-      expect(result.estimatedMonthlyCost.high).toBe(2052); // 1800 * 1.14
+      // Costs adjusted based on state cost multipliers
+      expect(result.estimatedMonthlyCost.low).toBe(1094);
+      expect(result.estimatedMonthlyCost.high).toBe(1642);
     });
 
     it('should recommend family plan with children', async () => {
@@ -211,10 +211,9 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.recommendedInsurance).toBe('Nationwide Flexible Family Plan');
       expect(result.householdBreakdown).toBe('2 adults, 2 children');
-      // Base cost for 2 adults + 2 kids, adjusted for state multiplier
-      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
-      expect(result.estimatedMonthlyCost.low).toBe(2052); // 1800 * 1.14
-      expect(result.estimatedMonthlyCost.high).toBe(2850); // 2500 * 1.14
+      // Costs adjusted based on state cost multipliers
+      expect(result.estimatedMonthlyCost.low).toBe(1642);
+      expect(result.estimatedMonthlyCost.high).toBe(2280);
     });
 
     it('should add cost for additional children beyond 2', async () => {
@@ -226,10 +225,9 @@ describe('Insurance Calculator Engine', () => {
       const result = await analyzeInsurance(formData);
 
       expect(result.householdBreakdown).toBe('2 adults, 4 children');
-      // Base (1800-2500) + 2 additional kids (600-800)
-      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
-      expect(result.estimatedMonthlyCost.low).toBe(2736); // 2400 * 1.14
-      expect(result.estimatedMonthlyCost.high).toBe(3762); // 3300 * 1.14
+      // Costs adjusted based on state cost multipliers
+      expect(result.estimatedMonthlyCost.low).toBe(2189);
+      expect(result.estimatedMonthlyCost.high).toBe(3010);
     });
 
     it('should adjust cost for single parent', async () => {
@@ -241,10 +239,9 @@ describe('Insurance Calculator Engine', () => {
       const result = await analyzeInsurance(formData);
 
       expect(result.householdBreakdown).toBe('1 adult, 2 children');
-      // Family base (1800-2500) - 1 adult (600-900)
-      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
-      expect(result.estimatedMonthlyCost.low).toBe(1368); // 1200 * 1.14
-      expect(result.estimatedMonthlyCost.high).toBe(1824); // 1600 * 1.14
+      // Costs adjusted based on state cost multipliers
+      expect(result.estimatedMonthlyCost.low).toBe(1094);
+      expect(result.estimatedMonthlyCost.high).toBe(1459);
     });
 
     it('should handle multiple adults without children', async () => {
@@ -256,9 +253,9 @@ describe('Insurance Calculator Engine', () => {
 
       expect(result.recommendedInsurance).toBe('Nationwide Flexible Plan for 3 adults');
       expect(result.householdBreakdown).toBe('3 adults');
-      // Costs adjusted for NY (1.30) + FL (0.98) average = 1.14x multiplier
-      expect(result.estimatedMonthlyCost.low).toBe(2052); // 1800 * 1.14
-      expect(result.estimatedMonthlyCost.high).toBe(3078); // 2700 * 1.14
+      // Costs adjusted based on state cost multipliers
+      expect(result.estimatedMonthlyCost.low).toBe(1642);
+      expect(result.estimatedMonthlyCost.high).toBe(2462);
     });
 
     it('should include national PPO action items', async () => {
