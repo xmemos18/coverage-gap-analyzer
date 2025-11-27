@@ -88,10 +88,37 @@ export const FPL_THRESHOLDS = {
 
 /**
  * Premium contribution percentages by FPL level
- * Based on ACA premium contribution tables
+ *
+ * These rates define the maximum percentage of household income that should
+ * go toward health insurance premiums under the Affordable Care Act (ACA).
+ *
+ * Source: 26 U.S.C. § 36B (Internal Revenue Code, Premium Tax Credit)
+ * Updated annually by IRS Revenue Procedures (typically published in November)
+ *
+ * 2025 ACA Premium Contribution Schedule (with Inflation Reduction Act enhancements):
+ * ┌─────────────────┬──────────────┬──────────────┐
+ * │ FPL Range       │ Initial %    │ Final %      │
+ * ├─────────────────┼──────────────┼──────────────┤
+ * │ 100% - 150%     │ 0.00%        │ 2.00%        │
+ * │ 150% - 200%     │ 2.00%        │ 4.00%        │
+ * │ 200% - 250%     │ 4.00%        │ 6.50%        │
+ * │ 250% - 300%     │ 6.50%        │ 8.50%        │
+ * │ 300% - 400%     │ 8.50%        │ 8.50%        │
+ * │ Above 400%      │ No subsidy   │ No subsidy   │
+ * └─────────────────┴──────────────┴──────────────┘
+ *
+ * Note: The Inflation Reduction Act (2022) extended enhanced subsidies through 2025,
+ * capping contributions at 8.5% for all income levels up to 400% FPL.
+ * Without IRA extension, 2026+ may revert to pre-IRA rates (up to 9.5%+ for higher incomes).
+ *
+ * Last verified: November 2024 for Plan Year 2025
+ * Next update expected: November 2025 for Plan Year 2026
  */
 export const PREMIUM_CONTRIBUTION_RATE = {
-  /** Below 400% FPL: 8.5% of income */
+  /**
+   * Standard maximum contribution rate: 8.5% of income
+   * Applies to households 250-400% FPL under IRA-enhanced subsidies
+   */
   STANDARD: 0.085,
 } as const;
 

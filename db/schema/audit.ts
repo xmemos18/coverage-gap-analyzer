@@ -1,6 +1,43 @@
 /**
  * Audit and Versioning Schema
  * Track data changes, user actions, and maintain audit trails
+ *
+ * ============================================================================
+ * RETENTION POLICY REQUIREMENTS
+ * ============================================================================
+ *
+ * These tables will grow unbounded without a retention policy. Implement cleanup:
+ *
+ * 1. auditLog: Retain for 90 days minimum (regulatory compliance), archive after 1 year
+ *    - Run: DELETE FROM audit_log WHERE timestamp < NOW() - INTERVAL '90 days'
+ *    - Consider archiving to cold storage before deletion
+ *
+ * 2. apiCallLogs: Retain for 30 days (debugging), aggregate after 7 days
+ *    - Run: DELETE FROM api_call_logs WHERE called_at < NOW() - INTERVAL '30 days'
+ *    - Consider creating daily/hourly aggregates before deletion
+ *
+ * 3. analysisSessions: Retain for 90 days (analytics), anonymize older data
+ *    - Sessions older than 90 days should be aggregated into monthly reports
+ *    - Delete PII-adjacent fields (user_agent, ip_address_hash) after 30 days
+ *
+ * 4. systemHealthMetrics: Retain for 30 days at granular level, aggregate to hourly/daily
+ *    - Keep hourly aggregates for 6 months
+ *    - Keep daily aggregates for 2 years
+ *
+ * 5. dataQualityAlerts: No auto-delete, but close/archive resolved alerts after 90 days
+ *    - Archive closed alerts annually
+ *
+ * 6. dataImports: Retain indefinitely (historical record), but clean logs field after 30 days
+ *    - The import history itself should be preserved for audit purposes
+ *
+ * IMPLEMENTATION OPTIONS:
+ * - PostgreSQL pg_cron extension for scheduled jobs
+ * - Supabase Edge Functions with scheduled triggers
+ * - External cron job calling cleanup API endpoint
+ * - Drizzle ORM migration with cleanup script
+ *
+ * TODO: Implement automated retention policy with one of the above methods
+ * ============================================================================
  */
 
 import {

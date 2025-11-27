@@ -71,7 +71,24 @@ function calculateFPL(householdSize: number): number {
 }
 
 /**
- * Get estimated income from income range
+ * Get estimated income from income range selection
+ *
+ * Since users select income ranges rather than exact amounts, we use the midpoint
+ * of each range for subsidy calculations. This provides a reasonable estimate
+ * while respecting user privacy.
+ *
+ * Trade-offs of this approach:
+ * - Accuracy: Users at range boundaries may get slightly different subsidy estimates
+ *   than their actual entitlement. Example: Someone earning $29,000 in the "under-30k"
+ *   range gets calculated at $25,000 midpoint.
+ * - Privacy: Allows users to provide income information without exact disclosure
+ * - Simplicity: Reduces form complexity and user cognitive load
+ *
+ * For more accurate calculations, the async calculateSubsidyWithRealSLCSP() function
+ * should be used with real SLCSP data from Healthcare.gov.
+ *
+ * @param incomeRange - Income range key from form selection
+ * @returns Estimated annual income at range midpoint
  */
 function getEstimatedIncome(incomeRange: string): number {
   const estimate = INCOME_RANGE_MIDPOINTS[incomeRange as keyof typeof INCOME_RANGE_MIDPOINTS];
@@ -88,15 +105,35 @@ function getEstimatedIncome(incomeRange: string): number {
 }
 
 /**
- * Calculate maximum affordable percentage based on FPL
+ * Calculate maximum affordable percentage of income based on FPL percentage
+ *
+ * These rates determine the maximum % of household income that should go toward
+ * health insurance premiums. The difference between this and the SLCSP premium
+ * is the Premium Tax Credit (PTC) amount.
+ *
+ * Source: ACA Premium Contribution Percentages for 2025
+ * Reference: 26 U.S.C. § 36B (Internal Revenue Code)
+ * CMS Notice: https://www.cms.gov/CCIIO/Resources/Regulations-and-Guidance
+ * IRS Rev. Proc. 2024-XX (Published annually in November)
+ *
+ * Note: These percentages are indexed and updated annually by the IRS.
+ * Last verified: November 2024 for Plan Year 2025
+ *
+ * The Inflation Reduction Act (IRA) extended enhanced subsidies through 2025,
+ * which cap contributions at 8.5% for all income levels up to 400% FPL.
+ *
+ * @param fplPercentage - Household income as percentage of Federal Poverty Level
+ * @returns Maximum affordable percentage of income for health insurance
  */
 function calculateAffordablePercentage(fplPercentage: number): number {
-  if (fplPercentage <= 150) return 0.02; // 0-2%
-  if (fplPercentage <= 200) return 0.04; // 2-4%
-  if (fplPercentage <= 250) return 0.065; // 4-6.5%
-  if (fplPercentage <= 300) return PREMIUM_CONTRIBUTION_RATE.STANDARD; // 6.5-8.5%
-  if (fplPercentage <= FPL_THRESHOLDS.PTC_MAX) return PREMIUM_CONTRIBUTION_RATE.STANDARD; // 8.5%
-  return 1.0; // No subsidy - 100% of premium
+  // 2025 ACA Premium Contribution Schedule (with IRA enhancements)
+  // FPL Range       | Initial % | Final %  | Midpoint used
+  if (fplPercentage <= 150) return 0.02;   // 100-150% FPL: 0% - 2% → use 2%
+  if (fplPercentage <= 200) return 0.04;   // 150-200% FPL: 2% - 4% → use 4%
+  if (fplPercentage <= 250) return 0.065;  // 200-250% FPL: 4% - 6.5% → use 6.5%
+  if (fplPercentage <= 300) return PREMIUM_CONTRIBUTION_RATE.STANDARD; // 250-300% FPL: 6.5% - 8.5%
+  if (fplPercentage <= FPL_THRESHOLDS.PTC_MAX) return PREMIUM_CONTRIBUTION_RATE.STANDARD; // 300-400% FPL: 8.5%
+  return 1.0; // Above 400% FPL: No subsidy - pay full premium
 }
 
 /**

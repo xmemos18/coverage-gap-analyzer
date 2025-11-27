@@ -393,21 +393,212 @@ export function calculateMedicareCostSummary(
 }
 
 /**
+ * Drug tier cost structure for Part D plans (2025 standard)
+ * These are typical copay/coinsurance amounts by tier
+ */
+const DRUG_TIER_COSTS = {
+  // Tier 1: Preferred Generic - lowest cost
+  1: { copay: 5, coinsurance: 0.10, description: 'Preferred Generic' },
+  // Tier 2: Generic - low cost
+  2: { copay: 15, coinsurance: 0.15, description: 'Generic' },
+  // Tier 3: Preferred Brand - moderate cost
+  3: { copay: 47, coinsurance: 0.25, description: 'Preferred Brand' },
+  // Tier 4: Non-Preferred Brand - higher cost
+  4: { copay: 100, coinsurance: 0.40, description: 'Non-Preferred Brand' },
+  // Tier 5: Specialty - highest cost
+  5: { copay: 0, coinsurance: 0.33, description: 'Specialty (33% coinsurance)' },
+} as const;
+
+/**
+ * 2025 Part D Coverage Phases
+ * Source: CMS Medicare Part D program parameters
+ */
+const PART_D_COVERAGE_PHASES = {
+  // Initial Coverage Phase
+  deductible: 590, // 2025 standard deductible
+  initialCoverageLimit: 5030, // Total drug costs before gap
+
+  // Coverage Gap (Donut Hole) - mostly closed but specialty drugs still apply
+  gapDiscountBrand: 0.75, // 75% manufacturer discount on brand drugs
+  gapCoinsuranceGeneric: 0.25, // 25% coinsurance on generics
+
+  // Catastrophic Coverage Threshold
+  catastrophicThreshold: 8000, // True out-of-pocket spending
+  catastrophicCopayGeneric: 4.50,
+  catastrophicCopayBrand: 11.20,
+  catastrophicCoinsurance: 0.05, // 5% of drug cost
+} as const;
+
+/**
+ * Common drug classifications for tier estimation
+ * Maps drug names/classes to estimated tiers
+ */
+const COMMON_DRUG_TIERS: Record<string, number> = {
+  // Tier 1 - Preferred Generics
+  'metformin': 1, 'lisinopril': 1, 'amlodipine': 1, 'omeprazole': 1,
+  'simvastatin': 1, 'atorvastatin': 1, 'levothyroxine': 1, 'gabapentin': 1,
+
+  // Tier 2 - Generics
+  'losartan': 2, 'hydrochlorothiazide': 2, 'sertraline': 2, 'escitalopram': 2,
+  'trazodone': 2, 'prednisone': 2, 'albuterol': 2, 'fluticasone': 2,
+
+  // Tier 3 - Preferred Brand
+  'eliquis': 3, 'jardiance': 3, 'ozempic': 3, 'trulicity': 3,
+  'xarelto': 3, 'symbicort': 3, 'spiriva': 3, 'entresto': 3,
+
+  // Tier 4 - Non-Preferred Brand
+  'humira': 4, 'enbrel': 4, 'keytruda': 4, 'opdivo': 4,
+
+  // Tier 5 - Specialty
+  'skyrizi': 5, 'stelara': 5, 'cosentyx': 5, 'dupixent': 5,
+};
+
+/**
+ * Estimate drug tier based on drug name
+ */
+function estimateDrugTier(drugName: string): number {
+  const normalizedName = drugName.toLowerCase().trim();
+
+  // Check exact match first
+  if (COMMON_DRUG_TIERS[normalizedName]) {
+    return COMMON_DRUG_TIERS[normalizedName];
+  }
+
+  // Check partial matches
+  for (const [name, tier] of Object.entries(COMMON_DRUG_TIERS)) {
+    if (normalizedName.includes(name) || name.includes(normalizedName)) {
+      return tier;
+    }
+  }
+
+  // Default to Tier 2 (generic) for unknown drugs
+  // This is a conservative estimate
+  return 2;
+}
+
+/**
  * Estimate prescription drug costs under a Part D plan
+ *
+ * Calculates estimated annual costs based on:
+ * - Drug tier classification
+ * - Coverage phase (deductible, initial, gap, catastrophic)
+ * - Typical pricing for each tier
+ *
+ * Note: This is an estimation. Actual costs vary by plan formulary.
  */
 export async function estimateDrugCosts(
-  _planId: string,
-  _prescriptions: PrescriptionDrug[]
+  planId: string,
+  prescriptions: PrescriptionDrug[]
 ): Promise<DrugCostEstimate[]> {
-  // TODO: Implement drug formulary lookup
-  // This would require:
-  // 1. Formulary database with tier information
-  // 2. Drug pricing database
-  // 3. Coverage phase calculations (initial, gap, catastrophic)
+  if (!prescriptions || prescriptions.length === 0) {
+    return [];
+  }
 
-  // Placeholder implementation
-  logger.warn('[Medicare Service] Drug cost estimation not yet implemented');
-  return [];
+  logger.info('[Medicare Service] Estimating drug costs', {
+    planId,
+    drugCount: prescriptions.length,
+  });
+
+  const estimates: DrugCostEstimate[] = [];
+  let runningTotalCost = 0; // Track total drug costs for coverage phase calculation
+  let runningOOP = 0; // Track out-of-pocket for catastrophic threshold
+
+  for (const drug of prescriptions) {
+    const tier = estimateDrugTier(drug.drugName);
+    const tierInfo = DRUG_TIER_COSTS[tier as keyof typeof DRUG_TIER_COSTS];
+
+    // Estimate monthly retail cost based on tier
+    // These are rough averages for illustration
+    const estimatedRetailCosts: Record<number, number> = {
+      1: 15,    // Generic preferred
+      2: 30,    // Generic
+      3: 250,   // Preferred brand
+      4: 500,   // Non-preferred brand
+      5: 2500,  // Specialty
+    };
+
+    // Use tier-based estimation since PrescriptionDrug doesn't include retail price
+    const monthlyRetailCost = estimatedRetailCosts[tier] || 100;
+    const annualRetailCost = monthlyRetailCost * 12;
+
+    // Calculate cost based on coverage phase
+    let annualPatientCost = 0;
+    let coveragePhase: 'deductible' | 'initial' | 'gap' | 'catastrophic' = 'initial';
+
+    // Simplified annual cost calculation
+    // In reality, this varies month-by-month as costs accumulate
+
+    if (runningTotalCost < PART_D_COVERAGE_PHASES.deductible) {
+      // Deductible phase - patient pays 100%
+      const deductiblePortion = Math.min(
+        PART_D_COVERAGE_PHASES.deductible - runningTotalCost,
+        annualRetailCost
+      );
+      annualPatientCost += deductiblePortion;
+      coveragePhase = 'deductible';
+    }
+
+    // Initial coverage phase
+    const remainingAfterDeductible = Math.max(0, annualRetailCost - PART_D_COVERAGE_PHASES.deductible);
+    const initialPhaseAmount = Math.min(
+      remainingAfterDeductible,
+      PART_D_COVERAGE_PHASES.initialCoverageLimit - PART_D_COVERAGE_PHASES.deductible
+    );
+
+    if (initialPhaseAmount > 0) {
+      // Patient pays copay or coinsurance in initial phase
+      const monthsInInitial = Math.ceil(initialPhaseAmount / monthlyRetailCost);
+      annualPatientCost += tierInfo.copay > 0
+        ? tierInfo.copay * monthsInInitial
+        : initialPhaseAmount * tierInfo.coinsurance;
+      coveragePhase = 'initial';
+    }
+
+    // Check if hitting catastrophic
+    if (runningOOP + annualPatientCost > PART_D_COVERAGE_PHASES.catastrophicThreshold) {
+      coveragePhase = 'catastrophic';
+      // In catastrophic, pay the greater of 5% or copay
+      const catastrophicMonths = 12 - Math.ceil(
+        (runningOOP + annualPatientCost - PART_D_COVERAGE_PHASES.catastrophicThreshold) / monthlyRetailCost
+      );
+      if (catastrophicMonths > 0) {
+        const catastrophicCost = tier <= 2
+          ? PART_D_COVERAGE_PHASES.catastrophicCopayGeneric * catastrophicMonths
+          : Math.max(
+              PART_D_COVERAGE_PHASES.catastrophicCopayBrand * catastrophicMonths,
+              monthlyRetailCost * catastrophicMonths * PART_D_COVERAGE_PHASES.catastrophicCoinsurance
+            );
+        annualPatientCost = Math.min(annualPatientCost, annualPatientCost - catastrophicCost);
+      }
+    }
+
+    runningTotalCost += annualRetailCost;
+    runningOOP += annualPatientCost;
+
+    estimates.push({
+      drug,
+      planId,
+      planName: `Plan ${planId}`, // Would be looked up from plan database
+      tier,
+      monthlyCost: Math.round(annualPatientCost / 12),
+      annualCost: Math.round(annualPatientCost),
+      coveragePhase: coveragePhase === 'deductible' ? 'initial' : coveragePhase,
+      copay: tierInfo.copay > 0 ? tierInfo.copay : undefined,
+      coinsurance: tierInfo.coinsurance > 0 ? tierInfo.coinsurance : undefined,
+      retail30DayCost: monthlyRetailCost,
+      retail90DayCost: Math.round(monthlyRetailCost * 2.5), // Typical 90-day discount
+      mailOrder90DayCost: Math.round(monthlyRetailCost * 2.2), // Mail order discount
+      preferredPharmacyCost: Math.round(monthlyRetailCost * 0.9), // Preferred pharmacy discount
+    });
+  }
+
+  logger.info('[Medicare Service] Drug cost estimation complete', {
+    planId,
+    totalEstimatedAnnualCost: runningOOP,
+    drugCount: estimates.length,
+  });
+
+  return estimates;
 }
 
 // ============================================================================

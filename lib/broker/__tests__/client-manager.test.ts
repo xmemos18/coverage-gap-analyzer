@@ -22,7 +22,6 @@ import {
   getClientInitials,
   STATUS_DISPLAY_NAMES,
   STATUS_COLORS,
-  type BrokerClient,
   type ClientStatus,
 } from '../client-manager';
 
@@ -383,7 +382,8 @@ describe('Client Manager', () => {
     });
 
     it('should import clients', () => {
-      const client = createClient({
+      // Create a client to be exported (result unused, just need side effect)
+      createClient({
         firstName: 'John',
         lastName: 'Doe',
         tags: [],

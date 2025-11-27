@@ -10,13 +10,71 @@ import { SignJWT } from 'jose';
 import { logger } from '@/lib/logger';
 
 // Configuration
-const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXT_PUBLIC_SITE_PASSWORD || 'fallback-secret-change-me';
-const CORRECT_PASSWORD = process.env.SITE_PASSWORD || process.env.NEXT_PUBLIC_SITE_PASSWORD || '1234abcd';
 const SESSION_DURATION = 24 * 60 * 60; // 24 hours in seconds
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION = 30 * 1000; // 30 seconds
 
-// In-memory rate limiting (in production, use Redis)
+// SECURITY: Lazy-load secrets to avoid build-time errors
+// These are evaluated when the route is actually called, not at build time
+let _jwtSecret: string | null = null;
+let _password: string | null = null;
+
+function getJWTSecret(): string {
+  if (_jwtSecret) return _jwtSecret;
+
+  const secret = process.env.JWT_SECRET;
+  if (secret) {
+    _jwtSecret = secret;
+    return secret;
+  }
+
+  // In development only, allow SITE_PASSWORD as fallback with warning
+  if (process.env.NODE_ENV === 'development') {
+    const fallback = process.env.SITE_PASSWORD || process.env.NEXT_PUBLIC_SITE_PASSWORD;
+    if (fallback) {
+      logger.warn('[Auth] Using SITE_PASSWORD as JWT_SECRET - set JWT_SECRET in production!');
+      _jwtSecret = fallback;
+      return fallback;
+    }
+    // Development-only fallback with clear warning
+    logger.warn('[Auth] No JWT_SECRET configured - using insecure development fallback');
+    _jwtSecret = 'dev-only-insecure-secret-do-not-use-in-production';
+    return _jwtSecret;
+  }
+
+  throw new Error('JWT_SECRET environment variable is required in production');
+}
+
+function getPassword(): string {
+  if (_password) return _password;
+
+  const password = process.env.SITE_PASSWORD;
+  if (password) {
+    _password = password;
+    return password;
+  }
+
+  // In development only, allow NEXT_PUBLIC_SITE_PASSWORD as fallback
+  if (process.env.NODE_ENV === 'development') {
+    const fallback = process.env.NEXT_PUBLIC_SITE_PASSWORD;
+    if (fallback) {
+      logger.warn('[Auth] Using NEXT_PUBLIC_SITE_PASSWORD - set SITE_PASSWORD in production!');
+      _password = fallback;
+      return fallback;
+    }
+    // Development-only fallback
+    logger.warn('[Auth] No SITE_PASSWORD configured - using insecure development fallback');
+    _password = 'dev-password-change-me';
+    return _password;
+  }
+
+  throw new Error('SITE_PASSWORD environment variable is required in production');
+}
+
+// WARNING: In-memory rate limiting - resets on server restart!
+// For production with multiple server instances, use Redis:
+// - Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
+// - Or implement distributed rate limiting with your preferred solution
 const loginAttempts = new Map<string, { count: number; lockedUntil?: number }>();
 
 function getClientIP(request: NextRequest): string {
@@ -66,7 +124,7 @@ function clearAttempts(ip: string): void {
 }
 
 async function generateJWT(): Promise<string> {
-  const secret = new TextEncoder().encode(JWT_SECRET);
+  const secret = new TextEncoder().encode(getJWTSecret());
 
   const token = await new SignJWT({ authenticated: true })
     .setProtectedHeader({ alg: 'HS256' })
@@ -115,8 +173,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Constant-time comparison to prevent timing attacks
-    const passwordMatch = password.length === CORRECT_PASSWORD.length &&
-      password.split('').every((char, i) => char === CORRECT_PASSWORD[i]);
+    const correctPassword = getPassword();
+    const passwordMatch = password.length === correctPassword.length &&
+      password.split('').every((char, i) => char === correctPassword[i]);
 
     if (!passwordMatch) {
       recordFailedAttempt(ip);

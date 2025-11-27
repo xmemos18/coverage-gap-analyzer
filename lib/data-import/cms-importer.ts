@@ -216,6 +216,9 @@ export async function importSLCSPData(): Promise<void> {
 
 /**
  * Import ZIP to county mappings
+ *
+ * Note: County names are looked up from the counties table using a batch query
+ * for efficiency, rather than individual lookups per ZIP code.
  */
 export async function importZIPMappings(): Promise<void> {
   console.log('🗺️  Importing ZIP to county mappings...');
@@ -245,6 +248,22 @@ export async function importZIPMappings(): Promise<void> {
         console.log(`✅ Parsed ${zipData.length} ZIP code mappings from CSV`);
 
         try {
+          // Build a cache of county names by FIPS to avoid repeated queries
+          console.log('   Building county name lookup cache...');
+          const uniqueFips = [...new Set(zipData.map(z => z.countyFIPS))];
+          const countyNameCache = new Map<string, string>();
+
+          // Query all counties at once for efficiency
+          const allCounties = await getDb()
+            .select({ countyFips: counties.countyFips, countyName: counties.countyName })
+            .from(counties);
+
+          for (const county of allCounties) {
+            countyNameCache.set(county.countyFips, county.countyName);
+          }
+
+          console.log(`   Loaded ${countyNameCache.size} county names for ${uniqueFips.length} unique FIPS codes`);
+
           // Insert ZIP mappings in batches
           const batchSize = 500;
           for (let i = 0; i < zipData.length; i += batchSize) {
@@ -254,7 +273,7 @@ export async function importZIPMappings(): Promise<void> {
               batch.map(zip => ({
                 zipCode: zip.zipCode,
                 countyFips: zip.countyFIPS,
-                countyName: '', // TODO: Look up from counties table
+                countyName: countyNameCache.get(zip.countyFIPS) || '',
                 stateCode: zip.stateCode,
                 cityName: zip.city,
                 latitude: zip.latitude?.toString(),

@@ -69,20 +69,31 @@ describe('Validation Utilities', () => {
       expect(result.error).toBe('Invalid ZIP code');
     });
 
-    it('should reject ZIP codes with all same digits (except 11111)', () => {
-      const result22222 = validateZipCode('22222');
-      expect(result22222.isValid).toBe(false);
-      expect(result22222.error).toBe('Invalid ZIP code');
+    it('should reject invalid repeating-digit ZIP codes', () => {
+      // 66666, 77777, 88888, 99999 are not valid US ZIP codes
+      const result66666 = validateZipCode('66666');
+      expect(result66666.isValid).toBe(false);
+      expect(result66666.error).toBe('Invalid ZIP code');
 
-      const result33333 = validateZipCode('33333');
-      expect(result33333.isValid).toBe(false);
-      expect(result33333.error).toBe('Invalid ZIP code');
+      const result77777 = validateZipCode('77777');
+      expect(result77777.isValid).toBe(false);
+      expect(result77777.error).toBe('Invalid ZIP code');
     });
 
-    it('should accept valid ZIP 11111 (Massachusetts)', () => {
-      const result = validateZipCode('11111');
-      expect(result.isValid).toBe(true);
-      expect(result.sanitized).toBe('11111');
+    it('should accept valid repeating-digit ZIP codes', () => {
+      // These are all real USPS ZIP codes:
+      // 11111 - Floral Park, NY
+      // 22222 - Arlington, VA
+      // 33333 - Fort Lauderdale, FL
+      // 44444 - Newton Falls, OH
+      // 55555 - Young America, MN
+      const validRepeatingZips = ['11111', '22222', '33333', '44444', '55555'];
+
+      for (const zip of validRepeatingZips) {
+        const result = validateZipCode(zip);
+        expect(result.isValid).toBe(true);
+        expect(result.sanitized).toBe(zip);
+      }
     });
   });
 

@@ -18,6 +18,7 @@ interface PDFReportProps {
     budget: string;
     incomeRange: string;
   };
+  fullReport?: boolean;
 }
 
 /**
@@ -103,14 +104,14 @@ export async function generatePDF(props: PDFReportProps): Promise<Blob> {
     },
   });
 
-  const { recommendation, formData } = props;
+  const { recommendation, formData, fullReport = false } = props;
 
   const MyDocument = () => (
     <Document>
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text>Health Insurance Coverage Analysis</Text>
+          <Text>{fullReport ? 'Complete Health Insurance Coverage Analysis' : 'Health Insurance Coverage Analysis'}</Text>
         </View>
 
         {/* Household Summary */}
@@ -246,6 +247,77 @@ export async function generatePDF(props: PDFReportProps): Promise<Blob> {
           </View>
         )}
 
+        {/* Full Report: Detailed Cost Breakdown */}
+        {fullReport && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Detailed Cost Breakdown</Text>
+            <View style={styles.costBox}>
+              <Text style={styles.text}>
+                <Text style={styles.label}>Monthly Premium Range:</Text>
+                ${recommendation.estimatedMonthlyCost.low} - ${recommendation.estimatedMonthlyCost.high}
+              </Text>
+              <Text style={styles.text}>
+                <Text style={styles.label}>Annual Premium Range:</Text>
+                ${recommendation.estimatedMonthlyCost.low * 12} - ${recommendation.estimatedMonthlyCost.high * 12}
+              </Text>
+              <Text style={styles.text}>
+                <Text style={styles.label}>Estimated Total Annual Cost:</Text>
+                ${Math.round(recommendation.estimatedMonthlyCost.low * 12 * 1.15)} - ${Math.round(recommendation.estimatedMonthlyCost.high * 12 * 1.25)}
+              </Text>
+            </View>
+            <Text style={{ fontSize: 10, color: '#6b7280', marginTop: 5 }}>
+              * Total annual cost estimate includes premiums plus typical out-of-pocket expenses (15-25%)
+            </Text>
+          </View>
+        )}
+
+        {/* Full Report: Coverage by State */}
+        {fullReport && formData.residences.length > 1 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Multi-State Coverage Analysis</Text>
+            <Text style={styles.text}>
+              Your coverage needs span {formData.residences.length} locations:
+            </Text>
+            {formData.residences.map((residence, index) => (
+              <View key={index} style={{ marginLeft: 15, marginBottom: 5 }}>
+                <Text style={styles.text}>
+                  <Text style={styles.bullet}>•</Text>
+                  {residence.state} ({residence.zip})
+                </Text>
+              </View>
+            ))}
+            <Text style={{ fontSize: 10, color: '#6b7280', marginTop: 10 }}>
+              Tip: PPO plans typically offer better out-of-network coverage for multi-state households.
+              Consider plans from national carriers for seamless coverage across all your locations.
+            </Text>
+          </View>
+        )}
+
+        {/* Full Report: Key Considerations */}
+        {fullReport && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Key Considerations</Text>
+            <View style={{ marginLeft: 15 }}>
+              <Text style={styles.text}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.label}>Open Enrollment:</Text> Most marketplace plans require enrollment during the annual open enrollment period (Nov 1 - Jan 15).
+              </Text>
+              <Text style={styles.text}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.label}>Special Enrollment:</Text> Qualifying life events (job loss, marriage, move) may allow enrollment outside open enrollment.
+              </Text>
+              <Text style={styles.text}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.label}>Network Coverage:</Text> Always verify your preferred doctors and hospitals are in-network before enrolling.
+              </Text>
+              <Text style={styles.text}>
+                <Text style={styles.bullet}>•</Text>
+                <Text style={styles.label}>Prescription Coverage:</Text> Check the plan formulary to ensure your medications are covered.
+              </Text>
+            </View>
+          </View>
+        )}
+
         {/* Disclaimer */}
         <View style={styles.disclaimer}>
           <Text>
@@ -258,7 +330,7 @@ export async function generatePDF(props: PDFReportProps): Promise<Blob> {
         {/* Footer */}
         <View style={styles.footer}>
           <Text>
-            Generated on {new Date().toLocaleDateString()} | Coverage Gap Analyzer
+            Generated on {new Date().toLocaleDateString()} | {fullReport ? 'Full Report' : 'Summary'} | Coverage Gap Analyzer
           </Text>
         </View>
       </Page>
@@ -277,22 +349,24 @@ export async function generatePDF(props: PDFReportProps): Promise<Blob> {
 
 /**
  * Trigger PDF download
+ * @param props - PDF report properties including recommendation data and optional fullReport flag
  */
-export async function downloadPDF(props: PDFReportProps): Promise<void> {
+export async function downloadPDF(props: PDFReportProps & { fullReport?: boolean }): Promise<void> {
   // Ensure this only runs on client side
   if (typeof window === 'undefined') {
     throw new Error('PDF generation must run in the browser');
   }
 
   try {
-    logger.debug('Starting PDF generation...');
+    logger.debug('Starting PDF generation...', { fullReport: props.fullReport });
     const blob = await generatePDF(props);
     logger.debug('PDF blob generated, creating download link...');
 
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `insurance-recommendation-${new Date().toISOString().split('T')[0]}.pdf`;
+    const reportType = props.fullReport ? 'full-report' : 'summary';
+    link.download = `insurance-${reportType}-${new Date().toISOString().split('T')[0]}.pdf`;
     document.body.appendChild(link);
     link.click();
 
@@ -327,8 +401,7 @@ export function PDFDownloadButton({
   variant = 'default',
   label,
   description,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  fullReport: _fullReport = false, // TODO: Implement full report variant
+  fullReport = false,
   ...pdfProps
 }: PDFDownloadButtonProps) {
   const [isGenerating, setIsGenerating] = React.useState(false);
@@ -336,7 +409,7 @@ export function PDFDownloadButton({
   const handleDownload = async () => {
     setIsGenerating(true);
     try {
-      await downloadPDF(pdfProps);
+      await downloadPDF({ ...pdfProps, fullReport });
     } catch (error) {
       logger.error('PDF generation error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate PDF';

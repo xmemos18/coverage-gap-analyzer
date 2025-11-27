@@ -2,7 +2,31 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXT_PUBLIC_SITE_PASSWORD || 'fallback-secret-change-me';
+// SECURITY: Require proper JWT secret in production - no hardcoded fallbacks
+// This must match the secret used in /api/auth/login
+function getJWTSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (secret) return secret;
+
+  // In development only, allow fallbacks with warning
+  if (process.env.NODE_ENV === 'development') {
+    const fallback = process.env.SITE_PASSWORD || process.env.NEXT_PUBLIC_SITE_PASSWORD;
+    if (fallback) {
+      console.warn('[Middleware] Using SITE_PASSWORD as JWT_SECRET - set JWT_SECRET in production!');
+      return fallback;
+    }
+    // Development-only fallback - must match login route
+    console.warn('[Middleware] No JWT_SECRET configured - using insecure development fallback');
+    return 'dev-only-insecure-secret-do-not-use-in-production';
+  }
+
+  // In production, we can't throw here as middleware runs early
+  // Just log and return empty string - auth will fail safely
+  console.error('[Middleware] CRITICAL: JWT_SECRET not configured in production!');
+  return '';
+}
+
+const JWT_SECRET = getJWTSecret();
 
 // Paths that don't require authentication
 const PUBLIC_PATHS = ['/login', '/api/auth/login', '/api/auth/logout', '/api/auth/status'];

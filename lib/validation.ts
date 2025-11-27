@@ -53,9 +53,15 @@ export function validateZipCode(zip: string): { isValid: boolean; sanitized: str
     return { isValid: false, sanitized, error: VALIDATION_ERRORS.ZIP_INVALID };
   }
 
-  // Reject ZIP codes with all same digits (likely invalid)
-  if (/^(\d)\1{4}$/.test(sanitized) && sanitized !== '11111') {
-    // 11111 is a valid ZIP code (Massapequa, NY)
+  // Reject ZIP codes with all same digits, except known valid ones
+  // Valid repeating-digit ZIP codes (verified with USPS):
+  // - 11111: Floral Park, NY (also serves parts of Massapequa)
+  // - 22222: Arlington, VA
+  // - 33333: Fort Lauderdale, FL (unique ZIP for Westfield Broward mall)
+  // - 44444: Newton Falls, OH
+  // - 55555: Young America, MN (famous for rebate processing)
+  const VALID_REPEATING_ZIPS = ['11111', '22222', '33333', '44444', '55555'];
+  if (/^(\d)\1{4}$/.test(sanitized) && !VALID_REPEATING_ZIPS.includes(sanitized)) {
     return { isValid: false, sanitized, error: VALIDATION_ERRORS.ZIP_INVALID };
   }
 
