@@ -4,7 +4,8 @@ import { Suspense, useMemo, useEffect, lazy, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useIsMobile } from '@/hooks/useMediaQuery';
 import { useInsuranceAnalysis } from '@/hooks/useInsuranceAnalysis';
-import { AlternativeOption } from '@/types';
+import { AlternativeOption, SelectablePlanTypeValue } from '@/types';
+import { SELECTABLE_PLAN_TYPES } from '@/lib/constants';
 import HeroCard from '@/components/results/HeroCard';
 import EnhancedWhyRecommendation from '@/components/results/EnhancedWhyRecommendation';
 import ComparisonSection from '@/components/results/ComparisonSection';
@@ -114,8 +115,17 @@ function ResultsContent() {
   const currentDeductible = safeParseFloat(searchParams.get('currentDeductible'), { defaultValue: 0, throwOnError: false }) ?? 0;
   const currentOutOfPocketMax = safeParseFloat(searchParams.get('currentOutOfPocketMax'), { defaultValue: 0, throwOnError: false }) ?? 0;
   const currentCoverageNotes = searchParams.get('currentCoverageNotes') || '';
+  const preferredPlanTypesStr = searchParams.get('preferredPlanTypes') || '';
 
-  const formData = useMemo(() => ({
+  const formData = useMemo(() => {
+    // Validate and filter plan types from URL params
+    const validPlanTypes = SELECTABLE_PLAN_TYPES.map(pt => pt.value);
+    const preferredPlanTypes = preferredPlanTypesStr
+      ? preferredPlanTypesStr.split(',').filter((pt): pt is SelectablePlanTypeValue =>
+          validPlanTypes.includes(pt as SelectablePlanTypeValue)
+        )
+      : [];
+    return {
     residences,
     numAdults,
     numChildren,
@@ -147,6 +157,8 @@ function ResultsContent() {
     // Financial Priorities (default values)
     financialPriority: '',
     canAffordUnexpectedBill: '',
+    // Plan Type Preferences
+    preferredPlanTypes,
     budget,
     incomeRange,
     simpleMode,
@@ -168,14 +180,15 @@ function ResultsContent() {
       outOfPocketMax: 0,
       coverageNotes: '',
     },
-  }), [
+  };
+  }, [
     residences, numAdults, numChildren, adultAges, childAges,
     hasMedicareEligible, hasEmployerInsurance, employerContribution,
     hasChronicConditions, chronicConditions, prescriptionCount,
     providerPreference, budget, incomeRange, simpleMode,
     hasCurrentInsurance, currentCarrier, currentPlanType,
     currentMonthlyCost, currentDeductible, currentOutOfPocketMax,
-    currentCoverageNotes,
+    currentCoverageNotes, preferredPlanTypesStr,
   ]);
 
   // Validate URL parameters
@@ -434,6 +447,123 @@ function ResultsContent() {
             />
           </FadeIn>
         </section>
+
+        {/* Type-Specific Recommendations (if user selected plan types) */}
+        {recommendation.typeSpecificRecommendations && recommendation.typeSpecificRecommendations.length > 0 && (
+          <FadeIn delay={0.55} className="mt-8 md:mt-12">
+            <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100 dark:border-dark-700">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 text-2xl">
+                  📋
+                </div>
+                <div>
+                  <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">Your Selected Plan Types</h2>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Best options for each type you chose, ranked by fit</p>
+                </div>
+              </div>
+
+              <div className={`grid gap-4 ${
+                recommendation.typeSpecificRecommendations.length === 1
+                  ? 'grid-cols-1 max-w-md mx-auto'
+                  : recommendation.typeSpecificRecommendations.length === 2
+                  ? 'grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto'
+                  : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+              }`}>
+                {recommendation.typeSpecificRecommendations.map((rec) => (
+                  <div
+                    key={rec.planType}
+                    className={`relative rounded-xl border-2 p-5 transition-all hover:shadow-md ${
+                      rec.rank === 1
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400'
+                        : rec.rank === 2
+                        ? 'border-green-300 bg-green-50 dark:bg-green-900/30 dark:border-green-400'
+                        : 'border-gray-200 bg-gray-50 dark:bg-dark-700 dark:border-dark-500'
+                    }`}
+                  >
+                    {/* Rank Badge */}
+                    <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white shadow ${
+                      rec.rank === 1
+                        ? 'bg-blue-600'
+                        : rec.rank === 2
+                        ? 'bg-green-600'
+                        : 'bg-gray-500'
+                    }`}>
+                      #{rec.rank}
+                    </div>
+
+                    {/* Plan Type Header */}
+                    <div className="mb-3">
+                      <h3 className="font-bold text-lg text-gray-900 dark:text-gray-100">{rec.planType}</h3>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{rec.planTypeLabel.split(' - ')[1]}</p>
+                    </div>
+
+                    {/* Score and Cost */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className={`text-2xl font-bold ${
+                          rec.coverageScore >= 80 ? 'text-green-600 dark:text-green-400' :
+                          rec.coverageScore >= 60 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'
+                        }`}>
+                          {rec.coverageScore}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">score</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          ${rec.monthlyCost.low}-${rec.monthlyCost.high}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">/month</div>
+                      </div>
+                    </div>
+
+                    {/* Reasoning */}
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-3 line-clamp-2">{rec.reasoning}</p>
+
+                    {/* Pros */}
+                    <div className="flex flex-wrap gap-1">
+                      {rec.pros.slice(0, 2).map((pro, idx) => (
+                        <span key={idx} className="text-xs bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-2 py-0.5 rounded-full">
+                          {pro}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Cons indicator */}
+                    {rec.cons.length > 0 && (
+                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        ⚠️ {rec.cons[0]}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <p className="mt-4 text-sm text-gray-600 dark:text-gray-400 text-center">
+                These recommendations are tailored to your selected plan type preferences and situation.
+                The overall best recommendation above may differ from these type-specific options.
+              </p>
+            </div>
+          </FadeIn>
+        )}
+
+        {/* Medicare Options Filtered Message */}
+        {formData.preferredPlanTypes.some(type => ['Medicare Advantage', 'Medigap'].includes(type)) &&
+         !formData.adultAges.some(age => age >= 65) && (
+          <FadeIn delay={0.55} className="mt-4 md:mt-6">
+            <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-xl p-4 flex items-start gap-3">
+              <svg className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Medicare Options Not Shown</p>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                  You selected Medicare Advantage or Medigap, but these plans require being 65+ or having a qualifying disability.
+                  Since no household members are 65 or older, these options were not included in your recommendations.
+                </p>
+              </div>
+            </div>
+          </FadeIn>
+        )}
 
         {/* Current Insurance Comparison (if provided) */}
         {recommendation.currentInsuranceSummary && recommendation.costComparison && (

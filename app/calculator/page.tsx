@@ -72,6 +72,8 @@ const INITIAL_FORM_DATA: CalculatorFormData = {
   // Financial Priorities
   financialPriority: '',
   canAffordUnexpectedBill: '',
+  // Plan Type Preferences
+  preferredPlanTypes: [],
   hasCurrentInsurance: false,
   currentInsurance: {
     carrier: '',
@@ -492,6 +494,11 @@ export default function Calculator() {
       params.append('budget', formData.budget);
       if (formData.incomeRange) {
         params.append('incomeRange', formData.incomeRange);
+      }
+
+      // Add preferred plan types
+      if (formData.preferredPlanTypes && formData.preferredPlanTypes.length > 0) {
+        params.append('preferredPlanTypes', formData.preferredPlanTypes.join(','));
       }
 
       // Clear saved data on successful submission

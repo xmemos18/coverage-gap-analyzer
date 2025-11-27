@@ -1,4 +1,5 @@
-import { CalculatorFormData, InsuranceRecommendation, SubsidyAnalysis, EmployerPlanAnalysis, CostProjectionSummary, RiskAnalysisSummary } from '@/types';
+import { CalculatorFormData, InsuranceRecommendation, SubsidyAnalysis, EmployerPlanAnalysis, CostProjectionSummary, RiskAnalysisSummary, TypeSpecificRecommendation } from '@/types';
+import { SELECTABLE_PLAN_TYPES } from '@/lib/constants';
 import { calculateCoverageScore } from './coverage-scoring';
 import { getMedicareRecommendation, getMixedHouseholdRecommendation, getNonMedicareRecommendation } from './recommendations';
 import { addCurrentInsuranceComparison } from './comparison';
@@ -200,6 +201,19 @@ export async function analyzeInsurance(formData: CalculatorFormData): Promise<In
   const riskAnalysis = await generateRiskAnalysis(formData, recommendation);
   if (riskAnalysis) {
     recommendation.riskAnalysis = riskAnalysis;
+  }
+
+  // Generate type-specific recommendations based on user's preferredPlanTypes
+  if (formData.preferredPlanTypes && formData.preferredPlanTypes.length > 0) {
+    const typeSpecificRecs = generateTypeSpecificRecommendations(
+      formData,
+      totalAdults,
+      totalChildren,
+      medicareEligibleCount,
+      uniqueStates,
+      coverageScore
+    );
+    recommendation.typeSpecificRecommendations = typeSpecificRecs;
   }
 
   return recommendation;
@@ -426,4 +440,306 @@ async function generateRiskAnalysis(
     console.error('Failed to generate risk analysis:', error);
     return undefined;
   }
+}
+
+/**
+ * Generate type-specific recommendations based on user's preferredPlanTypes
+ *
+ * Scoring Methodology:
+ * - Starts with baseCoverageScore from main recommendation engine
+ * - Adjustments are made based on plan type characteristics and user situation:
+ *   - PPO: +10 for multi-state (good out-of-network), -10 for lowest-premium priority (higher cost)
+ *   - HMO: -15 for multi-state (network limitations), +10 for single-state + budget priority
+ *   - EPO: +5 for single-state (good middle ground)
+ *   - HDHP: +15 for healthy + budget priority, -15 for chronic conditions, +5 for financial cushion
+ *   - Medicare Advantage: +10 for single-state, -10 for multi-state
+ *   - Medigap: +15 for multi-state (nationwide), +10 for predictable cost priority
+ * - All scores are bounded between 0-100
+ * - Results are sorted by score (highest first) and ranked
+ */
+function generateTypeSpecificRecommendations(
+  formData: CalculatorFormData,
+  totalAdults: number,
+  totalChildren: number,
+  medicareEligibleCount: number,
+  states: string[],
+  baseCoverageScore: number
+): TypeSpecificRecommendation[] {
+  const preferredTypes = formData.preferredPlanTypes || [];
+  if (preferredTypes.length === 0) return [];
+
+  // Input validation for edge cases
+  if (totalAdults < 0 || totalChildren < 0) return [];
+  if (medicareEligibleCount > totalAdults) {
+    // Invalid state: can't have more Medicare-eligible than total adults
+    medicareEligibleCount = totalAdults;
+  }
+  if (totalAdults === 0 && totalChildren === 0) return []; // No household members
+
+  const recommendations: TypeSpecificRecommendation[] = [];
+
+  // Calculate type-specific scores and recommendations
+  for (const planType of preferredTypes) {
+    const planTypeInfo = SELECTABLE_PLAN_TYPES.find(p => p.value === planType);
+    if (!planTypeInfo) continue;
+
+    // Skip Medicare options for non-Medicare-eligible users
+    if ((planType === 'Medicare Advantage' || planType === 'Medigap') && medicareEligibleCount === 0) {
+      continue;
+    }
+
+    // Calculate type-specific coverage score
+    let typeScore = baseCoverageScore;
+    let monthlyCost = { low: 0, high: 0 };
+    let reasoning = '';
+
+    // Adjust score and cost based on plan type and user preferences
+    switch (planType) {
+      case 'PPO':
+        monthlyCost = calculatePPOCost(totalAdults, totalChildren, medicareEligibleCount);
+        reasoning = generatePPOReasoning(formData, states, typeScore);
+        // PPO is better for multi-state, travelers
+        if (states.length > 1 || formData.needsNationalCoverage === 'critical') {
+          typeScore = Math.min(100, typeScore + 10);
+        }
+        // PPO is worse for budget-conscious users
+        if (formData.financialPriority === 'lowest-premium') {
+          typeScore = Math.max(0, typeScore - 10);
+        }
+        break;
+
+      case 'HMO':
+        monthlyCost = calculateHMOCost(totalAdults, totalChildren, medicareEligibleCount);
+        reasoning = generateHMOReasoning(formData, states, typeScore);
+        // HMO is worse for multi-state
+        if (states.length > 1) {
+          typeScore = Math.max(0, typeScore - 15);
+        }
+        // HMO is better for budget-conscious with single state
+        if (formData.financialPriority === 'lowest-premium' && states.length === 1) {
+          typeScore = Math.min(100, typeScore + 10);
+        }
+        break;
+
+      case 'EPO':
+        monthlyCost = calculateEPOCost(totalAdults, totalChildren, medicareEligibleCount);
+        reasoning = generateEPOReasoning(formData, states, typeScore);
+        // EPO middle ground
+        if (states.length === 1) {
+          typeScore = Math.min(100, typeScore + 5);
+        }
+        break;
+
+      case 'HDHP':
+        monthlyCost = calculateHDHPCost(totalAdults, totalChildren, medicareEligibleCount);
+        reasoning = generateHDHPReasoning(formData, states, typeScore, medicareEligibleCount);
+        // HDHP great for healthy, budget-conscious
+        if (!formData.hasChronicConditions && formData.financialPriority === 'lowest-premium') {
+          typeScore = Math.min(100, typeScore + 15);
+        }
+        // HDHP worse for chronic conditions
+        if (formData.hasChronicConditions) {
+          typeScore = Math.max(0, typeScore - 15);
+        }
+        // HDHP better for those who can handle unexpected bills
+        if (formData.canAffordUnexpectedBill === 'yes-easily') {
+          typeScore = Math.min(100, typeScore + 5);
+        }
+        break;
+
+      case 'Medicare Advantage':
+        monthlyCost = calculateMedicareAdvantageCost(medicareEligibleCount);
+        reasoning = generateMedicareAdvantageReasoning(formData, states, typeScore, medicareEligibleCount);
+        // Medicare Advantage better for single state
+        if (states.length === 1) {
+          typeScore = Math.min(100, typeScore + 10);
+        } else {
+          // Reduced from -15 to -10: some MA plans have reasonable multi-state networks
+          typeScore = Math.max(0, typeScore - 10);
+        }
+        break;
+
+      case 'Medigap':
+        monthlyCost = calculateMedigapCost(medicareEligibleCount);
+        reasoning = generateMedigapReasoning(formData, states, typeScore, medicareEligibleCount);
+        // Medigap excellent for multi-state
+        if (states.length > 1) {
+          typeScore = Math.min(100, typeScore + 15);
+        }
+        // Medigap better for those wanting predictable costs
+        if (formData.financialPriority === 'lowest-oop-max') {
+          typeScore = Math.min(100, typeScore + 10);
+        }
+        break;
+    }
+
+    recommendations.push({
+      planType: planType,
+      planTypeLabel: `${planTypeInfo.label} - ${planTypeInfo.fullName}`,
+      recommendedPlan: `Best ${planTypeInfo.label} Option`,
+      monthlyCost,
+      coverageScore: Math.round(typeScore),
+      reasoning,
+      pros: [...planTypeInfo.pros],
+      cons: [...planTypeInfo.cons],
+      rank: 0, // Will be set after sorting
+    });
+  }
+
+  // Sort by coverage score (best first) and assign ranks
+  recommendations.sort((a, b) => b.coverageScore - a.coverageScore);
+  recommendations.forEach((rec, index) => {
+    rec.rank = index + 1;
+  });
+
+  return recommendations;
+}
+
+// Helper cost calculation functions
+function calculatePPOCost(adults: number, children: number, medicareCount: number): { low: number; high: number } {
+  const nonMedicareAdults = adults - medicareCount;
+  return {
+    low: INSURANCE_COSTS.ADULT_PPO_LOW * nonMedicareAdults + INSURANCE_COSTS.CHILD_LOW * children + INSURANCE_COSTS.MEDICARE_PER_PERSON_LOW * medicareCount,
+    high: INSURANCE_COSTS.ADULT_PPO_HIGH * nonMedicareAdults + INSURANCE_COSTS.CHILD_HIGH * children + INSURANCE_COSTS.MEDICARE_PER_PERSON_HIGH * medicareCount,
+  };
+}
+
+function calculateHMOCost(adults: number, children: number, medicareCount: number): { low: number; high: number } {
+  const nonMedicareAdults = adults - medicareCount;
+  // HMO typically 15-20% cheaper than PPO (consistent discount for adults and children)
+  const HMO_DISCOUNT = 0.85; // 15% cheaper than PPO
+  return {
+    low: Math.round(INSURANCE_COSTS.ADULT_PPO_LOW * HMO_DISCOUNT * nonMedicareAdults + INSURANCE_COSTS.CHILD_LOW * HMO_DISCOUNT * children + INSURANCE_COSTS.MEDICARE_PER_PERSON_LOW * medicareCount),
+    high: Math.round(INSURANCE_COSTS.ADULT_PPO_HIGH * HMO_DISCOUNT * nonMedicareAdults + INSURANCE_COSTS.CHILD_HIGH * HMO_DISCOUNT * children + INSURANCE_COSTS.MEDICARE_PER_PERSON_HIGH * medicareCount),
+  };
+}
+
+function calculateEPOCost(adults: number, children: number, medicareCount: number): { low: number; high: number } {
+  const nonMedicareAdults = adults - medicareCount;
+  // EPO typically 10% cheaper than PPO (consistent discount for adults and children)
+  const EPO_DISCOUNT = 0.9; // 10% cheaper than PPO
+  return {
+    low: Math.round(INSURANCE_COSTS.ADULT_PPO_LOW * EPO_DISCOUNT * nonMedicareAdults + INSURANCE_COSTS.CHILD_LOW * EPO_DISCOUNT * children + INSURANCE_COSTS.MEDICARE_PER_PERSON_LOW * medicareCount),
+    high: Math.round(INSURANCE_COSTS.ADULT_PPO_HIGH * EPO_DISCOUNT * nonMedicareAdults + INSURANCE_COSTS.CHILD_HIGH * EPO_DISCOUNT * children + INSURANCE_COSTS.MEDICARE_PER_PERSON_HIGH * medicareCount),
+  };
+}
+
+function calculateHDHPCost(adults: number, children: number, medicareCount: number): { low: number; high: number } {
+  const nonMedicareAdults = adults - medicareCount;
+  // Note: HDHP is not typically appropriate for Medicare-eligible users, but we include
+  // Medicare costs defensively for mixed households where non-Medicare members use HDHP
+  return {
+    low: INSURANCE_COSTS.HDHP_ADULT_LOW * nonMedicareAdults + INSURANCE_COSTS.HDHP_CHILD_LOW * children + INSURANCE_COSTS.MEDICARE_PER_PERSON_LOW * medicareCount,
+    high: INSURANCE_COSTS.HDHP_ADULT_HIGH * nonMedicareAdults + INSURANCE_COSTS.HDHP_CHILD_HIGH * children + INSURANCE_COSTS.MEDICARE_PER_PERSON_HIGH * medicareCount,
+  };
+}
+
+function calculateMedicareAdvantageCost(medicareCount: number): { low: number; high: number } {
+  return {
+    low: INSURANCE_COSTS.MEDICARE_ADVANTAGE_LOW * medicareCount,
+    high: INSURANCE_COSTS.MEDICARE_ADVANTAGE_HIGH * medicareCount,
+  };
+}
+
+function calculateMedigapCost(medicareCount: number): { low: number; high: number } {
+  return {
+    low: INSURANCE_COSTS.MEDIGAP_PLAN_N_LOW * medicareCount,
+    high: INSURANCE_COSTS.MEDIGAP_PLAN_N_HIGH * medicareCount,
+  };
+}
+
+// Helper reasoning generation functions
+function generatePPOReasoning(formData: CalculatorFormData, states: string[], score: number): string {
+  const reasons: string[] = [];
+  if (states.length > 1) {
+    reasons.push('PPO provides excellent multi-state flexibility with out-of-network coverage');
+  }
+  if (formData.needsNationalCoverage === 'critical') {
+    reasons.push('ideal for frequent travelers');
+  }
+  if (formData.hasPreferredHospital) {
+    reasons.push('allows you to see specialists without referrals');
+  }
+  if (reasons.length === 0) {
+    reasons.push('provides maximum flexibility in choosing healthcare providers');
+  }
+  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
+}
+
+function generateHMOReasoning(formData: CalculatorFormData, states: string[], score: number): string {
+  const reasons: string[] = [];
+  if (states.length > 1) {
+    // Warn multi-state users about HMO limitations
+    reasons.push('WARNING: HMO networks are typically limited to single states - not ideal for your multi-state situation');
+  } else if (states.length === 1) {
+    reasons.push('HMO offers excellent value for single-state coverage');
+  }
+  if (formData.financialPriority === 'lowest-premium') {
+    reasons.push('provides lower premiums than PPO');
+  }
+  if (formData.hasChronicConditions) {
+    reasons.push('coordinated care can be beneficial for managing conditions');
+  }
+  if (reasons.length === 0) {
+    reasons.push('offers coordinated care with lower out-of-pocket costs');
+  }
+  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
+}
+
+function generateEPOReasoning(formData: CalculatorFormData, states: string[], score: number): string {
+  const reasons: string[] = [];
+  if (states.length === 1) {
+    reasons.push('EPO is a good middle ground between HMO and PPO');
+  }
+  reasons.push('no referrals needed for specialists');
+  if (formData.financialPriority === 'balanced') {
+    reasons.push('offers balanced costs and flexibility');
+  }
+  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
+}
+
+function generateHDHPReasoning(formData: CalculatorFormData, _states: string[], score: number, medicareCount: number = 0): string {
+  const reasons: string[] = [];
+  if (!formData.hasChronicConditions) {
+    reasons.push('HDHP with HSA is excellent for healthy individuals');
+  }
+  if (formData.canAffordUnexpectedBill === 'yes-easily') {
+    reasons.push('you can handle higher deductibles comfortably');
+  }
+  // Only mention HSA tax benefits if user is not Medicare-eligible (Medicare recipients cannot contribute to HSA)
+  if (medicareCount === 0) {
+    reasons.push('offers significant tax advantages through HSA');
+  } else {
+    reasons.push('note: Medicare-eligible members cannot contribute to HSA');
+  }
+  if (formData.financialPriority === 'lowest-premium') {
+    reasons.push('has the lowest monthly premiums');
+  }
+  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
+}
+
+function generateMedicareAdvantageReasoning(_formData: CalculatorFormData, states: string[], score: number, medicareCount: number): string {
+  const reasons: string[] = [];
+  if (states.length === 1) {
+    reasons.push('Medicare Advantage works well for single-state residents');
+  }
+  reasons.push(`provides all-in-one coverage for ${medicareCount} Medicare-eligible member${medicareCount > 1 ? 's' : ''}`);
+  reasons.push('often includes extra benefits like dental and vision');
+  if (states.length > 1) {
+    reasons.push('note: network restrictions may limit coverage in other states');
+  }
+  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
+}
+
+function generateMedigapReasoning(formData: CalculatorFormData, states: string[], score: number, medicareCount: number): string {
+  const reasons: string[] = [];
+  if (states.length > 1) {
+    reasons.push('Medigap provides nationwide coverage - perfect for multi-state living');
+  }
+  reasons.push(`covers ${medicareCount} Medicare-eligible member${medicareCount > 1 ? 's' : ''} with predictable costs`);
+  if (formData.financialPriority === 'lowest-oop-max') {
+    reasons.push('offers the most predictable out-of-pocket costs');
+  }
+  reasons.push('works with any doctor who accepts Medicare');
+  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
 }

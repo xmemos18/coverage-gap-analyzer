@@ -1,3 +1,8 @@
+import type { SelectablePlanTypeValue } from '@/lib/constants';
+
+// Re-export SelectablePlanTypeValue for consumers
+export type { SelectablePlanTypeValue };
+
 export interface NavItem {
   label: string;
   href: string;
@@ -76,7 +81,10 @@ export interface CalculatorFormData {
   financialPriority: string; // 'lowest-premium', 'lowest-deductible', 'lowest-oop-max', 'balanced'
   canAffordUnexpectedBill: string; // 'yes-easily', 'yes-difficulty', 'no-need-plan'
 
-  // Step 2.8: Current Insurance (optional)
+  // Step 2.8: Plan Type Preferences (user-selected insurance types to display)
+  preferredPlanTypes: SelectablePlanTypeValue[]; // e.g., ['PPO', 'HMO', 'HDHP'] - types user wants to see recommendations for
+
+  // Step 2.9: Current Insurance (optional)
   hasCurrentInsurance: boolean;
   currentInsurance: CurrentInsurance;
 
@@ -203,6 +211,22 @@ export interface InsuranceRecommendation {
 
   // Risk analysis / Monte Carlo simulation (Professional Grade Enhancement)
   riskAnalysis?: RiskAnalysisSummary;
+
+  // Type-specific recommendations (based on user's preferredPlanTypes selection)
+  typeSpecificRecommendations?: TypeSpecificRecommendation[];
+}
+
+// Type-specific recommendation for a particular plan type
+export interface TypeSpecificRecommendation {
+  planType: SelectablePlanTypeValue; // e.g., 'PPO', 'HMO', 'HDHP'
+  planTypeLabel: string; // e.g., 'PPO - Preferred Provider Organization'
+  recommendedPlan: string; // e.g., 'Blue Cross PPO Silver'
+  monthlyCost: CostRange;
+  coverageScore: number; // 0-100
+  reasoning: string;
+  pros: string[];
+  cons: string[];
+  rank: number; // 1 = best fit for this type
 }
 
 // ============================================================================

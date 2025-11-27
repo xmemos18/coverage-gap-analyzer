@@ -50,6 +50,7 @@ export function createTestFormData(
     needsNationalCoverage: 'not-important',
     financialPriority: 'balanced',
     canAffordUnexpectedBill: 'yes-easily',
+    preferredPlanTypes: [],
     budget: '400-600',
     incomeRange: '60k-80k',
     currentStep: 4,

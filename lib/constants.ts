@@ -197,10 +197,78 @@ export const PLAN_TYPES = {
   HMO: 'HMO',
   EPO: 'EPO',
   PPO: 'PPO',
+  HDHP: 'HDHP',
   MEDICARE: 'Medicare',
   MEDICARE_ADVANTAGE: 'Medicare Advantage',
   MEDIGAP: 'Medigap',
 } as const;
+
+/**
+ * Plan types available for user selection in the calculator
+ * Each type includes display info and typical characteristics
+ */
+export const SELECTABLE_PLAN_TYPES = [
+  {
+    value: 'PPO',
+    label: 'PPO',
+    fullName: 'Preferred Provider Organization',
+    description: 'More flexibility, see any doctor without referrals',
+    icon: '🌐',
+    pros: ['No referrals needed', 'Out-of-network coverage', 'Nationwide flexibility'],
+    cons: ['Higher premiums', 'Higher out-of-pocket costs'],
+  },
+  {
+    value: 'HMO',
+    label: 'HMO',
+    fullName: 'Health Maintenance Organization',
+    description: 'Lower costs, must use network doctors',
+    icon: '🏥',
+    pros: ['Lower premiums', 'Lower out-of-pocket costs', 'Coordinated care'],
+    cons: ['Need referrals for specialists', 'No out-of-network coverage'],
+  },
+  {
+    value: 'EPO',
+    label: 'EPO',
+    fullName: 'Exclusive Provider Organization',
+    description: 'No referrals needed, but must stay in-network',
+    icon: '🔗',
+    pros: ['No referrals needed', 'Lower premiums than PPO'],
+    cons: ['No out-of-network coverage except emergencies'],
+  },
+  {
+    value: 'HDHP',
+    label: 'HDHP + HSA',
+    fullName: 'High Deductible Health Plan with Health Savings Account',
+    description: 'Lowest premiums, tax-advantaged savings',
+    icon: '💰',
+    pros: ['Lowest premiums', 'HSA tax benefits', 'Good for healthy people'],
+    cons: ['High deductible before coverage', 'More out-of-pocket risk'],
+  },
+  {
+    value: 'Medicare Advantage',
+    label: 'Medicare Advantage',
+    fullName: 'Medicare Part C',
+    description: 'All-in-one Medicare coverage (65+ only)',
+    icon: '⭐',
+    pros: ['Often $0 premium', 'Extra benefits (dental, vision)', 'Out-of-pocket maximum'],
+    cons: ['Network restrictions', 'May need referrals'],
+  },
+  {
+    value: 'Medigap',
+    label: 'Original Medicare + Medigap',
+    fullName: 'Medicare Supplement Insurance',
+    description: 'Nationwide coverage, predictable costs (65+ only)',
+    icon: '🛡️',
+    pros: ['Any doctor who accepts Medicare', 'Nationwide coverage', 'Predictable costs'],
+    cons: ['Higher monthly premiums', 'No extra benefits'],
+  },
+] as const;
+
+/**
+ * Type representing valid selectable plan type values
+ * Derived from SELECTABLE_PLAN_TYPES constant for type safety
+ */
+export type SelectablePlanTypeValue = typeof SELECTABLE_PLAN_TYPES[number]['value'];
 
 // ============================================================================
 // PRIORITY LEVELS
