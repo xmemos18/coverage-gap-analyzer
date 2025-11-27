@@ -75,12 +75,12 @@ export default function ComparisonSection({
     <section className="mb-12 md:mb-16 animate-fadeIn">
       {/* Premium Section Header */}
       <div className="flex items-center gap-4 mb-8">
-        <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+        <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/50 dark:to-indigo-900/50 text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
           🔄
         </div>
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">{title}</h2>
-          {subtitle && <p className="text-base md:text-lg text-gray-600 font-medium">{subtitle}</p>}
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">{title}</h2>
+          {subtitle && <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 font-medium">{subtitle}</p>}
         </div>
       </div>
 
@@ -97,7 +97,7 @@ export default function ComparisonSection({
                   group relative flex-shrink-0 px-5 py-3 rounded-xl font-bold text-sm transition-all duration-300
                   ${activeTab === option.id
                     ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-xl scale-105'
-                    : 'bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:shadow-md'
+                    : 'bg-white dark:bg-dark-800 border-2 border-gray-200 dark:border-dark-600 text-gray-700 dark:text-gray-200 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-md'
                   }
                 `}
               >
@@ -181,10 +181,10 @@ function ComparisonCard({
   return (
     <div
       className={`
-        group relative bg-white rounded-2xl overflow-hidden transition-all duration-300
+        group relative bg-white dark:bg-dark-800 rounded-2xl overflow-hidden transition-all duration-300
         ${option.isRecommended
-          ? 'ring-4 ring-blue-500 ring-offset-4 shadow-2xl'
-          : 'border-2 border-gray-200 shadow-lg hover:shadow-2xl hover:-translate-y-1'
+          ? 'ring-4 ring-blue-500 ring-offset-4 dark:ring-offset-dark-900 shadow-2xl'
+          : 'border-2 border-gray-200 dark:border-dark-600 shadow-lg hover:shadow-2xl hover:-translate-y-1'
         }
       `}
     >
@@ -194,7 +194,7 @@ function ComparisonCard({
           relative overflow-hidden p-6 md:p-8
           ${option.isRecommended
             ? 'bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700'
-            : 'bg-gradient-to-br from-gray-100 via-slate-100 to-gray-100'
+            : 'bg-gradient-to-br from-gray-100 via-slate-100 to-gray-100 dark:from-dark-700 dark:via-dark-600 dark:to-dark-700'
           }
         `}
       >
@@ -223,7 +223,7 @@ function ComparisonCard({
           {/* Option Name */}
           <h3
             className={`text-2xl md:text-3xl font-bold mb-3 ${
-              option.isRecommended ? 'text-white drop-shadow-md' : 'text-gray-900'
+              option.isRecommended ? 'text-white drop-shadow-md' : 'text-gray-900 dark:text-white'
             }`}
           >
             {option.name}
@@ -232,7 +232,7 @@ function ComparisonCard({
           {/* Description */}
           <p
             className={`text-sm md:text-base mb-5 leading-relaxed ${
-              option.isRecommended ? 'text-white/90' : 'text-gray-600'
+              option.isRecommended ? 'text-white/90' : 'text-gray-600 dark:text-gray-300'
             }`}
           >
             {option.description}
@@ -242,13 +242,13 @@ function ComparisonCard({
           <div className="flex items-baseline gap-2">
             <span
               className={`text-4xl md:text-5xl font-bold ${
-                option.isRecommended ? 'text-white drop-shadow-lg' : 'bg-gradient-to-br from-blue-600 to-indigo-700 bg-clip-text text-transparent'
+                option.isRecommended ? 'text-white drop-shadow-lg' : 'bg-gradient-to-br from-blue-600 to-indigo-700 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-500'
               }`}
             >
               {option.monthlyEstimate}
             </span>
             <span
-              className={`text-lg font-medium ${option.isRecommended ? 'text-white/80' : 'text-gray-600'}`}
+              className={`text-lg font-medium ${option.isRecommended ? 'text-white/80' : 'text-gray-600 dark:text-gray-400'}`}
             >
               /month
             </span>
@@ -269,7 +269,7 @@ function ComparisonCard({
         </div>
 
         {/* Premium Benefits - Collapsible */}
-        <div className="rounded-xl border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+        <div className="rounded-xl border-2 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 p-4">
           <button
             onClick={() => toggleBenefits(option.id)}
             className="flex items-center justify-between w-full text-left group/btn"
@@ -278,12 +278,12 @@ function ComparisonCard({
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white text-lg shadow-md rotate-3 group-hover/btn:rotate-6 transition-transform duration-300">
                 ✓
               </div>
-              <h4 className="text-base md:text-lg font-bold text-green-900">
+              <h4 className="text-base md:text-lg font-bold text-green-900 dark:text-green-200">
                 Benefits ({option.benefits.length})
               </h4>
             </div>
             <svg
-              className={`w-6 h-6 text-green-700 transition-transform duration-300 ${
+              className={`w-6 h-6 text-green-700 dark:text-green-400 transition-transform duration-300 ${
                 isExpanded(expandedBenefits, option.id) ? 'rotate-180' : ''
               }`}
               fill="none"
@@ -297,7 +297,7 @@ function ComparisonCard({
           {isExpanded(expandedBenefits, option.id) && (
             <ul className="mt-4 space-y-3 animate-fadeIn">
               {option.benefits.map((benefit, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-sm md:text-base text-gray-800">
+                <li key={idx} className="flex items-start gap-3 text-sm md:text-base text-gray-800 dark:text-gray-200">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-green-600 text-white text-xs font-bold flex-shrink-0 mt-0.5 shadow-sm">
                     {idx + 1}
                   </span>
@@ -309,7 +309,7 @@ function ComparisonCard({
         </div>
 
         {/* Premium Drawbacks - Collapsible */}
-        <div className="rounded-xl border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+        <div className="rounded-xl border-2 border-orange-200 dark:border-orange-800 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/30 p-4">
           <button
             onClick={() => toggleDrawbacks(option.id)}
             className="flex items-center justify-between w-full text-left group/btn"
@@ -318,12 +318,12 @@ function ComparisonCard({
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 text-white text-lg shadow-md rotate-3 group-hover/btn:rotate-6 transition-transform duration-300">
                 ⚠
               </div>
-              <h4 className="text-base md:text-lg font-bold text-orange-900">
+              <h4 className="text-base md:text-lg font-bold text-orange-900 dark:text-orange-200">
                 Drawbacks ({option.drawbacks.length})
               </h4>
             </div>
             <svg
-              className={`w-6 h-6 text-orange-700 transition-transform duration-300 ${
+              className={`w-6 h-6 text-orange-700 dark:text-orange-400 transition-transform duration-300 ${
                 isExpanded(expandedDrawbacks, option.id) ? 'rotate-180' : ''
               }`}
               fill="none"
@@ -337,7 +337,7 @@ function ComparisonCard({
           {isExpanded(expandedDrawbacks, option.id) && (
             <ul className="mt-4 space-y-3 animate-fadeIn">
               {option.drawbacks.map((drawback, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-sm md:text-base text-gray-800">
+                <li key={idx} className="flex items-start gap-3 text-sm md:text-base text-gray-800 dark:text-gray-200">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-600 text-white text-xs font-bold flex-shrink-0 mt-0.5 shadow-sm">
                     {idx + 1}
                   </span>
@@ -349,7 +349,7 @@ function ComparisonCard({
         </div>
 
         {/* Premium Best For Section */}
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 border-2 border-blue-200 p-5 shadow-sm">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-blue-900/30 border-2 border-blue-200 dark:border-blue-800 p-5 shadow-sm">
           <div
             className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -362,21 +362,21 @@ function ComparisonCard({
               🎯
             </div>
             <div className="flex-1">
-              <p className="text-sm font-bold text-blue-900 mb-2">Best For:</p>
-              <p className="text-sm md:text-base text-gray-800 leading-relaxed">{option.bestFor}</p>
+              <p className="text-sm font-bold text-blue-900 dark:text-blue-200 mb-2">Best For:</p>
+              <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 leading-relaxed">{option.bestFor}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Premium Card Footer */}
-      <div className="p-6 md:p-8 bg-gradient-to-br from-gray-50 to-slate-50 border-t-2 border-gray-200">
+      <div className="p-6 md:p-8 bg-gradient-to-br from-gray-50 to-slate-50 dark:from-dark-700 dark:to-dark-600 border-t-2 border-gray-200 dark:border-dark-600">
         <button
           className={`
             group/btn relative w-full py-4 px-6 rounded-xl font-bold text-base md:text-lg transition-all duration-300 overflow-hidden
             ${option.isRecommended
               ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white shadow-xl hover:shadow-2xl hover:scale-[1.02]'
-              : 'bg-white text-gray-700 border-2 border-gray-300 hover:border-blue-400 hover:shadow-lg'
+              : 'bg-white dark:bg-dark-800 text-gray-700 dark:text-gray-200 border-2 border-gray-300 dark:border-dark-500 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg'
             }
           `}
         >

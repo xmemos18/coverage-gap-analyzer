@@ -62,9 +62,9 @@ export default function StickyNavigation({ sections }: StickyNavigationProps) {
     <>
       {/* Premium Desktop: Sidebar Navigation */}
       <nav className="hidden lg:block fixed left-4 top-24 z-40 print:hidden">
-        <div className="bg-white rounded-2xl shadow-2xl border-2 border-gray-200 p-5 max-w-[220px]">
-          <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <span className="text-blue-600">🗂️</span>
+        <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-2xl border-2 border-gray-200 dark:border-dark-600 p-5 max-w-[220px]">
+          <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <span className="text-blue-600 dark:text-blue-400">🗂️</span>
             Jump to
           </h3>
           <ul className="space-y-2">
@@ -77,7 +77,7 @@ export default function StickyNavigation({ sections }: StickyNavigationProps) {
                     flex items-center gap-3 border-2
                     ${activeSection === section.id
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg border-blue-600 scale-105'
-                      : 'text-gray-700 hover:bg-blue-50 border-transparent hover:border-blue-200 hover:shadow-md'
+                      : 'text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 border-transparent hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-md'
                     }
                   `}
                 >
@@ -97,20 +97,20 @@ export default function StickyNavigation({ sections }: StickyNavigationProps) {
           <>
             {/* Premium Backdrop */}
             <div
-              className="fixed inset-0 bg-black/30 backdrop-blur-sm animate-fadeIn"
+              className="fixed inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm animate-fadeIn"
               onClick={() => setIsExpanded(false)}
             />
 
             {/* Premium Menu */}
-            <div className="fixed bottom-24 right-4 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-2xl border-2 border-gray-200 p-4 w-72 max-h-[60vh] overflow-y-auto animate-fadeIn">
-              <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-gray-200">
-                <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-                  <span className="text-blue-600">🗂️</span>
+            <div className="fixed bottom-24 right-4 bg-gradient-to-br from-white to-gray-50 dark:from-dark-800 dark:to-dark-700 rounded-2xl shadow-2xl border-2 border-gray-200 dark:border-dark-600 p-4 w-72 max-h-[60vh] overflow-y-auto animate-fadeIn">
+              <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-gray-200 dark:border-dark-600">
+                <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-2">
+                  <span className="text-blue-600 dark:text-blue-400">🗂️</span>
                   Jump to Section
                 </h3>
                 <button
                   onClick={() => setIsExpanded(false)}
-                  className="text-gray-500 hover:text-blue-600 p-1 rounded-lg hover:bg-blue-50 transition-all duration-300"
+                  className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 p-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-300"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
@@ -127,7 +127,7 @@ export default function StickyNavigation({ sections }: StickyNavigationProps) {
                         flex items-center gap-3 border-2
                         ${activeSection === section.id
                           ? 'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg border-blue-600'
-                          : 'text-gray-700 hover:bg-blue-50 border-transparent hover:border-blue-200 hover:shadow-md'
+                          : 'text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30 border-transparent hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-md'
                         }
                       `}
                     >
@@ -144,7 +144,7 @@ export default function StickyNavigation({ sections }: StickyNavigationProps) {
         {/* Premium Toggle Button */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 hover:scale-110 border-2 border-white"
+          className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-full p-4 shadow-2xl hover:shadow-3xl hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 hover:scale-110 border-2 border-white dark:border-dark-600"
           aria-label="Navigation menu"
         >
           {isExpanded ? (

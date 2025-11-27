@@ -120,24 +120,24 @@ export default function EnhancedWhyRecommendation({
           <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
             <path
               d="M0 0L60 10C120 20 240 40 360 45C480 50 600 40 720 35C840 30 960 30 1080 35C1200 40 1320 50 1380 55L1440 60V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0V0Z"
-              fill="white"
+              className="fill-white dark:fill-dark-800"
             />
           </svg>
         </div>
       </div>
 
       {/* Main Content Area (White Background) */}
-      <div className="rounded-b-3xl bg-white px-6 py-8 md:px-12 md:py-12 shadow-lg">
+      <div className="rounded-b-3xl bg-white dark:bg-dark-800 px-6 py-8 md:px-12 md:py-12 shadow-lg">
         {/* Full Explanation Section - Featured Quote Card */}
         <div className="mb-12 animate-fadeIn">
           {/* Section Header */}
           <div className="flex items-center gap-3 mb-8">
             <div className="h-1 w-16 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-full"></div>
-            <h3 className="text-3xl font-bold text-gray-900">Why We Chose This</h3>
+            <h3 className="text-3xl font-bold text-gray-900 dark:text-white">Why We Chose This</h3>
           </div>
 
           {/* Featured Quote Card */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 md:p-12 shadow-xl border-2 border-blue-100">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30 p-8 md:p-12 shadow-xl border-2 border-blue-100 dark:border-blue-800">
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-[0.03]" style={{
               backgroundImage: `radial-gradient(circle at 2px 2px, rgb(59, 130, 246) 1px, transparent 0)`,
@@ -145,7 +145,7 @@ export default function EnhancedWhyRecommendation({
             }}></div>
 
             {/* Decorative Quote Mark - Top Left */}
-            <div className="absolute -top-4 -left-4 text-8xl md:text-9xl font-serif text-blue-200 opacity-30 leading-none select-none">
+            <div className="absolute -top-4 -left-4 text-8xl md:text-9xl font-serif text-blue-200 dark:text-blue-700 opacity-30 leading-none select-none">
               &ldquo;
             </div>
 
@@ -161,13 +161,13 @@ export default function EnhancedWhyRecommendation({
             {/* Quote Content */}
             <div className="relative z-10 pt-8">
               <div className="prose prose-lg md:prose-xl max-w-none">
-                <p className="text-lg md:text-xl leading-relaxed text-gray-800 font-medium">
+                <p className="text-lg md:text-xl leading-relaxed text-gray-800 dark:text-gray-200 font-medium">
                   {recommendation.reasoning.split('.').map((sentence, idx) => {
                     if (!sentence.trim()) return null;
                     // Highlight key phrases
                     const isFirstSentence = idx === 0;
                     return (
-                      <span key={idx} className={isFirstSentence ? 'text-gray-900 font-semibold' : ''}>
+                      <span key={idx} className={isFirstSentence ? 'text-gray-900 dark:text-white font-semibold' : ''}>
                         {sentence.trim()}.{' '}
                       </span>
                     );
@@ -176,7 +176,7 @@ export default function EnhancedWhyRecommendation({
               </div>
 
               {/* Key Highlight Callout */}
-              <div className="mt-8 rounded-2xl bg-white/80 backdrop-blur-sm border-2 border-blue-200 p-6 shadow-md">
+              <div className="mt-8 rounded-2xl bg-white/80 dark:bg-dark-700/80 backdrop-blur-sm border-2 border-blue-200 dark:border-blue-800 p-6 shadow-md">
                 <div className="flex items-start gap-4">
                   <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-md">
                     <svg className="h-6 w-6 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -184,9 +184,9 @@ export default function EnhancedWhyRecommendation({
                     </svg>
                   </div>
                   <div className="flex-1">
-                    <p className="font-bold text-gray-900 text-lg mb-1">Perfect Match</p>
-                    <p className="text-gray-700">
-                      This plan scored <span className="font-bold text-blue-600">{scoreBreakdown.totalScore}/100</span> based on your unique situation and preferences.
+                    <p className="font-bold text-gray-900 dark:text-white text-lg mb-1">Perfect Match</p>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      This plan scored <span className="font-bold text-blue-600 dark:text-blue-400">{scoreBreakdown.totalScore}/100</span> based on your unique situation and preferences.
                     </p>
                   </div>
                 </div>
@@ -194,7 +194,7 @@ export default function EnhancedWhyRecommendation({
             </div>
 
             {/* Decorative Quote Mark - Bottom Right */}
-            <div className="absolute -bottom-4 -right-4 text-8xl md:text-9xl font-serif text-blue-200 opacity-30 leading-none select-none rotate-180">
+            <div className="absolute -bottom-4 -right-4 text-8xl md:text-9xl font-serif text-blue-200 dark:text-blue-700 opacity-30 leading-none select-none rotate-180">
               &rdquo;
             </div>
           </div>
@@ -205,13 +205,13 @@ export default function EnhancedWhyRecommendation({
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-6">
             <div className="h-1 w-12 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full"></div>
-            <h3 className="text-2xl font-bold text-gray-900">Score Breakdown</h3>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Score Breakdown</h3>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
           {scoreBreakdown.categories.map((category) => (
             <div
               key={category.name}
-              className="group rounded-2xl border-2 border-gray-100 bg-gradient-to-br from-gray-50 to-white p-6 transition-all duration-200 hover:-translate-y-1 hover:border-gray-200 hover:shadow-lg"
+              className="group rounded-2xl border-2 border-gray-100 dark:border-dark-600 bg-gradient-to-br from-gray-50 to-white dark:from-dark-700 dark:to-dark-800 p-6 transition-all duration-200 hover:-translate-y-1 hover:border-gray-200 dark:hover:border-dark-500 hover:shadow-lg"
             >
               {/* Icon Header */}
               <div className={`mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br ${category.color} text-2xl shadow-md`}>
@@ -219,23 +219,23 @@ export default function EnhancedWhyRecommendation({
               </div>
 
               {/* Category Title */}
-              <h3 className="mb-2 text-lg font-bold text-gray-900">{category.name}</h3>
+              <h3 className="mb-2 text-lg font-bold text-gray-900 dark:text-white">{category.name}</h3>
 
               {/* Score Bar */}
               <div className="mb-3 flex items-center gap-2">
-                <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="flex-1 h-2 bg-gray-200 dark:bg-dark-600 rounded-full overflow-hidden">
                   <div
                     className={`h-full bg-gradient-to-r ${category.color} transition-all duration-500`}
                     style={{ width: `${(category.score / category.maxScore) * 100}%` }}
                   />
                 </div>
-                <span className="text-sm font-bold text-gray-700">
+                <span className="text-sm font-bold text-gray-700 dark:text-gray-300">
                   {category.score}/{category.maxScore}
                 </span>
               </div>
 
               {/* Description */}
-              <p className="text-sm text-gray-600 leading-relaxed">{category.description}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{category.description}</p>
             </div>
           ))}
           </div>
@@ -244,71 +244,71 @@ export default function EnhancedWhyRecommendation({
         {/* Comparison Cards Section */}
         {(topAlternative || currentInsuranceCost) && (
           <div className="mb-12">
-            <h3 className="mb-6 text-xl font-bold text-gray-900 md:text-2xl">
+            <h3 className="mb-6 text-xl font-bold text-gray-900 dark:text-white md:text-2xl">
               How It Compares
             </h3>
             <div className="grid gap-6 md:grid-cols-3">
               {/* Recommended Plan Card */}
-              <div className="relative overflow-hidden rounded-2xl border-l-4 border-green-500 bg-gradient-to-br from-green-50 to-white p-6 shadow-md">
+              <div className="relative overflow-hidden rounded-2xl border-l-4 border-green-500 bg-gradient-to-br from-green-50 to-white dark:from-green-900/30 dark:to-dark-800 p-6 shadow-md border-2 border-l-4 border-gray-100 dark:border-dark-600 dark:border-l-green-500">
                 {/* Recommended Badge */}
                 <div className="absolute top-4 right-4 rounded-full bg-green-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
                   RECOMMENDED
                 </div>
 
                 <div className="mb-4">
-                  <h4 className="text-lg font-bold text-gray-900">
+                  <h4 className="text-lg font-bold text-gray-900 dark:text-white">
                     {recommendation.recommendedInsurance}
                   </h4>
-                  <p className="mt-1 text-2xl font-bold text-green-600">
+                  <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
                     ${recommendation.estimatedMonthlyCost.low}-${recommendation.estimatedMonthlyCost.high}
-                    <span className="text-sm font-normal text-gray-600">/month</span>
+                    <span className="text-sm font-normal text-gray-600 dark:text-gray-400">/month</span>
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-start gap-2">
-                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span className="text-sm text-gray-700">Best overall coverage</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Best overall coverage</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span className="text-sm text-gray-700">Fits your budget</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Fits your budget</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span className="text-sm text-gray-700">Covers all locations</span>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Covers all locations</span>
                   </div>
                 </div>
               </div>
 
               {/* Alternative Plan Card */}
               {topAlternative && (
-                <div className="rounded-2xl border-l-4 border-gray-300 bg-gradient-to-br from-gray-50 to-white p-6 shadow-md">
+                <div className="rounded-2xl border-2 border-gray-200 dark:border-dark-600 border-l-4 border-l-gray-300 dark:border-l-gray-500 bg-gradient-to-br from-gray-50 to-white dark:from-dark-700 dark:to-dark-800 p-6 shadow-md">
                   <div className="mb-4">
-                    <h4 className="text-lg font-bold text-gray-900">{topAlternative.name}</h4>
-                    <p className="mt-1 text-2xl font-bold text-gray-700">
+                    <h4 className="text-lg font-bold text-gray-900 dark:text-white">{topAlternative.name}</h4>
+                    <p className="mt-1 text-2xl font-bold text-gray-700 dark:text-gray-300">
                       ${topAlternative.monthlyCost.low}-${topAlternative.monthlyCost.high}
-                      <span className="text-sm font-normal text-gray-600">/month</span>
+                      <span className="text-sm font-normal text-gray-600 dark:text-gray-400">/month</span>
                     </p>
                   </div>
 
                   <div className="mb-3">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Trade-offs</span>
+                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Trade-offs</span>
                   </div>
 
                   <div className="space-y-2">
                     {topAlternative.cons.slice(0, 3).map((con, idx) => (
                       <div key={idx} className="flex items-start gap-2">
-                        <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500 dark:text-amber-400" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                         </svg>
-                        <span className="text-sm text-gray-700">{con}</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{con}</span>
                       </div>
                     ))}
                   </div>
@@ -317,33 +317,33 @@ export default function EnhancedWhyRecommendation({
 
               {/* Current Plan Card (if applicable) */}
               {currentInsuranceCost && recommendation.costComparison && (
-                <div className="rounded-2xl border-l-4 border-amber-500 bg-gradient-to-br from-amber-50 to-white p-6 shadow-md">
+                <div className="relative rounded-2xl border-2 border-gray-200 dark:border-dark-600 border-l-4 border-l-amber-500 bg-gradient-to-br from-amber-50 to-white dark:from-amber-900/30 dark:to-dark-800 p-6 shadow-md">
                   <div className="absolute top-4 right-4 rounded-full bg-amber-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
                     CURRENT
                   </div>
 
                   <div className="mb-4">
-                    <h4 className="text-lg font-bold text-gray-900">Your Current Plan</h4>
-                    <p className="mt-1 text-2xl font-bold text-amber-600">
+                    <h4 className="text-lg font-bold text-gray-900 dark:text-white">Your Current Plan</h4>
+                    <p className="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-400">
                       ${currentInsuranceCost}
-                      <span className="text-sm font-normal text-gray-600">/month</span>
+                      <span className="text-sm font-normal text-gray-600 dark:text-gray-400">/month</span>
                     </p>
                   </div>
 
                   {recommendation.costComparison.monthlySavings && recommendation.costComparison.monthlySavings > 0 && (
-                    <div className="rounded-lg bg-green-50 border border-green-200 p-3 mb-3">
+                    <div className="rounded-lg bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 p-3 mb-3">
                       <div className="flex items-center gap-2">
-                        <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="h-5 w-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                         </svg>
-                        <span className="text-sm font-semibold text-green-800">
+                        <span className="text-sm font-semibold text-green-800 dark:text-green-300">
                           Save ${recommendation.costComparison.monthlySavings}/month
                         </span>
                       </div>
                     </div>
                   )}
 
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
                     Switching could save you up to ${recommendation.costComparison.annualSavings || 0}/year
                   </p>
                 </div>
@@ -353,9 +353,9 @@ export default function EnhancedWhyRecommendation({
         )}
 
         {/* Trust & Transparency Panel */}
-        <div className="mb-12 overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 p-6 md:p-8 shadow-sm backdrop-blur-sm">
-          <h3 className="mb-6 flex items-center gap-3 text-lg font-bold text-gray-900">
-            <svg className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="mb-12 overflow-hidden rounded-2xl border-2 border-gray-200 dark:border-dark-600 bg-gradient-to-br from-white to-gray-50 dark:from-dark-800 dark:to-dark-700 p-6 md:p-8 shadow-sm backdrop-blur-sm">
+          <h3 className="mb-6 flex items-center gap-3 text-lg font-bold text-gray-900 dark:text-white">
+            <svg className="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
             How We Calculated This
@@ -364,85 +364,85 @@ export default function EnhancedWhyRecommendation({
           <div className="grid gap-6 md:grid-cols-3">
             {/* Data Sources */}
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100 text-xl">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/50 text-xl">
                 📊
               </div>
               <div>
-                <div className="font-semibold text-gray-900">CMS Data</div>
-                <div className="text-sm text-gray-600">Centers for Medicare & Medicaid Services</div>
+                <div className="font-semibold text-gray-900 dark:text-white">CMS Data</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Centers for Medicare & Medicaid Services</div>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-green-100 text-xl">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/50 text-xl">
                 🏥
               </div>
               <div>
-                <div className="font-semibold text-gray-900">Healthcare.gov</div>
-                <div className="text-sm text-gray-600">Official marketplace data</div>
+                <div className="font-semibold text-gray-900 dark:text-white">Healthcare.gov</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Official marketplace data</div>
               </div>
             </div>
 
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-100 text-xl">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/50 text-xl">
                 🔒
               </div>
               <div>
-                <div className="font-semibold text-gray-900">Privacy First</div>
-                <div className="text-sm text-gray-600">HIPAA compliant analysis</div>
+                <div className="font-semibold text-gray-900 dark:text-white">Privacy First</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">HIPAA compliant analysis</div>
               </div>
             </div>
           </div>
 
           {/* Confidence Bar */}
-          <div className="mt-6 rounded-lg bg-white p-4 border border-gray-200">
+          <div className="mt-6 rounded-lg bg-white dark:bg-dark-700 p-4 border-2 border-gray-200 dark:border-dark-600">
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-semibold text-gray-700">Recommendation Confidence</span>
-              <span className="text-sm font-bold text-gray-900">{confidenceDetails.label}</span>
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">Recommendation Confidence</span>
+              <span className="text-sm font-bold text-gray-900 dark:text-white">{confidenceDetails.label}</span>
             </div>
-            <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
+            <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-dark-600">
               <div
                 className={`h-full bg-gradient-to-r from-${confidenceDetails.color}-400 to-${confidenceDetails.color}-600 transition-all duration-500`}
                 style={{ width: `${scoreBreakdown.totalScore}%` }}
               />
             </div>
-            <p className="mt-2 text-xs text-gray-600">{confidenceDetails.description}</p>
+            <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">{confidenceDetails.description}</p>
           </div>
         </div>
 
         {/* Enhanced "Best For" Section */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 p-6 md:p-8 border-l-4 border-blue-500 shadow-md">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 p-6 md:p-8 border-2 border-gray-200 dark:border-dark-600 border-l-4 border-l-blue-500 shadow-md">
           <div className="mb-4 flex items-center gap-3">
-            <svg className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-8 w-8 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <h3 className="text-xl font-bold text-blue-900">Best For</h3>
+            <h3 className="text-xl font-bold text-blue-900 dark:text-blue-200">Best For</h3>
           </div>
 
           <div className="mb-4 flex flex-wrap gap-2">
             {formData.residences.length > 1 && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-sm font-semibold text-blue-800">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 dark:bg-blue-900/50 px-3 py-1 text-sm font-semibold text-blue-800 dark:text-blue-300">
                 🏠 Multi-State Living
               </span>
             )}
             {formData.hasMedicareEligible && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-3 py-1 text-sm font-semibold text-purple-800">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 dark:bg-purple-900/50 px-3 py-1 text-sm font-semibold text-purple-800 dark:text-purple-300">
                 👴 Medicare Eligible
               </span>
             )}
             {formData.numChildren > 0 && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-800">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 dark:bg-green-900/50 px-3 py-1 text-sm font-semibold text-green-800 dark:text-green-300">
                 👨‍👩‍👧‍👦 Families
               </span>
             )}
             {formData.hasChronicConditions && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 dark:bg-amber-900/50 px-3 py-1 text-sm font-semibold text-amber-800 dark:text-amber-300">
                 🏥 Ongoing Care Needs
               </span>
             )}
           </div>
 
-          <p className="text-base leading-relaxed text-blue-900">
+          <p className="text-base leading-relaxed text-blue-900 dark:text-blue-200">
             {recommendation.reasoning.split('\n\n')[0]}
           </p>
         </div>

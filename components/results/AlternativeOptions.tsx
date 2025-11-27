@@ -43,10 +43,10 @@ function AlternativeOptions({ options }: AlternativeOptionsProps) {
   if (options.length === 0) return null;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 shadow-2xl p-6 md:p-8 mb-12 md:mb-16">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-dark-800 dark:to-dark-700 border-2 border-gray-200 dark:border-dark-600 shadow-2xl p-6 md:p-8 mb-12 md:mb-16">
       {/* Subtle background pattern */}
       <div
-        className="absolute inset-0 opacity-[0.02]"
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]"
         style={{
           backgroundImage: `radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)`,
           backgroundSize: '30px 30px'
@@ -55,14 +55,14 @@ function AlternativeOptions({ options }: AlternativeOptionsProps) {
 
       <div className="relative mb-8">
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+          <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/50 dark:to-pink-900/50 text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
             🔍
           </div>
           <div>
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-1">
+            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">
               Other Options to Consider
             </h3>
-            <p className="text-gray-600 font-medium">Alternative plans that might work for your situation</p>
+            <p className="text-gray-600 dark:text-gray-400 font-medium">Alternative plans that might work for your situation</p>
           </div>
         </div>
       </div>
@@ -138,10 +138,10 @@ interface OptionCardProps {
 
 function OptionCard({ option, isExpanded, onToggle }: OptionCardProps) {
   return (
-    <div className="group relative bg-gradient-to-br from-white via-gray-50 to-white rounded-2xl border-2 border-gray-200 hover:border-blue-500 hover:shadow-2xl transition-all duration-300 h-full flex flex-col overflow-hidden hover:-translate-y-1">
+    <div className="group relative bg-gradient-to-br from-white via-gray-50 to-white dark:from-dark-800 dark:via-dark-700 dark:to-dark-800 rounded-2xl border-2 border-gray-200 dark:border-dark-600 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-2xl transition-all duration-300 h-full flex flex-col overflow-hidden hover:-translate-y-1">
       {/* Subtle background pattern */}
       <div
-        className="absolute inset-0 opacity-[0.02] group-hover:opacity-[0.03] transition-opacity"
+        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05] group-hover:opacity-[0.03] dark:group-hover:opacity-[0.07] transition-opacity"
         style={{
           backgroundImage: `radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)`,
           backgroundSize: '20px 20px'
@@ -149,15 +149,15 @@ function OptionCard({ option, isExpanded, onToggle }: OptionCardProps) {
       ></div>
 
       {/* Premium Header */}
-      <div className="relative p-6 pb-4 border-b-2 border-gray-100">
-        <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">
+      <div className="relative p-6 pb-4 border-b-2 border-gray-100 dark:border-dark-600">
+        <h4 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-3">
           <InsuranceText text={option.name} position="bottom" />
         </h4>
         <div className="flex items-baseline gap-2 mb-1">
-          <div className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-blue-600 to-indigo-700 bg-clip-text text-transparent">
+          <div className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-400 dark:to-indigo-500 bg-clip-text text-transparent">
             {formatCost(option.monthlyCost.low, option.monthlyCost.high)}
           </div>
-          <div className="text-sm font-medium text-gray-600">/month</div>
+          <div className="text-sm font-medium text-gray-600 dark:text-gray-400">/month</div>
         </div>
       </div>
 
@@ -167,25 +167,25 @@ function OptionCard({ option, isExpanded, onToggle }: OptionCardProps) {
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 text-white text-sm shadow-md rotate-3">
             ✓
           </div>
-          <h5 className="font-bold text-green-900 text-base">Key Benefits</h5>
+          <h5 className="font-bold text-green-900 dark:text-green-200 text-base">Key Benefits</h5>
         </div>
         <ul className="space-y-2">
           {option.pros.slice(0, 3).map((pro, i) => (
-            <li key={i} className="text-sm text-gray-800 flex items-start gap-2.5">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-600 text-xs font-bold flex-shrink-0 mt-0.5">
+            <li key={i} className="text-sm text-gray-800 dark:text-gray-200 flex items-start gap-2.5">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 text-xs font-bold flex-shrink-0 mt-0.5">
                 {i + 1}
               </span>
               <span className="flex-1 leading-relaxed"><InsuranceText text={pro} position="bottom" /></span>
             </li>
           ))}
           {option.pros.length > 3 && !isExpanded && (
-            <li className="text-sm text-blue-600 font-semibold italic pl-7">
+            <li className="text-sm text-blue-600 dark:text-blue-400 font-semibold italic pl-7">
               +{option.pros.length - 3} more benefit{option.pros.length - 3 !== 1 ? 's' : ''}...
             </li>
           )}
           {isExpanded && option.pros.slice(3).map((pro, i) => (
-            <li key={i + 3} className="text-sm text-gray-800 flex items-start gap-2.5 animate-fadeIn">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 text-green-600 text-xs font-bold flex-shrink-0 mt-0.5">
+            <li key={i + 3} className="text-sm text-gray-800 dark:text-gray-200 flex items-start gap-2.5 animate-fadeIn">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 text-xs font-bold flex-shrink-0 mt-0.5">
                 {i + 4}
               </span>
               <span className="flex-1 leading-relaxed"><InsuranceText text={pro} position="bottom" /></span>
@@ -201,12 +201,12 @@ function OptionCard({ option, isExpanded, onToggle }: OptionCardProps) {
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 text-white text-lg shadow-md rotate-3">
               ⚠
             </div>
-            <h5 className="font-bold text-orange-900 text-base">Considerations</h5>
+            <h5 className="font-bold text-orange-900 dark:text-orange-200 text-base">Considerations</h5>
           </div>
           <ul className="space-y-2">
             {option.cons.map((con, i) => (
-              <li key={i} className="text-sm text-gray-700 flex items-start gap-2.5">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 text-orange-600 text-xs font-bold flex-shrink-0 mt-0.5">
+              <li key={i} className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2.5">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 text-xs font-bold flex-shrink-0 mt-0.5">
                   {i + 1}
                 </span>
                 <span className="flex-1 leading-relaxed"><InsuranceText text={con} position="bottom" /></span>
@@ -220,7 +220,7 @@ function OptionCard({ option, isExpanded, onToggle }: OptionCardProps) {
       <div className="relative p-4 pt-0 mt-auto">
         <button
           onClick={onToggle}
-          className="group/btn w-full py-3 px-4 bg-gradient-to-r from-gray-100 to-slate-100 hover:from-blue-600 hover:to-indigo-700 text-gray-700 hover:text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 border-2 border-gray-200 hover:border-blue-600 shadow-sm hover:shadow-md"
+          className="group/btn w-full py-3 px-4 bg-gradient-to-r from-gray-100 to-slate-100 dark:from-dark-700 dark:to-dark-600 hover:from-blue-600 hover:to-indigo-700 text-gray-700 dark:text-gray-200 hover:text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 border-2 border-gray-200 dark:border-dark-500 hover:border-blue-600 shadow-sm hover:shadow-md"
         >
           <span>{isExpanded ? 'Show Less' : 'View Details'}</span>
           <svg

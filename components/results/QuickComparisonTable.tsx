@@ -71,21 +71,21 @@ export default function QuickComparisonTable({
     <section className="mb-12 md:mb-16 animate-fadeIn">
       {/* Premium Section Header */}
       <div className="flex items-center gap-4 mb-8">
-        <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+        <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
           ⚖️
         </div>
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Quick Comparison</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">Quick Comparison</h2>
       </div>
 
       {/* Premium Desktop Table */}
-      <div className="hidden md:block overflow-hidden rounded-2xl border-2 border-gray-200 shadow-xl">
+      <div className="hidden md:block overflow-hidden rounded-2xl border-2 border-gray-200 dark:border-dark-600 shadow-xl">
         <table className="w-full">
-          <thead className="bg-gradient-to-r from-gray-50 via-slate-50 to-gray-50">
+          <thead className="bg-gradient-to-r from-gray-50 via-slate-50 to-gray-50 dark:from-dark-700 dark:via-dark-600 dark:to-dark-700">
             <tr>
-              <th className="text-left p-5 font-bold text-gray-900 text-base border-b-2 border-gray-200">
+              <th className="text-left p-5 font-bold text-gray-900 dark:text-white text-base border-b-2 border-gray-200 dark:border-dark-600">
                 Feature
               </th>
-              <th className="text-left p-5 border-b-2 border-gray-200">
+              <th className="text-left p-5 border-b-2 border-gray-200 dark:border-dark-600">
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl shadow-md">
                   <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white/30 rotate-12">
                     ⭐
@@ -93,7 +93,7 @@ export default function QuickComparisonTable({
                   <span className="font-bold text-base">{primaryOption.name}</span>
                 </div>
               </th>
-              <th className="text-left p-5 font-bold text-gray-700 text-base border-b-2 border-gray-200">
+              <th className="text-left p-5 font-bold text-gray-700 dark:text-gray-300 text-base border-b-2 border-gray-200 dark:border-dark-600">
                 {alternativeOption.name}
               </th>
             </tr>
@@ -102,21 +102,21 @@ export default function QuickComparisonTable({
             {features.map((feature, idx) => (
               <tr
                 key={idx}
-                className={`border-t border-gray-200 transition-colors hover:bg-blue-50/50 ${
-                  idx % 2 === 0 ? 'bg-white' : 'bg-gradient-to-r from-gray-50/50 to-slate-50/50'
+                className={`border-t border-gray-200 dark:border-dark-600 transition-colors hover:bg-blue-50/50 dark:hover:bg-blue-900/20 ${
+                  idx % 2 === 0 ? 'bg-white dark:bg-dark-800' : 'bg-gradient-to-r from-gray-50/50 to-slate-50/50 dark:from-dark-700/50 dark:to-dark-600/50'
                 }`}
               >
-                <td className="p-5 font-bold text-gray-900">{feature.name}</td>
+                <td className="p-5 font-bold text-gray-900 dark:text-white">{feature.name}</td>
                 <td className="p-5">
                   <div className="flex items-center gap-3">
                     {getIcon(feature.primary.icon)}
-                    <span className="text-gray-800 font-medium">{feature.primary.value}</span>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">{feature.primary.value}</span>
                   </div>
                 </td>
                 <td className="p-5">
                   <div className="flex items-center gap-3">
                     {getIcon(feature.alternative.icon)}
-                    <span className="text-gray-800 font-medium">{feature.alternative.value}</span>
+                    <span className="text-gray-800 dark:text-gray-200 font-medium">{feature.alternative.value}</span>
                   </div>
                 </td>
               </tr>
@@ -128,10 +128,10 @@ export default function QuickComparisonTable({
       {/* Premium Mobile Cards */}
       <div className="md:hidden space-y-4">
         {features.map((feature, idx) => (
-          <div key={idx} className="relative overflow-hidden bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl p-5 shadow-lg">
+          <div key={idx} className="relative overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-dark-800 dark:to-dark-700 border-2 border-gray-200 dark:border-dark-600 rounded-2xl p-5 shadow-lg">
             {/* Subtle background pattern */}
             <div
-              className="absolute inset-0 opacity-[0.02]"
+              className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]"
               style={{
                 backgroundImage: `radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)`,
                 backgroundSize: '20px 20px'
@@ -139,35 +139,35 @@ export default function QuickComparisonTable({
             ></div>
 
             <div className="relative">
-              <h4 className="font-bold text-gray-900 mb-5 text-lg flex items-center gap-2">
-                <span className="text-blue-600">•</span>
+              <h4 className="font-bold text-gray-900 dark:text-white mb-5 text-lg flex items-center gap-2">
+                <span className="text-blue-600 dark:text-blue-400">•</span>
                 {feature.name}
               </h4>
 
               <div className="space-y-4">
                 {/* Premium Primary Option */}
-                <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 p-4">
+                <div className="rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-2 border-blue-200 dark:border-blue-800 p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 mt-0.5">{getIcon(feature.primary.icon)}</div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-bold text-blue-700">{primaryOption.name}</span>
+                        <span className="text-xs font-bold text-blue-700 dark:text-blue-300">{primaryOption.name}</span>
                         <div className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-600 text-white text-xs rotate-12">
                           ⭐
                         </div>
                       </div>
-                      <p className="font-bold text-base text-gray-900">{feature.primary.value}</p>
+                      <p className="font-bold text-base text-gray-900 dark:text-white">{feature.primary.value}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Premium Alternative Option */}
-                <div className="rounded-xl bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 p-4">
+                <div className="rounded-xl bg-gradient-to-r from-gray-50 to-slate-50 dark:from-dark-700 dark:to-dark-600 border-2 border-gray-200 dark:border-dark-500 p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex-shrink-0 mt-0.5">{getIcon(feature.alternative.icon)}</div>
                     <div className="flex-1">
-                      <p className="text-xs font-bold text-gray-600 mb-1">{alternativeOption.name}</p>
-                      <p className="font-bold text-base text-gray-900">{feature.alternative.value}</p>
+                      <p className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-1">{alternativeOption.name}</p>
+                      <p className="font-bold text-base text-gray-900 dark:text-white">{feature.alternative.value}</p>
                     </div>
                   </div>
                 </div>
@@ -178,7 +178,7 @@ export default function QuickComparisonTable({
       </div>
 
       {/* Premium Recommendation Callout */}
-      <div className="mt-8 relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 border-2 border-blue-200 rounded-2xl p-6 md:p-8 shadow-xl">
+      <div className="mt-8 relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-blue-900/30 border-2 border-blue-200 dark:border-blue-800 rounded-2xl p-6 md:p-8 shadow-xl">
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -192,8 +192,8 @@ export default function QuickComparisonTable({
             💡
           </div>
           <div className="flex-1">
-            <p className="font-bold text-blue-900 mb-2 text-lg">Our Recommendation:</p>
-            <p className="text-base text-gray-800 leading-relaxed">{recommendation}</p>
+            <p className="font-bold text-blue-900 dark:text-blue-200 mb-2 text-lg">Our Recommendation:</p>
+            <p className="text-base text-gray-800 dark:text-gray-200 leading-relaxed">{recommendation}</p>
           </div>
         </div>
       </div>
