@@ -78,9 +78,9 @@ test.describe('Results Page', () => {
     await expect(page.getByRole('heading', { name: /Your Insurance Recommendations/i })).toBeVisible();
 
     // Listen for print event
-    let printDialogOpened = false;
+    let _printDialogOpened = false;
     page.on('dialog', () => {
-      printDialogOpened = true;
+      _printDialogOpened = true;
     });
 
     // Mock window.print

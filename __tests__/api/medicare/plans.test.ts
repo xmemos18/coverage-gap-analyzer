@@ -1,8 +1,8 @@
 // Mock NextRequest for Jest environment
 jest.mock('next/server', () => {
   class MockHeaders extends Map<string, string> {
-    get(name: string): string | null {
-      return super.get(name.toLowerCase()) ?? null;
+    get(name: string): string | undefined {
+      return super.get(name.toLowerCase());
     }
     set(name: string, value: string): this {
       super.set(name.toLowerCase(), value);

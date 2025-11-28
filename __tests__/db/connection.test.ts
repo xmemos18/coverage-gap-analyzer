@@ -214,7 +214,7 @@ describe('Database Connection', () => {
   describe('connection pooling', () => {
     it('configures connection pool based on environment', () => {
       process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/db';
-      process.env.NODE_ENV = 'production';
+      (process.env as { NODE_ENV?: string }).NODE_ENV = 'production';
 
       getDb();
 
@@ -231,7 +231,7 @@ describe('Database Connection', () => {
 
     it('uses smaller pool in development', () => {
       process.env.DATABASE_URL = 'postgresql://user:password@localhost:5432/db';
-      process.env.NODE_ENV = 'development';
+      (process.env as { NODE_ENV?: string }).NODE_ENV = 'development';
 
       getDb();
 
@@ -321,7 +321,7 @@ describe('Database Connection', () => {
       delete process.env.DATABASE_URL;
 
       // Test development
-      process.env.NODE_ENV = 'development';
+      (process.env as { NODE_ENV?: string }).NODE_ENV = 'development';
       let devError: Error | null = null;
       try {
         getDb();

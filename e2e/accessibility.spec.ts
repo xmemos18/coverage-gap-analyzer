@@ -55,7 +55,7 @@ test.describe('Accessibility', () => {
 
     // Check if skip link appears
     // This is typically hidden but appears on focus
-    const skipLink = page.getByText(/Skip to main content/i);
+    const _skipLink = page.getByText(/Skip to main content/i);
 
     // May or may not have skip link implemented
     // Just verify page is accessible
@@ -194,7 +194,7 @@ test.describe('Accessibility', () => {
     await page.getByRole('button', { name: /Get My Recommendations/i }).click();
 
     // Loading overlay should have proper ARIA attributes
-    const loadingDialog = page.locator('[role="dialog"]');
+    const _loadingDialog = page.locator('[role="dialog"]');
 
     // May or may not catch loading state depending on speed
     // Just verify we don't crash

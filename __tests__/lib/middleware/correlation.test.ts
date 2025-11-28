@@ -12,8 +12,8 @@ jest.mock('next/server', () => {
         }
       }
     }
-    get(key: string): string | null {
-      return super.get(key.toLowerCase()) || null;
+    get(key: string): string | undefined {
+      return super.get(key.toLowerCase());
     }
     set(key: string, value: string): this {
       super.set(key.toLowerCase(), value);

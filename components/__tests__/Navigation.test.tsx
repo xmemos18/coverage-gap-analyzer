@@ -55,7 +55,7 @@ describe('Navigation Component', () => {
 
     // Click a link in the mobile menu (we need to find all About links and get the mobile one)
     const aboutLinks = screen.getAllByRole('link', { name: /about/i });
-    const mobileAboutLink = aboutLinks[aboutLinks.length - 1]; // Mobile links are rendered after desktop
+    const mobileAboutLink = aboutLinks[aboutLinks.length - 1]!; // Mobile links are rendered after desktop
     fireEvent.click(mobileAboutLink);
 
     // Menu should close

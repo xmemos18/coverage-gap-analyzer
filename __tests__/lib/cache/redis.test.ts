@@ -121,7 +121,7 @@ describe('Redis Cache', () => {
   });
 
   describe('RateLimiter', () => {
-    let rateLimiter: RateLimiter;
+    let rateLimiter: InstanceType<typeof RateLimiter>;
 
     beforeEach(() => {
       rateLimiter = new RateLimiter('test-rate-limit', 5, 60); // 5 requests per 60 seconds

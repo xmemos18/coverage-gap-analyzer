@@ -23,7 +23,7 @@ export function useFAQFeedback() {
       if (stored) {
         setFeedback(JSON.parse(stored));
       }
-    } catch (error) {
+    } catch (_error) {
       // Ignore errors - feedback is not critical
     }
   }, []);
@@ -40,7 +40,7 @@ export function useFAQFeedback() {
 
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newFeedback));
-    } catch (error) {
+    } catch (_error) {
       // Ignore storage errors
     }
   }, [feedback]);

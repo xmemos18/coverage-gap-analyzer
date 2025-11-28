@@ -21,10 +21,10 @@ describe('Step1Residences Component', () => {
     // Mock the ZIP code validation API
     jest.spyOn(zipCodeApi, 'validateZipCode').mockImplementation((zip: string) => {
       // Return mock location data for known ZIPs
-      const zipMap: { [key: string]: { stateAbbr: string; city: string; county: string } } = {
-        '12345': { stateAbbr: 'NY', city: 'Schenectady', county: 'Schenectady County' },
-        '10001': { stateAbbr: 'NY', city: 'New York', county: 'New York County' },
-        '90001': { stateAbbr: 'CA', city: 'Los Angeles', county: 'Los Angeles County' },
+      const zipMap: { [key: string]: zipCodeApi.ZipCodeLocation } = {
+        '12345': { zip: '12345', stateAbbr: 'NY', state: 'New York', city: 'Schenectady', latitude: '42.8142', longitude: '-73.9396', country: 'US' },
+        '10001': { zip: '10001', stateAbbr: 'NY', state: 'New York', city: 'New York', latitude: '40.7484', longitude: '-73.9967', country: 'US' },
+        '90001': { zip: '90001', stateAbbr: 'CA', state: 'California', city: 'Los Angeles', latitude: '33.9425', longitude: '-118.2551', country: 'US' },
       };
 
       return Promise.resolve(zipMap[zip] || null);

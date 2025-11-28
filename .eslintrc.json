@@ -9,5 +9,18 @@
         "caughtErrorsIgnorePattern": "^_"
       }
     ]
-  }
+  },
+  "ignorePatterns": [
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "e2e/**",
+    "jest.setup.ts",
+    "next-env.d.ts",
+    "test-*.js",
+    "docs/**",
+    "scripts/**"
+  ]
 }
