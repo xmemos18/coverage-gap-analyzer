@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react';
+import { logger } from '@/lib/logger';
 
 interface NextStepsSectionProps {
   actionItems: string[];
@@ -90,7 +91,7 @@ function NextStepsSection({ actionItems }: NextStepsSectionProps) {
 
       return steps;
     } catch (error) {
-      console.error('Error parsing action items:', error);
+      logger.error('[NextSteps] Error parsing action items', { error });
       // Return empty array on error to prevent component crash
       return [];
     }

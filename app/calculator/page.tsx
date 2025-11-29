@@ -23,6 +23,7 @@ import { VALIDATION, THRESHOLDS, STORAGE_KEYS, CALCULATOR_STEPS, getStepName } f
 import KeyboardShortcutsHelp from '@/components/KeyboardShortcutsHelp';
 import { trackEvent, trackStepCompleted } from '@/lib/analytics';
 import { logger } from '@/lib/logger';
+import { useUnsavedChangesWarning } from '@/hooks/useUnsavedChangesWarning';
 import { PageTransition, ScaleButton } from '@/components/animations';
 import { useToast } from '@/hooks/useToast';
 import {
@@ -103,6 +104,12 @@ export default function Calculator() {
   const { liveRegionRef, announce } = useLiveRegionAnnouncement();
   useFocusOnError(errors);
   useFocusVisible();
+
+  // Warn about unsaved changes when navigating away
+  // Consider data modified if user has moved past the first step or entered data
+  const hasUnsavedChanges = formData.currentStep > CALCULATOR_STEPS.RESIDENCES ||
+    formData.residences.some(r => r.zip.length > 0);
+  useUnsavedChangesWarning({ hasUnsavedChanges });
 
   // Track calculator start (once)
   useEffect(() => {

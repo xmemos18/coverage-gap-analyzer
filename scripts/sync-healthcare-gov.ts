@@ -11,11 +11,11 @@
  */
 
 import 'dotenv/config';
-import { syncMarketplacePlans } from '../lib/integrations/healthcare-gov/sync';
+import { syncMarketplacePlans, type SyncOptions } from '../lib/integrations/healthcare-gov/sync';
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-const options: any = {
+const options: SyncOptions = {
   dryRun: args.includes('--dry-run'),
   clearExisting: args.includes('--clear'),
 };

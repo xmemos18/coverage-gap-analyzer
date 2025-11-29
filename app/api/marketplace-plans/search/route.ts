@@ -7,12 +7,36 @@ import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
 import { API_CONFIG } from '@/lib/constants';
 import { CacheManager, RateLimiter, generateCacheKey } from '@/lib/cache/redis';
+import { MarketplacePlanSearchRequestSchema, parseRequestBody } from '@/lib/validation/api-schemas';
 
 const API_BASE_URL = 'https://marketplace.api.healthcare.gov/api/v1';
 const API_KEY = process.env.HEALTHCARE_GOV_API_KEY; // Server-side only
 const API_TIMEOUT_MS = API_CONFIG.HEALTHCARE_GOV_TIMEOUT_MS;
 const MAX_RETRIES = API_CONFIG.HEALTHCARE_GOV_MAX_RETRIES;
 const RETRY_DELAY_MS = API_CONFIG.HEALTHCARE_GOV_RETRY_DELAY_MS;
+
+/**
+ * States with their own state-based marketplace (not using HealthCare.gov)
+ * These states operate their own exchanges and are not served by the federal API
+ */
+const STATE_BASED_MARKETPLACE_STATES = new Set([
+  'CA', // Covered California
+  'CO', // Connect for Health Colorado
+  'CT', // Access Health CT
+  'DC', // DC Health Link
+  'ID', // Your Health Idaho
+  'KY', // kynect
+  'MD', // Maryland Health Connection
+  'MA', // Massachusetts Health Connector
+  'MN', // MNsure
+  'NV', // Nevada Health Link
+  'NJ', // GetCoveredNJ
+  'NY', // NY State of Health
+  'PA', // Pennie
+  'RI', // HealthSource RI
+  'VT', // Vermont Health Connect
+  'WA', // Washington Healthplanfinder
+]);
 
 /**
  * Distributed cache for API responses
@@ -126,15 +150,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const body = await request.json();
+    const rawBody = await request.json();
 
-    // Validate required fields
-    if (!body.zipcode) {
+    // Validate with Zod
+    const parsed = parseRequestBody(MarketplacePlanSearchRequestSchema, rawBody);
+    if (!parsed.success) {
+      logger.warn('[Marketplace Plans API] Validation failed', { error: parsed.error });
       return NextResponse.json(
-        { error: 'ZIP code is required' },
+        { error: parsed.error, details: parsed.details },
         { status: 400 }
       );
     }
+
+    const body = parsed.data;
 
     // Step 1: Get county for the ZIP code
     const countyCacheKey = generateCacheKey('county', { zipcode: body.zipcode });
@@ -188,6 +216,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if state uses a state-based marketplace (not HealthCare.gov)
+    if (STATE_BASED_MARKETPLACE_STATES.has(county.state)) {
+      logger.info('[Marketplace Plans API] State-based marketplace detected', {
+        state: county.state,
+        zipcode: body.zipcode
+      });
+      return NextResponse.json({
+        state_based_marketplace: true,
+        state: county.state,
+        message: `${county.state} operates its own health insurance marketplace. Please visit your state's marketplace website to search for plans.`,
+        plans: [], // Empty plans array so frontend can handle gracefully
+        total: 0,
+      }, {
+        headers: {
+          'X-RateLimit-Limit': RATE_LIMIT_MAX_REQUESTS.toString(),
+          'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+          'X-RateLimit-Reset': rateLimit.resetTime.toString(),
+        }
+      });
+    }
+
     // Step 2: Build request body for plan search
     interface RequestBody {
       place: {
@@ -203,6 +252,11 @@ export async function POST(request: NextRequest) {
       offset?: number;
     }
 
+    // Healthcare.gov API typically lags behind - 2025 data may not be available yet
+    // Cap year at 2024 to ensure API compatibility
+    const currentYear = new Date().getFullYear();
+    const apiYear = Math.min(body.year || currentYear, 2024);
+
     const requestBody: RequestBody = {
       place: {
         countyfips: county.fips,
@@ -210,7 +264,7 @@ export async function POST(request: NextRequest) {
         zipcode: body.zipcode,
       },
       market: body.market || 'Individual',
-      year: body.year || new Date().getFullYear(),
+      year: apiYear,
     };
 
     // Add optional fields if provided

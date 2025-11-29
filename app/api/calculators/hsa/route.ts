@@ -16,39 +16,11 @@ import {
 } from '@/lib/calculators';
 import { logger } from '@/lib/logger';
 import { getCorrelationId, createLoggerContext } from '@/lib/middleware/correlation';
-
-interface HSACalculationRequest {
-  coverageType: 'individual' | 'family';
-  age: number;
-  currentBalance?: number;
-  annualIncome: number;
-  federalTaxRate: number;
-  stateTaxRate?: number;
-  employerContribution?: number;
-  expectedExpenses?: number;
-  monthlyPremium: number;
-  deductible: number;
-  yearsToRetirement?: number;
-  expectedReturn?: number;
-  healthcareInflation?: number;
-}
-
-interface QuickCalculationRequest {
-  type: 'eligibility' | 'paycheck' | 'retirement' | 'limits' | 'yield';
-  coverageType?: 'individual' | 'family';
-  deductible?: number;
-  outOfPocketMax?: number;
-  annualContribution?: number;
-  payPeriods?: number;
-  currentAge?: number;
-  retirementAge?: number;
-  currentAnnualCosts?: number;
-  healthcareInflation?: number;
-  year?: number;
-  hsaYield?: number;
-  federalTaxRate?: number;
-  stateTaxRate?: number;
-}
+import {
+  HSACalculationRequestSchema,
+  HSAQuickCalculationRequestSchema,
+  parseRequestBody,
+} from '@/lib/validation/api-schemas';
 
 export async function POST(request: NextRequest) {
   const correlationId = getCorrelationId(request);
@@ -58,10 +30,10 @@ export async function POST(request: NextRequest) {
 
     // Check if this is a quick calculation or full analysis
     if (body.type) {
-      return handleQuickCalculation(body as QuickCalculationRequest, correlationId);
+      return handleQuickCalculation(body, correlationId);
     }
 
-    return handleFullAnalysis(body as HSACalculationRequest, correlationId);
+    return handleFullAnalysis(body, correlationId);
   } catch (error) {
     logger.error('[HSA Calculator API] Request error', createLoggerContext(correlationId, {
       error: error instanceof Error ? error.message : String(error),
@@ -77,61 +49,27 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function handleFullAnalysis(body: HSACalculationRequest, correlationId: string) {
-  // Validate required fields
-  const requiredFields = [
-    'coverageType',
-    'age',
-    'annualIncome',
-    'federalTaxRate',
-    'monthlyPremium',
-    'deductible',
-  ];
-
-  const missingFields = requiredFields.filter(
-    (field) => body[field as keyof HSACalculationRequest] === undefined
-  );
-
-  if (missingFields.length > 0) {
+function handleFullAnalysis(body: unknown, correlationId: string) {
+  // Validate with Zod
+  const parsed = parseRequestBody(HSACalculationRequestSchema, body);
+  if (!parsed.success) {
+    logger.warn('[HSA Calculator API] Validation failed', createLoggerContext(correlationId, {
+      error: parsed.error,
+    }));
     return NextResponse.json(
-      {
-        error: 'Missing required fields',
-        missingFields,
-      },
+      { error: parsed.error, details: parsed.details },
       { status: 400 }
     );
   }
 
-  // Validate coverage type
-  if (!['individual', 'family'].includes(body.coverageType)) {
-    return NextResponse.json(
-      { error: 'coverageType must be "individual" or "family"' },
-      { status: 400 }
-    );
-  }
-
-  // Validate age
-  if (body.age < 18 || body.age > 100) {
-    return NextResponse.json(
-      { error: 'Invalid age value' },
-      { status: 400 }
-    );
-  }
-
-  // Validate tax rates
-  if (body.federalTaxRate < 0 || body.federalTaxRate > 0.5) {
-    return NextResponse.json(
-      { error: 'Invalid federalTaxRate (must be between 0 and 0.5)' },
-      { status: 400 }
-    );
-  }
+  const data = parsed.data;
 
   logger.info('[HSA Calculator API] Calculating optimization', createLoggerContext(correlationId, {
-    coverageType: body.coverageType,
-    age: body.age,
+    coverageType: data.coverageType,
+    age: data.age,
   }));
 
-  const analysis = calculateHSAOptimization(body);
+  const analysis = calculateHSAOptimization(data);
 
   logger.info('[HSA Calculator API] Calculation complete', createLoggerContext(correlationId, {
     recommendedContribution: analysis.recommendedContribution,
@@ -145,24 +83,31 @@ function handleFullAnalysis(body: HSACalculationRequest, correlationId: string) 
   });
 }
 
-function handleQuickCalculation(body: QuickCalculationRequest, correlationId: string) {
+function handleQuickCalculation(body: unknown, correlationId: string) {
+  // Validate with Zod discriminated union
+  const parsed = parseRequestBody(HSAQuickCalculationRequestSchema, body);
+  if (!parsed.success) {
+    logger.warn('[HSA Calculator API] Quick calculation validation failed', createLoggerContext(correlationId, {
+      error: parsed.error,
+    }));
+    return NextResponse.json(
+      { error: parsed.error, details: parsed.details },
+      { status: 400 }
+    );
+  }
+
+  const data = parsed.data;
+
   logger.info('[HSA Calculator API] Quick calculation', createLoggerContext(correlationId, {
-    type: body.type,
+    type: data.type,
   }));
 
-  switch (body.type) {
+  switch (data.type) {
     case 'eligibility': {
-      if (!body.coverageType || body.deductible === undefined || body.outOfPocketMax === undefined) {
-        return NextResponse.json(
-          { error: 'coverageType, deductible, and outOfPocketMax are required' },
-          { status: 400 }
-        );
-      }
-
       const result = validateHDHPEligibility(
-        body.coverageType,
-        body.deductible,
-        body.outOfPocketMax
+        data.coverageType,
+        data.deductible,
+        data.outOfPocketMax
       );
 
       return NextResponse.json({
@@ -173,45 +118,27 @@ function handleQuickCalculation(body: QuickCalculationRequest, correlationId: st
     }
 
     case 'paycheck': {
-      if (body.annualContribution === undefined || body.payPeriods === undefined) {
-        return NextResponse.json(
-          { error: 'annualContribution and payPeriods are required' },
-          { status: 400 }
-        );
-      }
-
       const perPaycheck = calculatePaycheckContribution(
-        body.annualContribution,
-        body.payPeriods
+        data.annualContribution,
+        data.payPeriods
       );
 
       return NextResponse.json({
         success: true,
         correlationId,
-        annualContribution: body.annualContribution,
-        payPeriods: body.payPeriods,
+        annualContribution: data.annualContribution,
+        payPeriods: data.payPeriods,
         perPaycheckContribution: perPaycheck,
-        actualAnnualTotal: perPaycheck * body.payPeriods,
+        actualAnnualTotal: perPaycheck * data.payPeriods,
       });
     }
 
     case 'retirement': {
-      if (
-        body.currentAge === undefined ||
-        body.retirementAge === undefined ||
-        body.currentAnnualCosts === undefined
-      ) {
-        return NextResponse.json(
-          { error: 'currentAge, retirementAge, and currentAnnualCosts are required' },
-          { status: 400 }
-        );
-      }
-
       const result = estimateRetirementHealthcareCosts(
-        body.currentAge,
-        body.retirementAge,
-        body.currentAnnualCosts,
-        body.healthcareInflation
+        data.currentAge,
+        data.retirementAge,
+        data.currentAnnualCosts,
+        data.healthcareInflation
       );
 
       return NextResponse.json({
@@ -222,46 +149,33 @@ function handleQuickCalculation(body: QuickCalculationRequest, correlationId: st
     }
 
     case 'limits': {
-      const limits = getHSALimits(body.year);
+      const limits = getHSALimits(data.year);
 
       return NextResponse.json({
         success: true,
         correlationId,
-        year: body.year || 2024,
+        year: data.year || 2024,
         limits,
       });
     }
 
     case 'yield': {
-      if (body.hsaYield === undefined || body.federalTaxRate === undefined) {
-        return NextResponse.json(
-          { error: 'hsaYield and federalTaxRate are required' },
-          { status: 400 }
-        );
-      }
-
       const taxEquivalentYield = calculateTaxEquivalentYield(
-        body.hsaYield,
-        body.federalTaxRate,
-        body.stateTaxRate
+        data.hsaYield,
+        data.federalTaxRate,
+        data.stateTaxRate
       );
 
       return NextResponse.json({
         success: true,
         correlationId,
-        hsaYield: body.hsaYield,
-        hsaYieldPercent: `${(body.hsaYield * 100).toFixed(2)}%`,
+        hsaYield: data.hsaYield,
+        hsaYieldPercent: `${(data.hsaYield * 100).toFixed(2)}%`,
         taxEquivalentYield,
         taxEquivalentYieldPercent: `${(taxEquivalentYield * 100).toFixed(2)}%`,
         note: 'Tax-equivalent yield shows what a taxable investment would need to return to match HSA growth',
       });
     }
-
-    default:
-      return NextResponse.json(
-        { error: 'Invalid calculation type. Must be: eligibility, paycheck, retirement, limits, or yield' },
-        { status: 400 }
-      );
   }
 }
 

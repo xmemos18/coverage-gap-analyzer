@@ -9,7 +9,7 @@ import { getDb } from '../../../db/client';
 import { acaPlans } from '../../../db/schema/insurance-costs';
 import { eq } from 'drizzle-orm';
 
-interface SyncOptions {
+export interface SyncOptions {
   states?: string[]; // State codes to sync (defaults to all seeded states)
   year?: number; // Plan year (defaults to current year)
   clearExisting?: boolean; // Clear existing plans before syncing

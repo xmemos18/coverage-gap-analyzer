@@ -3,6 +3,7 @@
 import { Residence, FormErrors, UpdateFieldFunction } from '@/types';
 import { US_STATES } from '@/lib/states';
 import { validateZipCode, validateResidenceTimeDistribution } from '@/lib/validation';
+import { logger } from '@/lib/logger';
 import { validateZipCode as validateZipCodeAPI, ZipCodeLocation } from '@/lib/zipCodeApi';
 import { getMonthLabel, MONTH_OPTIONS } from '@/lib/residenceHelpers';
 import InfoTooltip from '@/components/InfoTooltip';
@@ -71,7 +72,7 @@ export default function Step1Residences({
         stateToAutoPopulate.current = { index, state: locationData.stateAbbr };
       }
     } catch (error) {
-      console.error('[ZIP Validation] Error:', error);
+      logger.error('[ZIP Validation] Error', { error });
       setZipValidation(prev => ({
         ...prev,
         [index]: { isValidating: false, isValid: false, locationData: null }

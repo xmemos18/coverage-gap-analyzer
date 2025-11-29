@@ -8,69 +8,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import {
   comparePlans,
   quickComparison,
-  type PlanDetails,
-  type UserHealthProfile,
 } from '@/lib/comparison';
 import { logger } from '@/lib/logger';
-
-interface CompareRequest {
-  planA: PlanDetails;
-  planB: PlanDetails;
-  userProfile?: UserHealthProfile;
-  mode?: 'full' | 'quick';
-}
-
-/**
- * Validate plan details
- */
-function validatePlanDetails(plan: unknown, label: string): plan is PlanDetails {
-  if (!plan || typeof plan !== 'object') {
-    return false;
-  }
-
-  const p = plan as Record<string, unknown>;
-
-  const requiredFields = [
-    'id',
-    'name',
-    'type',
-    'metalLevel',
-    'issuer',
-    'monthlyPremium',
-    'deductible',
-    'outOfPocketMax',
-  ];
-
-  for (const field of requiredFields) {
-    if (p[field] === undefined) {
-      logger.warn(`[Comparison API] Missing required field: ${label}.${field}`);
-      return false;
-    }
-  }
-
-  // Validate numeric fields
-  const numericFields = [
-    'monthlyPremium',
-    'deductible',
-    'outOfPocketMax',
-    'primaryCareCopay',
-    'specialistCopay',
-    'genericDrugCopay',
-    'brandDrugCopay',
-    'emergencyRoomCopay',
-    'urgentCareCopay',
-    'coinsurance',
-  ];
-
-  for (const field of numericFields) {
-    if (p[field] !== undefined && typeof p[field] !== 'number') {
-      logger.warn(`[Comparison API] Invalid type for ${label}.${field}: expected number`);
-      return false;
-    }
-  }
-
-  return true;
-}
+import { CompareRequestSchema, parseRequestBody } from '@/lib/validation/api-schemas';
 
 /**
  * POST /api/comparison
@@ -78,24 +18,20 @@ function validatePlanDetails(plan: unknown, label: string): plan is PlanDetails 
  */
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json()) as CompareRequest;
+    const rawBody = await request.json();
 
-    // Validate request
-    if (!validatePlanDetails(body.planA, 'planA')) {
+    // Validate request with Zod
+    const parsed = parseRequestBody(CompareRequestSchema, rawBody);
+    if (!parsed.success) {
+      logger.warn('[Comparison API] Validation failed', { error: parsed.error });
       return NextResponse.json(
-        { error: 'Invalid planA: missing or invalid required fields' },
+        { error: parsed.error, details: parsed.details },
         { status: 400 }
       );
     }
 
-    if (!validatePlanDetails(body.planB, 'planB')) {
-      return NextResponse.json(
-        { error: 'Invalid planB: missing or invalid required fields' },
-        { status: 400 }
-      );
-    }
-
-    const mode = body.mode || 'full';
+    const body = parsed.data;
+    const mode = body.mode;
 
     if (mode === 'quick') {
       // Quick comparison for simple use cases

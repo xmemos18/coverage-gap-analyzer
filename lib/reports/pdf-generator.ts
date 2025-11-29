@@ -6,7 +6,7 @@
  */
 
 import { pdf } from '@react-pdf/renderer';
-import { createElement, type ReactElement } from 'react';
+import { createElement } from 'react';
 import { CoverageAnalysisReport, type PDFReportInput } from './pdf-document';
 import { logger } from '@/lib/logger';
 
@@ -16,10 +16,11 @@ import { logger } from '@/lib/logger';
  */
 export async function generatePDFBlob(input: PDFReportInput): Promise<Blob> {
   try {
-    // Cast to any to avoid react-pdf type compatibility issues
+    // Cast to any to avoid react-pdf type compatibility issues with React 19
     // The component returns a valid Document element
-    const document = createElement(CoverageAnalysisReport, input) as unknown as ReactElement;
-    const blob = await pdf(document).toBlob();
+    const document = createElement(CoverageAnalysisReport, input);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const blob = await pdf(document as any).toBlob();
     return blob;
   } catch (error) {
     logger.error('[PDF Generator] Failed to generate PDF blob', {
@@ -34,9 +35,10 @@ export async function generatePDFBlob(input: PDFReportInput): Promise<Blob> {
  */
 export async function generatePDFBuffer(input: PDFReportInput): Promise<Buffer> {
   try {
-    // Cast to any to avoid react-pdf type compatibility issues
-    const document = createElement(CoverageAnalysisReport, input) as unknown as ReactElement;
-    const blob = await pdf(document).toBlob();
+    // Cast to any to avoid react-pdf type compatibility issues with React 19
+    const document = createElement(CoverageAnalysisReport, input);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const blob = await pdf(document as any).toBlob();
     // Convert blob to Buffer
     const arrayBuffer = await blob.arrayBuffer();
     return Buffer.from(arrayBuffer);

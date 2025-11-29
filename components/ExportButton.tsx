@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { trackResultsAction } from '@/lib/analytics';
+import { logger } from '@/lib/logger';
 
 interface ExportButtonProps {
   data: unknown;
@@ -49,7 +50,7 @@ export default function ExportButton({
 
       setTimeout(() => setIsExporting(false), 500);
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('[Export] Failed to export data', { error });
       setIsExporting(false);
       alert('Failed to export data. Please try again.');
     }

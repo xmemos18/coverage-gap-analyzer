@@ -4,6 +4,7 @@ import { useState } from 'react';
 import PrintButton from './PrintButton';
 import ExportButton from './ExportButton';
 import { trackResultsAction } from '@/lib/analytics';
+import { logger } from '@/lib/logger';
 
 interface ShareButtonsProps {
   data: unknown;
@@ -26,7 +27,7 @@ export default function ShareButtons({ data, summary, filename }: ShareButtonsPr
       // Track share action
       trackResultsAction('shared');
     } catch (error) {
-      console.error('Failed to copy:', error);
+      logger.error('[Share] Failed to copy link', { error });
       alert('Failed to copy link. Please copy manually from the address bar.');
     }
   };
