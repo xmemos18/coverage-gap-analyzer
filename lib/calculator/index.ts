@@ -649,7 +649,7 @@ function calculateMedigapCost(medicareCount: number): { low: number; high: numbe
 }
 
 // Helper reasoning generation functions
-function generatePPOReasoning(formData: CalculatorFormData, states: string[], score: number): string {
+function generatePPOReasoning(formData: CalculatorFormData, states: string[], _score: number): string {
   const reasons: string[] = [];
   if (states.length > 1) {
     reasons.push('PPO provides excellent multi-state flexibility with out-of-network coverage');
@@ -663,10 +663,10 @@ function generatePPOReasoning(formData: CalculatorFormData, states: string[], sc
   if (reasons.length === 0) {
     reasons.push('provides maximum flexibility in choosing healthcare providers');
   }
-  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
+  return reasons.join('; ') + '.';
 }
 
-function generateHMOReasoning(formData: CalculatorFormData, states: string[], score: number): string {
+function generateHMOReasoning(formData: CalculatorFormData, states: string[], _score: number): string {
   const reasons: string[] = [];
   if (states.length > 1) {
     // Warn multi-state users about HMO limitations
@@ -683,10 +683,10 @@ function generateHMOReasoning(formData: CalculatorFormData, states: string[], sc
   if (reasons.length === 0) {
     reasons.push('offers coordinated care with lower out-of-pocket costs');
   }
-  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
+  return reasons.join('; ') + '.';
 }
 
-function generateEPOReasoning(formData: CalculatorFormData, states: string[], score: number): string {
+function generateEPOReasoning(formData: CalculatorFormData, states: string[], _score: number): string {
   const reasons: string[] = [];
   if (states.length === 1) {
     reasons.push('EPO is a good middle ground between HMO and PPO');
@@ -695,10 +695,10 @@ function generateEPOReasoning(formData: CalculatorFormData, states: string[], sc
   if (formData.financialPriority === 'balanced') {
     reasons.push('offers balanced costs and flexibility');
   }
-  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
+  return reasons.join('; ') + '.';
 }
 
-function generateHDHPReasoning(formData: CalculatorFormData, _states: string[], score: number, medicareCount: number = 0): string {
+function generateHDHPReasoning(formData: CalculatorFormData, _states: string[], _score: number, medicareCount: number = 0): string {
   const reasons: string[] = [];
   if (!formData.hasChronicConditions) {
     reasons.push('HDHP with HSA is excellent for healthy individuals');
@@ -715,10 +715,10 @@ function generateHDHPReasoning(formData: CalculatorFormData, _states: string[], 
   if (formData.financialPriority === 'lowest-premium') {
     reasons.push('has the lowest monthly premiums');
   }
-  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
+  return reasons.join('; ') + '.';
 }
 
-function generateMedicareAdvantageReasoning(_formData: CalculatorFormData, states: string[], score: number, medicareCount: number): string {
+function generateMedicareAdvantageReasoning(_formData: CalculatorFormData, states: string[], _score: number, medicareCount: number): string {
   const reasons: string[] = [];
   if (states.length === 1) {
     reasons.push('Medicare Advantage works well for single-state residents');
@@ -728,10 +728,10 @@ function generateMedicareAdvantageReasoning(_formData: CalculatorFormData, state
   if (states.length > 1) {
     reasons.push('note: network restrictions may limit coverage in other states');
   }
-  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
+  return reasons.join('; ') + '.';
 }
 
-function generateMedigapReasoning(formData: CalculatorFormData, states: string[], score: number, medicareCount: number): string {
+function generateMedigapReasoning(formData: CalculatorFormData, states: string[], _score: number, medicareCount: number): string {
   const reasons: string[] = [];
   if (states.length > 1) {
     reasons.push('Medigap provides nationwide coverage - perfect for multi-state living');
@@ -741,5 +741,5 @@ function generateMedigapReasoning(formData: CalculatorFormData, states: string[]
     reasons.push('offers the most predictable out-of-pocket costs');
   }
   reasons.push('works with any doctor who accepts Medicare');
-  return `Score: ${score}/100. ` + reasons.join('; ') + '.';
+  return reasons.join('; ') + '.';
 }

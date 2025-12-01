@@ -497,22 +497,11 @@ function ResultsContent() {
                       <p className="text-xs text-gray-500 dark:text-gray-400">{rec.planTypeLabel.split(' - ')[1]}</p>
                     </div>
 
-                    {/* Score and Cost */}
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className={`text-2xl font-bold ${
-                          rec.coverageScore >= 80 ? 'text-green-600 dark:text-green-400' :
-                          rec.coverageScore >= 60 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400'
-                        }`}>
-                          {rec.coverageScore}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">score</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                          ${rec.monthlyCost.low}-${rec.monthlyCost.high}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">/month</div>
+                    {/* Cost */}
+                    <div className="mb-3">
+                      <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        ${rec.monthlyCost.low}-${rec.monthlyCost.high}
+                        <span className="text-sm font-normal text-gray-500 dark:text-gray-400">/month</span>
                       </div>
                     </div>
 
