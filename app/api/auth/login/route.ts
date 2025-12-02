@@ -7,12 +7,27 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
+import { timingSafeEqual, createHash } from 'crypto';
 import { logger } from '@/lib/logger';
+import { RateLimiter } from '@/lib/cache/redis';
 
 // Configuration
 const SESSION_DURATION = 24 * 60 * 60; // 24 hours in seconds
 const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 30 * 1000; // 30 seconds
+const LOCKOUT_WINDOW = 30; // seconds
+
+// Rate limiter using Redis if available, falls back to in-memory
+const rateLimiter = new RateLimiter('auth:login', MAX_ATTEMPTS, LOCKOUT_WINDOW);
+
+/**
+ * Constant-time string comparison to prevent timing attacks
+ * Uses SHA-256 hashing to ensure equal-length comparison
+ */
+function constantTimeCompare(a: string, b: string): boolean {
+  const hashA = createHash('sha256').update(a).digest();
+  const hashB = createHash('sha256').update(b).digest();
+  return timingSafeEqual(hashA, hashB);
+}
 
 // SECURITY: Lazy-load secrets to avoid build-time errors
 // These are evaluated when the route is actually called, not at build time
@@ -71,12 +86,6 @@ function getPassword(): string {
   throw new Error('SITE_PASSWORD environment variable is required in production');
 }
 
-// WARNING: In-memory rate limiting - resets on server restart!
-// For production with multiple server instances, use Redis:
-// - Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
-// - Or implement distributed rate limiting with your preferred solution
-const loginAttempts = new Map<string, { count: number; lockedUntil?: number }>();
-
 function getClientIP(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
@@ -84,43 +93,6 @@ function getClientIP(request: NextRequest): string {
     return firstIP ? firstIP.trim() : 'unknown';
   }
   return request.headers.get('x-real-ip') || 'unknown';
-}
-
-function checkRateLimit(ip: string): { allowed: boolean; remainingAttempts?: number; lockoutRemaining?: number } {
-  const attempts = loginAttempts.get(ip);
-
-  if (!attempts) {
-    return { allowed: true, remainingAttempts: MAX_ATTEMPTS };
-  }
-
-  // Check if currently locked out
-  if (attempts.lockedUntil && Date.now() < attempts.lockedUntil) {
-    const remaining = Math.ceil((attempts.lockedUntil - Date.now()) / 1000);
-    return { allowed: false, lockoutRemaining: remaining };
-  }
-
-  // Reset if lockout expired
-  if (attempts.lockedUntil && Date.now() >= attempts.lockedUntil) {
-    loginAttempts.delete(ip);
-    return { allowed: true, remainingAttempts: MAX_ATTEMPTS };
-  }
-
-  return { allowed: true, remainingAttempts: MAX_ATTEMPTS - attempts.count };
-}
-
-function recordFailedAttempt(ip: string): void {
-  const attempts = loginAttempts.get(ip) || { count: 0 };
-  attempts.count += 1;
-
-  if (attempts.count >= MAX_ATTEMPTS) {
-    attempts.lockedUntil = Date.now() + LOCKOUT_DURATION;
-  }
-
-  loginAttempts.set(ip, attempts);
-}
-
-function clearAttempts(ip: string): void {
-  loginAttempts.delete(ip);
 }
 
 async function generateJWT(): Promise<string> {
@@ -139,14 +111,15 @@ export async function POST(request: NextRequest) {
   const ip = getClientIP(request);
 
   try {
-    // Check rate limit
-    const rateLimitStatus = checkRateLimit(ip);
+    // Check rate limit (uses Redis if configured, falls back to in-memory)
+    const rateLimitStatus = await rateLimiter.checkLimit(ip);
     if (!rateLimitStatus.allowed) {
-      logger.warn('[Auth] Rate limited login attempt', { ip, lockoutRemaining: rateLimitStatus.lockoutRemaining });
+      const lockoutRemaining = Math.ceil((rateLimitStatus.resetTime - Date.now()) / 1000);
+      logger.warn('[Auth] Rate limited login attempt', { ip, lockoutRemaining });
       return NextResponse.json(
         {
           error: 'Too many failed attempts',
-          lockoutRemaining: rateLimitStatus.lockoutRemaining,
+          lockoutRemaining,
         },
         { status: 429 }
       );
@@ -174,28 +147,27 @@ export async function POST(request: NextRequest) {
 
     // Constant-time comparison to prevent timing attacks
     const correctPassword = getPassword();
-    const passwordMatch = password.length === correctPassword.length &&
-      password.split('').every((char, i) => char === correctPassword[i]);
+    const passwordMatch = constantTimeCompare(password, correctPassword);
 
     if (!passwordMatch) {
-      recordFailedAttempt(ip);
-      const newStatus = checkRateLimit(ip);
+      // Rate limiter already incremented on checkLimit, just get current status
+      const newStatus = await rateLimiter.checkLimit(ip);
 
-      logger.warn('[Auth] Failed login attempt', { ip, remainingAttempts: newStatus.remainingAttempts });
+      logger.warn('[Auth] Failed login attempt', { ip, remainingAttempts: newStatus.remaining });
 
       return NextResponse.json(
         {
           error: 'Incorrect password',
-          remainingAttempts: newStatus.remainingAttempts,
+          remainingAttempts: newStatus.remaining,
           isLockedOut: !newStatus.allowed,
-          lockoutRemaining: newStatus.lockoutRemaining,
+          lockoutRemaining: !newStatus.allowed ? Math.ceil((newStatus.resetTime - Date.now()) / 1000) : undefined,
         },
         { status: 401 }
       );
     }
 
-    // Successful login
-    clearAttempts(ip);
+    // Successful login - reset rate limit counter
+    await rateLimiter.reset(ip);
     const token = await generateJWT();
 
     logger.info('[Auth] Successful login', { ip });

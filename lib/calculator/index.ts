@@ -1,5 +1,6 @@
 import { CalculatorFormData, InsuranceRecommendation, SubsidyAnalysis, EmployerPlanAnalysis, CostProjectionSummary, RiskAnalysisSummary, TypeSpecificRecommendation } from '@/types';
 import { SELECTABLE_PLAN_TYPES } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 import { calculateCoverageScore } from './coverage-scoring';
 import { getMedicareRecommendation, getMixedHouseholdRecommendation, getNonMedicareRecommendation } from './recommendations';
 import { addCurrentInsuranceComparison } from './comparison';
@@ -259,7 +260,7 @@ function generateCostProjections(
     return convertToSummary(projection);
   } catch (error) {
     // Don't fail the main analysis if projections fail
-    console.error('Failed to generate cost projections:', error);
+    logger.error('Failed to generate cost projections', { error: error instanceof Error ? error.message : error });
     return undefined;
   }
 }
@@ -437,7 +438,7 @@ async function generateRiskAnalysis(
     };
   } catch (error) {
     // Don't fail the main analysis if risk analysis fails
-    console.error('Failed to generate risk analysis:', error);
+    logger.error('Failed to generate risk analysis', { error: error instanceof Error ? error.message : error });
     return undefined;
   }
 }
