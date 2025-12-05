@@ -43,24 +43,44 @@ const colors = {
 const styles = StyleSheet.create({
   page: {
     padding: 40,
+    paddingTop: 50,
     fontSize: 10,
     fontFamily: 'Helvetica',
     backgroundColor: '#ffffff',
   },
+  pageAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 8,
+    backgroundColor: colors.primary,
+  },
   header: {
-    marginBottom: 20,
+    marginBottom: 25,
     borderBottom: `2px solid ${colors.primary}`,
     paddingBottom: 15,
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
     color: colors.primary,
     marginBottom: 5,
+    letterSpacing: 0.5,
   },
   headerSubtitle: {
     fontSize: 12,
     color: colors.gray[600],
+  },
+  brandText: {
+    fontSize: 10,
+    color: colors.secondary,
+    fontWeight: 'bold',
   },
   section: {
     marginBottom: 20,
@@ -260,6 +280,7 @@ export interface PDFReportInput {
   formData: CalculatorFormData;
   recommendation: InsuranceRecommendation;
   generatedAt?: Date;
+  fullReport?: boolean;
 }
 
 // Main Document Component
@@ -267,7 +288,10 @@ export const CoverageAnalysisReport: React.FC<PDFReportInput> = ({
   formData,
   recommendation,
   generatedAt = new Date(),
+  fullReport = false,
 }) => {
+  // Calculate total pages based on fullReport flag
+  const totalPages = fullReport ? 4 : 1;
   const formatCurrency = (amount: number) => {
     return `$${amount.toLocaleString()}`;
   };
@@ -284,12 +308,25 @@ export const CoverageAnalysisReport: React.FC<PDFReportInput> = ({
     <Document>
       {/* Page 1: Summary & Recommendation */}
       <Page size="A4" style={styles.page}>
+        {/* Top accent bar */}
+        <View style={styles.pageAccent} fixed />
+
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Healthcare Coverage Analysis</Text>
-          <Text style={styles.headerSubtitle}>
-            Personalized Insurance Recommendation Report
-          </Text>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.headerTitle}>Healthcare Coverage Analysis</Text>
+              <Text style={styles.headerSubtitle}>
+                Personalized Insurance Recommendation Report
+              </Text>
+            </View>
+            <View>
+              <Text style={styles.brandText}>Coverage Gap Analyzer</Text>
+              <Text style={{ fontSize: 8, color: colors.gray[500] }}>
+                {formatDate(generatedAt)}
+              </Text>
+            </View>
+          </View>
         </View>
 
         {/* Primary Recommendation */}
@@ -399,15 +436,22 @@ export const CoverageAnalysisReport: React.FC<PDFReportInput> = ({
           <Text style={styles.footerText}>
             Generated on {formatDate(generatedAt)} | Coverage Gap Analyzer
           </Text>
-          <Text style={styles.pageNumber}>Page 1</Text>
+          <Text style={styles.pageNumber}>Page 1 of {totalPages}</Text>
         </View>
       </Page>
 
-      {/* Page 2: Cost Analysis & Projections */}
+      {/* Page 2: Cost Analysis & Projections (Full Report Only) */}
+      {fullReport && (
       <Page size="A4" style={styles.page}>
+        <View style={styles.pageAccent} fixed />
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Cost Analysis</Text>
-          <Text style={styles.headerSubtitle}>Detailed Financial Breakdown</Text>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.headerTitle}>Cost Analysis</Text>
+              <Text style={styles.headerSubtitle}>Detailed Financial Breakdown</Text>
+            </View>
+            <Text style={styles.brandText}>Coverage Gap Analyzer</Text>
+          </View>
         </View>
 
         {/* Cost Comparison */}
@@ -576,15 +620,23 @@ export const CoverageAnalysisReport: React.FC<PDFReportInput> = ({
           <Text style={styles.footerText}>
             Generated on {formatDate(generatedAt)} | Coverage Gap Analyzer
           </Text>
-          <Text style={styles.pageNumber}>Page 2</Text>
+          <Text style={styles.pageNumber}>Page 2 of {totalPages}</Text>
         </View>
       </Page>
+      )}
 
-      {/* Page 3: Alternative Options */}
+      {/* Page 3: Alternative Options (Full Report Only) */}
+      {fullReport && (
       <Page size="A4" style={styles.page}>
+        <View style={styles.pageAccent} fixed />
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Alternative Options</Text>
-          <Text style={styles.headerSubtitle}>Compare Your Coverage Choices</Text>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.headerTitle}>Alternative Options</Text>
+              <Text style={styles.headerSubtitle}>Compare Your Coverage Choices</Text>
+            </View>
+            <Text style={styles.brandText}>Coverage Gap Analyzer</Text>
+          </View>
         </View>
 
         {/* Alternative Options Table */}
@@ -654,15 +706,23 @@ export const CoverageAnalysisReport: React.FC<PDFReportInput> = ({
           <Text style={styles.footerText}>
             Generated on {formatDate(generatedAt)} | Coverage Gap Analyzer
           </Text>
-          <Text style={styles.pageNumber}>Page 3</Text>
+          <Text style={styles.pageNumber}>Page 3 of {totalPages}</Text>
         </View>
       </Page>
+      )}
 
-      {/* Page 4: Disclaimers & Resources */}
+      {/* Page 4: Disclaimers & Resources (Full Report Only) */}
+      {fullReport && (
       <Page size="A4" style={styles.page}>
+        <View style={styles.pageAccent} fixed />
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Important Information</Text>
-          <Text style={styles.headerSubtitle}>Disclaimers & Resources</Text>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.headerTitle}>Important Information</Text>
+              <Text style={styles.headerSubtitle}>Disclaimers & Resources</Text>
+            </View>
+            <Text style={styles.brandText}>Coverage Gap Analyzer</Text>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -731,9 +791,10 @@ export const CoverageAnalysisReport: React.FC<PDFReportInput> = ({
           <Text style={styles.footerText}>
             Generated on {formatDate(generatedAt)} | Coverage Gap Analyzer
           </Text>
-          <Text style={styles.pageNumber}>Page 4</Text>
+          <Text style={styles.pageNumber}>Page 4 of {totalPages}</Text>
         </View>
       </Page>
+      )}
     </Document>
   );
 };

@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { InsuranceRecommendation } from '@/types';
+import { InsuranceRecommendation, CalculatorFormData } from '@/types';
 import { logger } from '@/lib/logger';
+import { CoverageAnalysisReport, PDFReportInput } from '@/lib/reports/pdf-document';
 
 // Note: This will use dynamic import to avoid SSR issues with @react-pdf/renderer
 // The actual PDF generation happens client-side only
@@ -22,323 +23,96 @@ interface PDFReportProps {
 }
 
 /**
+ * Convert minimal formData to full CalculatorFormData for PDF generation
+ */
+function toFullFormData(formData: PDFReportProps['formData']): CalculatorFormData {
+  return {
+    residences: formData.residences.map((r, i) => ({
+      zip: r.zip,
+      state: r.state,
+      isPrimary: i === 0,
+      monthsPerYear: 12,
+    })),
+    numAdults: formData.numAdults,
+    adultAges: formData.adultAges,
+    adultsUseTobacco: Array(formData.numAdults).fill(false),
+    numChildren: formData.numChildren,
+    childAges: formData.childAges,
+    childrenUseTobacco: Array(formData.numChildren).fill(false),
+    hasMedicareEligible: false,
+    hasEmployerInsurance: false,
+    employerContribution: 0,
+    hasChronicConditions: false,
+    chronicConditions: [],
+    prescriptionCount: '',
+    providerPreference: '',
+    doctorVisitsPerYear: '',
+    specialistVisitsPerYear: '',
+    erVisitsPerYear: '',
+    plannedProcedures: false,
+    takesSpecialtyMeds: false,
+    monthlyMedicationCost: '',
+    usesMailOrderPharmacy: false,
+    hasPreferredHospital: false,
+    preferredHospitalName: '',
+    hospitalImportance: '',
+    needsNationalCoverage: '',
+    financialPriority: '',
+    canAffordUnexpectedBill: '',
+    preferredPlanTypes: [],
+    hasCurrentInsurance: false,
+    currentInsurance: {
+      carrier: '',
+      planType: '',
+      monthlyCost: 0,
+      deductible: 0,
+      outOfPocketMax: 0,
+      coverageNotes: '',
+    },
+    budget: formData.budget,
+    incomeRange: formData.incomeRange,
+    annualIncome: null,
+    netWorth: null,
+    currentStep: 7,
+    simpleMode: false,
+    interestedInAddOns: true,
+  };
+}
+
+/**
  * PDF Report Generator
- * Generates a downloadable PDF of insurance recommendations
+ * Generates a downloadable PDF of insurance recommendations using the comprehensive report component
  */
 export async function generatePDF(props: PDFReportProps): Promise<Blob> {
   try {
     // Dynamic import to avoid SSR issues
     logger.debug('Importing @react-pdf/renderer...');
     const ReactPDF = await import('@react-pdf/renderer');
-    const { Document, Page, Text, View, StyleSheet, pdf } = ReactPDF;
+    const { pdf } = ReactPDF;
     logger.debug('Successfully imported @react-pdf/renderer');
 
-    if (!Document || !Page || !Text || !View || !StyleSheet || !pdf) {
-      throw new Error('Failed to load PDF components from @react-pdf/renderer');
+    if (!pdf) {
+      throw new Error('Failed to load pdf function from @react-pdf/renderer');
     }
 
-  const styles = StyleSheet.create({
-    page: {
-      padding: 40,
-      fontSize: 12,
-      fontFamily: 'Helvetica',
-    },
-    header: {
-      fontSize: 24,
-      marginBottom: 20,
-      color: '#1e40af',
-      fontFamily: 'Helvetica-Bold',
-    },
-    section: {
-      marginBottom: 20,
-    },
-    sectionTitle: {
-      fontSize: 16,
-      marginBottom: 10,
-      color: '#1e40af',
-      fontFamily: 'Helvetica-Bold',
-    },
-    text: {
-      marginBottom: 5,
-      lineHeight: 1.5,
-    },
-    label: {
-      fontFamily: 'Helvetica-Bold',
-      marginRight: 5,
-    },
-    costBox: {
-      backgroundColor: '#f3f4f6',
-      padding: 15,
-      marginVertical: 10,
-      borderRadius: 5,
-    },
-    costText: {
-      fontSize: 18,
-      color: '#059669',
-      fontFamily: 'Helvetica-Bold',
-    },
-    actionItem: {
-      marginLeft: 15,
-      marginBottom: 5,
-    },
-    bullet: {
-      marginRight: 5,
-    },
-    footer: {
-      position: 'absolute',
-      bottom: 30,
-      left: 40,
-      right: 40,
-      textAlign: 'center',
-      color: '#6b7280',
-      fontSize: 10,
-      borderTop: '1 solid #e5e7eb',
-      paddingTop: 10,
-    },
-    disclaimer: {
-      marginTop: 20,
-      padding: 15,
-      backgroundColor: '#fef3c7',
-      fontSize: 10,
-      color: '#92400e',
-    },
-  });
+    const { recommendation, formData, fullReport = false } = props;
 
-  const { recommendation, formData, fullReport = false } = props;
+    // Convert minimal formData to full CalculatorFormData
+    const fullFormData = toFullFormData(formData);
 
-  const MyDocument = () => (
-    <Document>
-      <Page size="A4" style={styles.page}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text>{fullReport ? 'Complete Health Insurance Coverage Analysis' : 'Health Insurance Coverage Analysis'}</Text>
-        </View>
+    // Create PDF input for comprehensive report
+    const pdfInput: PDFReportInput = {
+      formData: fullFormData,
+      recommendation,
+      generatedAt: new Date(),
+      fullReport,
+    };
 
-        {/* Household Summary */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Household</Text>
-          <Text style={styles.text}>
-            <Text style={styles.label}>Location:</Text>
-            {formData.residences.map(r => `${r.state} ${r.zip}`).join(', ')}
-          </Text>
-          <Text style={styles.text}>
-            <Text style={styles.label}>Family Size:</Text>
-            {formData.numAdults} adult{formData.numAdults !== 1 ? 's' : ''}
-            {formData.numChildren > 0 && `, ${formData.numChildren} child${formData.numChildren !== 1 ? 'ren' : ''}`}
-          </Text>
-          <Text style={styles.text}>
-            <Text style={styles.label}>Budget:</Text>
-            {formData.budget.replace('-', ' - $').replace('plus', '+')}
-          </Text>
-        </View>
-
-        {/* Recommendation */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recommended Coverage</Text>
-          <Text style={styles.text}>{recommendation.recommendedInsurance}</Text>
-
-          <View style={styles.costBox}>
-            <Text style={styles.costText}>
-              Estimated Monthly Cost: $
-              {typeof recommendation.estimatedMonthlyCost === 'object'
-                ? `${recommendation.estimatedMonthlyCost.low} - $${recommendation.estimatedMonthlyCost.high}`
-                : recommendation.estimatedMonthlyCost}
-            </Text>
-          </View>
-
-          <Text style={styles.text}>
-            <Text style={styles.label}>Coverage Score:</Text>
-            {recommendation.coverageGapScore}/100
-          </Text>
-        </View>
-
-        {/* Reasoning */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Why This Recommendation</Text>
-          <Text style={styles.text}>{recommendation.reasoning}</Text>
-        </View>
-
-        {/* Action Items */}
-        {recommendation.actionItems && recommendation.actionItems.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Next Steps</Text>
-            {recommendation.actionItems.map((item, index) => (
-              <View key={index} style={styles.actionItem}>
-                <Text style={styles.text}>
-                  <Text style={styles.bullet}>•</Text> {item}
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Alternative Options */}
-        {recommendation.alternativeOptions && recommendation.alternativeOptions.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Alternative Options</Text>
-            {recommendation.alternativeOptions.slice(0, 3).map((option, index) => (
-              <View key={index} style={{ marginBottom: 10 }}>
-                <Text style={styles.text}>
-                  <Text style={styles.label}>{option.name}</Text>
-                </Text>
-                <Text style={styles.text}>
-                  Cost: ${option.monthlyCost.low} - ${option.monthlyCost.high}/month
-                </Text>
-                <Text style={styles.text}>
-                  Coverage Score: {option.coverageScore}/100
-                </Text>
-              </View>
-            ))}
-          </View>
-        )}
-
-        {/* Add-On Insurance Recommendations */}
-        {recommendation.addOnInsuranceAnalysis && recommendation.addOnInsuranceAnalysis.recommendations.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Recommended Add-On Insurance</Text>
-            <Text style={styles.text}>
-              Based on your household composition, we recommend these supplemental coverage options:
-            </Text>
-
-            {/* High Priority Recommendations */}
-            {recommendation.addOnInsuranceAnalysis.highPriority.length > 0 && (
-              <View style={{ marginTop: 10 }}>
-                <Text style={{ ...styles.text, ...styles.label }}>High Priority:</Text>
-                {recommendation.addOnInsuranceAnalysis.highPriority.map((rec, index) => (
-                  <View key={index} style={{ marginLeft: 15, marginBottom: 8 }}>
-                    <Text style={styles.text}>
-                      <Text style={styles.bullet}>•</Text>
-                      <Text style={styles.label}>{rec.insurance.name}</Text>
-                      {' - $'}{rec.householdCostPerMonth}/month
-                    </Text>
-                    <Text style={{ fontSize: 10, marginLeft: 15, color: '#6b7280' }}>
-                      {rec.insurance.description}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Medium Priority Recommendations */}
-            {recommendation.addOnInsuranceAnalysis.mediumPriority.length > 0 && (
-              <View style={{ marginTop: 10 }}>
-                <Text style={{ ...styles.text, ...styles.label }}>Consider:</Text>
-                {recommendation.addOnInsuranceAnalysis.mediumPriority.slice(0, 3).map((rec, index) => (
-                  <View key={index} style={{ marginLeft: 15, marginBottom: 5 }}>
-                    <Text style={styles.text}>
-                      <Text style={styles.bullet}>•</Text>
-                      {rec.insurance.name} - ${rec.householdCostPerMonth}/month
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            <View style={{ ...styles.costBox, marginTop: 10 }}>
-              <Text style={styles.text}>
-                <Text style={styles.label}>Total High Priority Add-Ons:</Text>
-                ${recommendation.addOnInsuranceAnalysis.totalMonthlyHighPriority}/month
-              </Text>
-              <Text style={styles.text}>
-                <Text style={styles.label}>All Recommended Add-Ons:</Text>
-                ${recommendation.addOnInsuranceAnalysis.totalMonthlyAllRecommended}/month
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Full Report: Detailed Cost Breakdown */}
-        {fullReport && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Detailed Cost Breakdown</Text>
-            <View style={styles.costBox}>
-              <Text style={styles.text}>
-                <Text style={styles.label}>Monthly Premium Range:</Text>
-                ${recommendation.estimatedMonthlyCost.low} - ${recommendation.estimatedMonthlyCost.high}
-              </Text>
-              <Text style={styles.text}>
-                <Text style={styles.label}>Annual Premium Range:</Text>
-                ${recommendation.estimatedMonthlyCost.low * 12} - ${recommendation.estimatedMonthlyCost.high * 12}
-              </Text>
-              <Text style={styles.text}>
-                <Text style={styles.label}>Estimated Total Annual Cost:</Text>
-                ${Math.round(recommendation.estimatedMonthlyCost.low * 12 * 1.15)} - ${Math.round(recommendation.estimatedMonthlyCost.high * 12 * 1.25)}
-              </Text>
-            </View>
-            <Text style={{ fontSize: 10, color: '#6b7280', marginTop: 5 }}>
-              * Total annual cost estimate includes premiums plus typical out-of-pocket expenses (15-25%)
-            </Text>
-          </View>
-        )}
-
-        {/* Full Report: Coverage by State */}
-        {fullReport && formData.residences.length > 1 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Multi-State Coverage Analysis</Text>
-            <Text style={styles.text}>
-              Your coverage needs span {formData.residences.length} locations:
-            </Text>
-            {formData.residences.map((residence, index) => (
-              <View key={index} style={{ marginLeft: 15, marginBottom: 5 }}>
-                <Text style={styles.text}>
-                  <Text style={styles.bullet}>•</Text>
-                  {residence.state} ({residence.zip})
-                </Text>
-              </View>
-            ))}
-            <Text style={{ fontSize: 10, color: '#6b7280', marginTop: 10 }}>
-              Tip: PPO plans typically offer better out-of-network coverage for multi-state households.
-              Consider plans from national carriers for seamless coverage across all your locations.
-            </Text>
-          </View>
-        )}
-
-        {/* Full Report: Key Considerations */}
-        {fullReport && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Key Considerations</Text>
-            <View style={{ marginLeft: 15 }}>
-              <Text style={styles.text}>
-                <Text style={styles.bullet}>•</Text>
-                <Text style={styles.label}>Open Enrollment:</Text> Most marketplace plans require enrollment during the annual open enrollment period (Nov 1 - Jan 15).
-              </Text>
-              <Text style={styles.text}>
-                <Text style={styles.bullet}>•</Text>
-                <Text style={styles.label}>Special Enrollment:</Text> Qualifying life events (job loss, marriage, move) may allow enrollment outside open enrollment.
-              </Text>
-              <Text style={styles.text}>
-                <Text style={styles.bullet}>•</Text>
-                <Text style={styles.label}>Network Coverage:</Text> Always verify your preferred doctors and hospitals are in-network before enrolling.
-              </Text>
-              <Text style={styles.text}>
-                <Text style={styles.bullet}>•</Text>
-                <Text style={styles.label}>Prescription Coverage:</Text> Check the plan formulary to ensure your medications are covered.
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {/* Disclaimer */}
-        <View style={styles.disclaimer}>
-          <Text>
-            DISCLAIMER: This analysis is for educational purposes only and does not constitute
-            professional financial or medical advice. Actual costs and coverage may vary.
-            Please consult with a licensed insurance professional for personalized recommendations.
-          </Text>
-        </View>
-
-        {/* Footer */}
-        <View style={styles.footer}>
-          <Text>
-            Generated on {new Date().toLocaleDateString()} | {fullReport ? 'Full Report' : 'Summary'} | Coverage Gap Analyzer
-          </Text>
-        </View>
-      </Page>
-    </Document>
-  );
-
-    logger.debug('Rendering PDF document...');
-    const blob = await pdf(<MyDocument />).toBlob();
+    logger.debug('Rendering PDF document...', { fullReport });
+    // Cast to any to avoid React 19 / @react-pdf/renderer type incompatibility
+    const documentElement = React.createElement(CoverageAnalysisReport, pdfInput);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const blob = await pdf(documentElement as any).toBlob();
     logger.debug('PDF blob created successfully');
     return blob;
   } catch (error) {
