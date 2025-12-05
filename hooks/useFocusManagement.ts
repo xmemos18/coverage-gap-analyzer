@@ -79,6 +79,9 @@ export function useStepFocus(currentStep: number) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Scroll window to top first for better UX
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     if (containerRef.current) {
       // Find the first focusable element in the step
       const firstFocusable = containerRef.current.querySelector<HTMLElement>(
@@ -91,12 +94,6 @@ export function useStepFocus(currentStep: number) {
         // If no focusable element, focus the container itself
         containerRef.current.focus();
       }
-
-      // Scroll to top of step
-      containerRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
     }
   }, [currentStep]);
 

@@ -38,8 +38,9 @@ export default function Step3Budget({
   // Local state for input fields (allows user to type freely)
   const [incomeInput, setIncomeInput] = useState(formatCurrencyDisplay(annualIncome));
   const [netWorthInput, setNetWorthInput] = useState(formatCurrencyDisplay(netWorth));
-  const [preferNotSayIncome, setPreferNotSayIncome] = useState(annualIncome === null);
-  const [preferNotSayNetWorth, setPreferNotSayNetWorth] = useState(netWorth === null);
+  // Default to NOT checked - user must explicitly choose to skip
+  const [preferNotSayIncome, setPreferNotSayIncome] = useState(false);
+  const [preferNotSayNetWorth, setPreferNotSayNetWorth] = useState(false);
 
   // Sync local input when prop changes (e.g., from localStorage restore)
   useEffect(() => {
@@ -104,51 +105,6 @@ export default function Step3Budget({
         <p className="text-gray-600 text-lg">
           Help us find the best coverage options for your situation.
         </p>
-      </div>
-
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          Monthly Budget
-          <InfoTooltip content="Your budget helps us filter plans you can afford. Remember, you'll also have out-of-pocket costs like deductibles, copays, and coinsurance on top of your monthly premium." />
-        </h3>
-        <p className="text-gray-600 text-sm mb-4">
-          What&apos;s your monthly budget for health insurance?
-        </p>
-        <div className="space-y-3" role="radiogroup" aria-labelledby="budget-heading" aria-required="true">
-          {BUDGET_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => onUpdate('budget', option.value)}
-              className={`w-full px-6 py-4 rounded-lg font-semibold border-2 text-left transition-all ${
-                budget === option.value
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
-              }`}
-              role="radio"
-              aria-checked={budget === option.value}
-              aria-label={`Monthly budget: ${option.label}`}
-            >
-              <div className="flex items-center">
-                <div
-                  className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center ${
-                    budget === option.value
-                      ? 'border-white'
-                      : 'border-gray-400'
-                  }`}
-                  aria-hidden="true"
-                >
-                  {budget === option.value && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                  )}
-                </div>
-                <span className="text-lg">{option.label}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-        {errors.budget && (
-          <ErrorMessage message={errors.budget} />
-        )}
       </div>
 
       <div className="mb-8">
@@ -240,6 +196,51 @@ export default function Step3Budget({
         </div>
         {errors.netWorth && (
           <ErrorMessage message={errors.netWorth} />
+        )}
+      </div>
+
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          Monthly Budget
+          <InfoTooltip content="Your budget helps us filter plans you can afford. Remember, you'll also have out-of-pocket costs like deductibles, copays, and coinsurance on top of your monthly premium." />
+        </h3>
+        <p className="text-gray-600 text-sm mb-4">
+          What&apos;s your monthly budget for health insurance?
+        </p>
+        <div className="space-y-3" role="radiogroup" aria-labelledby="budget-heading" aria-required="true">
+          {BUDGET_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => onUpdate('budget', option.value)}
+              className={`w-full px-6 py-4 rounded-lg font-semibold border-2 text-left transition-all ${
+                budget === option.value
+                  ? 'bg-blue-600 text-white border-blue-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
+              }`}
+              role="radio"
+              aria-checked={budget === option.value}
+              aria-label={`Monthly budget: ${option.label}`}
+            >
+              <div className="flex items-center">
+                <div
+                  className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center ${
+                    budget === option.value
+                      ? 'border-white'
+                      : 'border-gray-400'
+                  }`}
+                  aria-hidden="true"
+                >
+                  {budget === option.value && (
+                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                  )}
+                </div>
+                <span className="text-lg">{option.label}</span>
+              </div>
+            </button>
+          ))}
+        </div>
+        {errors.budget && (
+          <ErrorMessage message={errors.budget} />
         )}
       </div>
 
