@@ -83,15 +83,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   section: {
-    marginBottom: 20,
+    marginBottom: 22,
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.primary,
-    marginBottom: 10,
-    borderBottom: `1px solid ${colors.gray[200]}`,
-    paddingBottom: 5,
+    marginBottom: 12,
+    borderBottom: `2px solid ${colors.gray[200]}`,
+    paddingBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   row: {
     flexDirection: 'row',
@@ -111,9 +113,17 @@ const styles = StyleSheet.create({
   },
   highlight: {
     backgroundColor: colors.gray[50],
-    padding: 10,
-    borderRadius: 4,
-    marginBottom: 10,
+    padding: 15,
+    borderRadius: 6,
+    marginBottom: 12,
+    borderLeft: `4px solid ${colors.secondary}`,
+  },
+  recommendationBox: {
+    backgroundColor: '#eff6ff',
+    padding: 20,
+    borderRadius: 8,
+    marginBottom: 15,
+    borderLeft: `5px solid ${colors.secondary}`,
   },
   scoreContainer: {
     flexDirection: 'row',
@@ -121,22 +131,26 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   scoreCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: colors.secondary,
+    width: 65,
+    height: 65,
+    borderRadius: 35,
+    backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 15,
+    marginRight: 18,
+    borderWidth: 3,
+    borderColor: colors.secondary,
   },
   scoreValue: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#ffffff',
   },
   scoreLabel: {
     fontSize: 8,
     color: '#ffffff',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   table: {
     marginTop: 10,
@@ -183,21 +197,23 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 25,
     left: 40,
     right: 40,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    borderTop: `1px solid ${colors.gray[200]}`,
-    paddingTop: 10,
+    alignItems: 'center',
+    borderTop: `2px solid ${colors.primary}`,
+    paddingTop: 12,
   },
   footerText: {
     fontSize: 8,
-    color: colors.gray[400],
+    color: colors.gray[500],
   },
   pageNumber: {
-    fontSize: 8,
-    color: colors.gray[400],
+    fontSize: 9,
+    color: colors.primary,
+    fontWeight: 'bold',
   },
   badge: {
     paddingHorizontal: 8,
@@ -283,6 +299,52 @@ export interface PDFReportInput {
   fullReport?: boolean;
 }
 
+// Emoji to text replacements for PDF rendering
+const emojiReplacements: Record<string, string> = {
+  '⏰': '[TIME]',
+  '💊': '[RX]',
+  '🏥': '[HEALTH]',
+  '🔥': '[!]',
+  '📊': '[STATS]',
+  '📍': '[LOCATION]',
+  '📋': '[CHECKLIST]',
+  '💰': '[MONEY]',
+  '→': '-',
+  '✓': '*',
+};
+
+/**
+ * Clean and format action items for PDF rendering
+ * - Filters out empty items
+ * - Replaces emojis with text equivalents
+ * - Splits multi-line items into separate items
+ * - Trims whitespace
+ */
+function cleanActionItems(items: string[]): string[] {
+  const cleaned: string[] = [];
+
+  for (const item of items) {
+    if (!item || item.trim() === '') continue;
+
+    // Replace emojis with text
+    let cleanedItem = item;
+    for (const [emoji, text] of Object.entries(emojiReplacements)) {
+      cleanedItem = cleanedItem.split(emoji).join(text);
+    }
+
+    // Split by newlines and add each non-empty line
+    const lines = cleanedItem.split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed) {
+        cleaned.push(trimmed);
+      }
+    }
+  }
+
+  return cleaned;
+}
+
 // Main Document Component
 export const CoverageAnalysisReport: React.FC<PDFReportInput> = ({
   formData,
@@ -292,6 +354,10 @@ export const CoverageAnalysisReport: React.FC<PDFReportInput> = ({
 }) => {
   // Calculate total pages based on fullReport flag
   const totalPages = fullReport ? 4 : 1;
+
+  // Clean action items for rendering
+  const cleanedActionItems = cleanActionItems(recommendation.actionItems);
+
   const formatCurrency = (amount: number) => {
     return `$${amount.toLocaleString()}`;
   };
@@ -332,22 +398,22 @@ export const CoverageAnalysisReport: React.FC<PDFReportInput> = ({
         {/* Primary Recommendation */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recommended Coverage</Text>
-          <View style={styles.highlight}>
+          <View style={styles.recommendationBox}>
             <View style={styles.scoreContainer}>
               <View style={styles.scoreCircle}>
                 <Text style={styles.scoreValue}>{recommendation.coverageGapScore}</Text>
-                <Text style={styles.scoreLabel}>Match Score</Text>
+                <Text style={styles.scoreLabel}>Match</Text>
               </View>
-              <View>
-                <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.primary }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.primary, marginBottom: 3 }}>
                   {recommendation.recommendedInsurance}
                 </Text>
                 {recommendation.planType && (
-                  <Text style={{ fontSize: 11, color: colors.gray[600] }}>
+                  <Text style={{ fontSize: 11, color: colors.gray[600], marginBottom: 2 }}>
                     {recommendation.planType}
                   </Text>
                 )}
-                <Text style={{ fontSize: 12, color: colors.secondary, marginTop: 3 }}>
+                <Text style={{ fontSize: 14, color: colors.accent, fontWeight: 'bold' }}>
                   {formatCurrency(recommendation.estimatedMonthlyCost.low)} - {formatCurrency(recommendation.estimatedMonthlyCost.high)}/month
                 </Text>
               </View>
@@ -423,12 +489,19 @@ export const CoverageAnalysisReport: React.FC<PDFReportInput> = ({
         {/* Action Items */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recommended Next Steps</Text>
-          {recommendation.actionItems.map((item, index) => (
-            <View key={index} style={styles.listItem}>
-              <Text style={styles.bullet}>{index + 1}.</Text>
-              <Text style={styles.listText}>{item}</Text>
-            </View>
-          ))}
+          <View style={styles.highlight}>
+            {cleanedActionItems.slice(0, 8).map((item, index) => (
+              <View key={index} style={styles.listItem}>
+                <Text style={[styles.bullet, { color: colors.secondary }]}>{index + 1}.</Text>
+                <Text style={styles.listText}>{item}</Text>
+              </View>
+            ))}
+            {cleanedActionItems.length > 8 && (
+              <Text style={{ fontSize: 9, color: colors.gray[500], marginTop: 5, fontStyle: 'italic' }}>
+                + {cleanedActionItems.length - 8} more steps (see full report for details)
+              </Text>
+            )}
+          </View>
         </View>
 
         {/* Footer */}
