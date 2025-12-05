@@ -158,7 +158,8 @@ export const ESTIMATED_SAVINGS = {
 
 /**
  * Midpoint values for income ranges (used when exact income not provided)
- * These are conservative estimates for each bracket
+ * @deprecated Use annualIncome field directly when available
+ * These are conservative estimates for each bracket, kept for backward compatibility
  */
 export const INCOME_RANGE_MIDPOINTS = {
   'under-30k': 25000,
@@ -172,6 +173,11 @@ export const INCOME_RANGE_MIDPOINTS = {
 
 // Type for income range keys
 export type IncomeRange = keyof typeof INCOME_RANGE_MIDPOINTS;
+
+/**
+ * Default income assumption when no income data is provided
+ */
+export const DEFAULT_INCOME_ASSUMPTION = 75000;
 
 // ============================================================================
 // CHRONIC CONDITION COST MULTIPLIERS
@@ -247,4 +253,29 @@ export function isSubsidyEligible(fplPercentage: number, isMedicaidExpansionStat
     : FPL_THRESHOLDS.PTC_MIN_NON_EXPANSION;
 
   return fplPercentage >= minThreshold && fplPercentage <= FPL_THRESHOLDS.PTC_MAX;
+}
+
+/**
+ * Get effective income value, preferring exact income over legacy range midpoint
+ *
+ * @param annualIncome - Exact annual income (preferred, from new form)
+ * @param incomeRange - Legacy income range code (fallback for old saved forms)
+ * @returns The income value to use for calculations
+ */
+export function getEffectiveIncome(
+  annualIncome: number | null | undefined,
+  incomeRange?: string
+): number {
+  // Prefer exact income if provided
+  if (annualIncome !== null && annualIncome !== undefined && annualIncome > 0) {
+    return annualIncome;
+  }
+
+  // Fall back to range midpoint for backward compatibility with old saved forms
+  if (incomeRange && incomeRange !== 'prefer-not-say') {
+    return getIncomeMidpoint(incomeRange);
+  }
+
+  // Default assumption when no income data provided
+  return DEFAULT_INCOME_ASSUMPTION;
 }

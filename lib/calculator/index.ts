@@ -46,13 +46,15 @@ export async function analyzeInsurance(formData: CalculatorFormData): Promise<In
   let employerPlanAnalysis: EmployerPlanAnalysis | undefined;
 
   // Only calculate subsidies for non-Medicare households with income data
-  if (!allAdultsMedicareEligible && formData.incomeRange) {
+  const hasIncomeData = formData.annualIncome !== null || formData.incomeRange;
+  if (!allAdultsMedicareEligible && hasIncomeData) {
     // Try to use real SLCSP data if ZIP code is available
     const primaryZip = residences[0]?.zip;
     const allAges = [...adultAges, ...childAges];
 
     const subsidyResult = primaryZip && allAges.length === totalHousehold
       ? await calculateSubsidyWithRealSLCSP(
+          formData.annualIncome,
           formData.incomeRange,
           totalAdults,
           totalChildren,
@@ -61,6 +63,7 @@ export async function analyzeInsurance(formData: CalculatorFormData): Promise<In
           allAges
         )
       : calculateSubsidy(
+          formData.annualIncome,
           formData.incomeRange,
           totalAdults,
           totalChildren,
@@ -92,6 +95,7 @@ export async function analyzeInsurance(formData: CalculatorFormData): Promise<In
       const employerComparisonResult = compareEmployerToMarketplace(
         formData.hasEmployerInsurance,
         formData.employerContribution || 0,
+        formData.annualIncome,
         formData.incomeRange,
         totalHousehold,
         afterSubsidyCost

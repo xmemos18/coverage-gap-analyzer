@@ -85,7 +85,9 @@ const INITIAL_FORM_DATA: CalculatorFormData = {
     coverageNotes: '',
   },
   budget: '',
-  incomeRange: '',
+  incomeRange: '', // DEPRECATED - kept for backward compatibility
+  annualIncome: null,
+  netWorth: null,
   currentStep: CALCULATOR_STEPS.RESIDENCES,
   simpleMode: false, // Default to advanced mode
   interestedInAddOns: true, // Default to showing add-on recommendations
@@ -499,6 +501,13 @@ export default function Calculator() {
 
       // Add budget and income
       params.append('budget', formData.budget);
+      if (formData.annualIncome !== null) {
+        params.append('annualIncome', formData.annualIncome.toString());
+      }
+      if (formData.netWorth !== null) {
+        params.append('netWorth', formData.netWorth.toString());
+      }
+      // Keep incomeRange for backward compatibility with bookmarked URLs
       if (formData.incomeRange) {
         params.append('incomeRange', formData.incomeRange);
       }
@@ -785,7 +794,8 @@ export default function Calculator() {
                 <PageTransition key="step-7">
                   <Step3Budget
                     budget={formData.budget}
-                    incomeRange={formData.incomeRange}
+                    annualIncome={formData.annualIncome}
+                    netWorth={formData.netWorth}
                     errors={errors}
                     onUpdate={updateField}
                     onSubmit={handleSubmit}

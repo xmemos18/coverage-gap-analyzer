@@ -4,7 +4,7 @@
  */
 
 import { CostRange } from '@/types';
-import { INCOME_RANGE_MIDPOINTS } from '../medicalCostConstants';
+import { getEffectiveIncome } from '../medicalCostConstants';
 
 // ACA affordability threshold (2024)
 const AFFORDABILITY_THRESHOLD = 0.0912; // 9.12% of household income
@@ -17,13 +17,6 @@ export interface EmployerPlanAnalysis {
   monthlySavings: number | null;
   explanation: string;
   actionItems: string[];
-}
-
-/**
- * Get estimated income from income range
- */
-function getEstimatedIncome(incomeRange: string): number {
-  return INCOME_RANGE_MIDPOINTS[incomeRange as keyof typeof INCOME_RANGE_MIDPOINTS] || INCOME_RANGE_MIDPOINTS['prefer-not-say'];
 }
 
 /**
@@ -47,7 +40,8 @@ function estimateEmployerPlanCost(
 export function compareEmployerToMarketplace(
   hasEmployerInsurance: boolean,
   employerContribution: number,
-  incomeRange: string,
+  annualIncome: number | null | undefined,
+  incomeRange: string | undefined,
   householdSize: number,
   marketplaceCostAfterSubsidy: CostRange
 ): EmployerPlanAnalysis | null {
@@ -56,7 +50,7 @@ export function compareEmployerToMarketplace(
     return null;
   }
 
-  const estimatedIncome = getEstimatedIncome(incomeRange);
+  const estimatedIncome = getEffectiveIncome(annualIncome, incomeRange);
   const employerPlanCost = estimateEmployerPlanCost(employerContribution, householdSize);
 
   // Calculate affordability (ACA standard: employee premium must be < 9.12% of household income)

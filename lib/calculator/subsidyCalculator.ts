@@ -11,7 +11,8 @@ import { logger } from '../logger';
 import {
   FPL_THRESHOLDS,
   PREMIUM_CONTRIBUTION_RATE,
-  INCOME_RANGE_MIDPOINTS,
+  getEffectiveIncome,
+  DEFAULT_INCOME_ASSUMPTION,
 } from '../medicalCostConstants';
 import { getSLCSP, type SLCSPResult } from '../utils/slcsp-lookup';
 
@@ -71,37 +72,27 @@ function calculateFPL(householdSize: number): number {
 }
 
 /**
- * Get estimated income from income range selection
+ * Get income value for subsidy calculations
  *
- * Since users select income ranges rather than exact amounts, we use the midpoint
- * of each range for subsidy calculations. This provides a reasonable estimate
- * while respecting user privacy.
+ * Now supports both exact annual income (preferred) and legacy income range (fallback).
  *
- * Trade-offs of this approach:
- * - Accuracy: Users at range boundaries may get slightly different subsidy estimates
- *   than their actual entitlement. Example: Someone earning $29,000 in the "under-30k"
- *   range gets calculated at $25,000 midpoint.
- * - Privacy: Allows users to provide income information without exact disclosure
- * - Simplicity: Reduces form complexity and user cognitive load
- *
- * For more accurate calculations, the async calculateSubsidyWithRealSLCSP() function
- * should be used with real SLCSP data from Healthcare.gov.
- *
- * @param incomeRange - Income range key from form selection
- * @returns Estimated annual income at range midpoint
+ * @param annualIncome - Exact annual income (preferred, from new form)
+ * @param incomeRange - Legacy income range key (fallback for old saved forms)
+ * @returns Annual income to use for calculations
  */
-function getEstimatedIncome(incomeRange: string): number {
-  const estimate = INCOME_RANGE_MIDPOINTS[incomeRange as keyof typeof INCOME_RANGE_MIDPOINTS];
+function getIncomeForCalculation(
+  annualIncome: number | null | undefined,
+  incomeRange?: string
+): number {
+  const income = getEffectiveIncome(annualIncome, incomeRange);
 
-  if (estimate === undefined) {
-    logger.warn('Unknown income range, using default', {
-      incomeRange,
-      validRanges: Object.keys(INCOME_RANGE_MIDPOINTS),
+  if (income === DEFAULT_INCOME_ASSUMPTION && !annualIncome && !incomeRange) {
+    logger.info('No income data provided, using default assumption', {
+      defaultIncome: DEFAULT_INCOME_ASSUMPTION,
     });
-    return INCOME_RANGE_MIDPOINTS['prefer-not-say'];
   }
 
-  return estimate;
+  return income;
 }
 
 /**
@@ -139,7 +130,8 @@ function calculateAffordablePercentage(fplPercentage: number): number {
 /**
  * Calculate ACA subsidy eligibility and estimated subsidy amount (with REAL SLCSP data)
  *
- * @param incomeRange - Income range selection
+ * @param annualIncome - Exact annual income (preferred, from new form)
+ * @param incomeRange - Legacy income range selection (fallback for old saved forms)
  * @param numAdults - Number of adults
  * @param numChildren - Number of children
  * @param states - Array of state codes
@@ -148,7 +140,8 @@ function calculateAffordablePercentage(fplPercentage: number): number {
  * @returns Subsidy calculation with real or estimated benchmark data
  */
 export async function calculateSubsidyWithRealSLCSP(
-  incomeRange: string,
+  annualIncome: number | null | undefined,
+  incomeRange: string | undefined,
   numAdults: number,
   numChildren: number,
   states: string[],
@@ -156,7 +149,7 @@ export async function calculateSubsidyWithRealSLCSP(
   ages?: number[]
 ): Promise<SubsidyResult> {
   const householdSize = numAdults + numChildren;
-  const estimatedIncome = getEstimatedIncome(incomeRange);
+  const estimatedIncome = getIncomeForCalculation(annualIncome, incomeRange);
   const householdFPL = calculateFPL(householdSize);
   const fplPercentage = (estimatedIncome / householdFPL) * 100;
 
@@ -293,13 +286,14 @@ export async function calculateSubsidyWithRealSLCSP(
  * @deprecated Use calculateSubsidyWithRealSLCSP() for accurate calculations with real SLCSP data
  */
 export function calculateSubsidy(
-  incomeRange: string,
+  annualIncome: number | null | undefined,
+  incomeRange: string | undefined,
   numAdults: number,
   numChildren: number,
   states: string[]
 ): SubsidyResult {
   const householdSize = numAdults + numChildren;
-  const estimatedIncome = getEstimatedIncome(incomeRange);
+  const estimatedIncome = getIncomeForCalculation(annualIncome, incomeRange);
   const householdFPL = calculateFPL(householdSize);
   const fplPercentage = (estimatedIncome / householdFPL) * 100;
 

@@ -90,7 +90,9 @@ export interface CalculatorFormData {
 
   // Step 3: Budget
   budget: string;
-  incomeRange: string; // NEW - Phase 1: For subsidy eligibility
+  incomeRange?: string; // DEPRECATED - kept for backward compatibility with old saved forms
+  annualIncome: number | null; // Exact annual household income (supports millions/billions)
+  netWorth: number | null; // Total net worth for risk tolerance assessment
 
   // Current step tracker
   currentStep: number;

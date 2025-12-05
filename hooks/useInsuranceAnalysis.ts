@@ -9,6 +9,7 @@ import { analyzeInsurance } from '@/lib/calculator';
 import { analyzeMedicareAdvantageFit, getMedicareAdvantageShoppingTips, compareToMedigap } from '@/lib/calculator/medicareAdvantageHelper';
 import { analyzeCOBRA, getCOBRADecisionFlowchart } from '@/lib/calculator/cobraHelper';
 import { calculateHSABenefits, getHSAStrategies } from '@/lib/calculator/hsaCalculator';
+import { getEffectiveIncome } from '@/lib/medicalCostConstants';
 import { logger } from '@/lib/logger';
 
 interface UseInsuranceAnalysisProps {
@@ -22,7 +23,8 @@ interface UseInsuranceAnalysisProps {
   employerContribution: number;
   hasChronicConditions: boolean;
   prescriptionCount: string;
-  incomeRange: string;
+  annualIncome?: number | null;
+  incomeRange?: string;
   hasRequiredData: boolean;
 }
 
@@ -37,6 +39,7 @@ export function useInsuranceAnalysis({
   employerContribution,
   hasChronicConditions,
   prescriptionCount,
+  annualIncome,
   incomeRange,
   hasRequiredData,
 }: UseInsuranceAnalysisProps) {
@@ -139,18 +142,8 @@ export function useInsuranceAnalysis({
 
     if (!isLowUtilization && !recommendsHDHP) return null;
 
-    const incomeEstimate = (() => {
-      switch(incomeRange) {
-        case 'under-30k': return 25000;
-        case '30k-50k': return 40000;
-        case '50k-75k': return 62500;
-        case '75k-100k': return 87500;
-        case '100k-150k': return 125000;
-        case '150k-plus': return 175000;
-        case 'prefer-not-say': return 75000; // Use median US household income
-        default: return 75000;
-      }
-    })();
+    // Use exact income if available, otherwise fall back to range midpoint
+    const incomeEstimate = getEffectiveIncome(annualIncome, incomeRange);
 
     const familySize = numAdults + numChildren;
     const oldestAge = adultAges.length > 0 ? Math.max(...adultAges) : 40;
@@ -167,7 +160,7 @@ export function useInsuranceAnalysis({
       analysis: calculateHSABenefits(familySize, oldestAge, incomeEstimate, stateTaxRate),
       strategies: getHSAStrategies()
     };
-  }, [hasRequiredData, recommendation, adultAges, numAdults, numChildren, incomeRange, residenceStates, hasChronicConditions, prescriptionCount]);
+  }, [hasRequiredData, recommendation, adultAges, numAdults, numChildren, annualIncome, incomeRange, residenceStates, hasChronicConditions, prescriptionCount]);
 
   return {
     recommendation,

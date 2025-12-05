@@ -106,7 +106,23 @@ function ResultsContent() {
   const prescriptionCount = searchParams.get('prescriptionCount') || '';
   const providerPreference = searchParams.get('providerPreference') || '';
   const budget = searchParams.get('budget') || '';
-  const incomeRange = searchParams.get('incomeRange') || '';
+  const incomeRange = searchParams.get('incomeRange') || ''; // DEPRECATED - kept for backward compatibility
+  const annualIncomeParam = searchParams.get('annualIncome');
+  const annualIncome: number | null = annualIncomeParam
+    ? (safeParseFloat(annualIncomeParam, {
+        min: 0,
+        max: 10_000_000_000,
+        throwOnError: false,
+      }) ?? null)
+    : null;
+  const netWorthParam = searchParams.get('netWorth');
+  const netWorth: number | null = netWorthParam
+    ? (safeParseFloat(netWorthParam, {
+        min: -10_000_000_000,
+        max: 1_000_000_000_000,
+        throwOnError: false,
+      }) ?? null)
+    : null;
   const simpleMode = searchParams.get('simpleMode') === 'true';
   const hasCurrentInsurance = searchParams.get('hasCurrentInsurance') === 'true';
   const currentCarrier = searchParams.get('currentCarrier') || '';
@@ -160,7 +176,9 @@ function ResultsContent() {
     // Plan Type Preferences
     preferredPlanTypes,
     budget,
-    incomeRange,
+    incomeRange, // DEPRECATED - kept for backward compatibility
+    annualIncome,
+    netWorth,
     simpleMode,
     hasCurrentInsurance,
     currentStep: 4,
@@ -185,7 +203,7 @@ function ResultsContent() {
     residences, numAdults, numChildren, adultAges, childAges,
     hasMedicareEligible, hasEmployerInsurance, employerContribution,
     hasChronicConditions, chronicConditions, prescriptionCount,
-    providerPreference, budget, incomeRange, simpleMode,
+    providerPreference, budget, incomeRange, annualIncome, netWorth, simpleMode,
     hasCurrentInsurance, currentCarrier, currentPlanType,
     currentMonthlyCost, currentDeductible, currentOutOfPocketMax,
     currentCoverageNotes, preferredPlanTypesStr,
@@ -235,6 +253,7 @@ function ResultsContent() {
     employerContribution,
     hasChronicConditions,
     prescriptionCount,
+    annualIncome,
     incomeRange,
     hasRequiredData,
   });

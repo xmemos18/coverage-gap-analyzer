@@ -8,6 +8,7 @@ import { adjustCostForStates } from '@/lib/stateSpecificData';
 import { searchMarketplacePlans, isHealthcareGovApiAvailable, calculateSubsidyEstimates, type MarketplacePlan } from '@/lib/healthcareGovApi';
 import { logger } from '@/lib/logger';
 import { calculateUtilizationScore, getUtilizationCostMultiplier, getRecommendedMetalLevel } from './utilizationScorer';
+import { getEffectiveIncome } from '@/lib/medicalCostConstants';
 
 /**
  * Health Profile Analysis Helper
@@ -64,7 +65,7 @@ async function fetchMarketplacePlans(
   try {
     // Build household data for API request
     const householdData = {
-      income: parseIncomeRange(formData.incomeRange),
+      income: getEffectiveIncome(formData.annualIncome, formData.incomeRange),
       people: [
         ...formData.adultAges.map((age, index) => ({
           age,
@@ -83,7 +84,8 @@ async function fetchMarketplacePlans(
     let subsidyAmount = 0;
     let csrLevel = 'None';
 
-    if (formData.incomeRange && !formData.hasEmployerInsurance) {
+    const hasIncomeData = formData.annualIncome !== null || formData.incomeRange;
+    if (hasIncomeData && !formData.hasEmployerInsurance) {
       const subsidyData = await calculateSubsidyEstimates(
         primaryZip,
         householdData,
@@ -128,21 +130,6 @@ async function fetchMarketplacePlans(
     logger.error('Error fetching marketplace plans', { error });
     return null;
   }
-}
-
-/**
- * Parse income range string to approximate annual income (midpoint)
- */
-function parseIncomeRange(incomeRange: string): number {
-  const ranges: Record<string, number> = {
-    'under-30k': 25000,
-    '30k-50k': 40000,
-    '50k-75k': 62500,
-    '75k-100k': 87500,
-    '100k-150k': 125000,
-    '150k-plus': 175000,
-  };
-  return ranges[incomeRange] || 50000; // Default to 50k if not specified
 }
 
 /**

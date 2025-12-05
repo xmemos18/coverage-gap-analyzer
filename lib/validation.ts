@@ -190,7 +190,7 @@ export function validateResidenceTimeDistribution(residences: Array<{ monthsPerY
 
 /**
  * Validate income range is selected
- * FIXED: Updated to match actual form options
+ * @deprecated Use validateAnnualIncome instead - kept for backward compatibility
  */
 export function validateIncomeRange(incomeRange: string | undefined): {
   isValid: boolean;
@@ -213,4 +213,130 @@ export function validateIncomeRange(incomeRange: string | undefined): {
   }
 
   return { isValid: true };
+}
+
+/**
+ * Validate annual income (optional field)
+ * Supports values from $0 to $10 billion
+ */
+export function validateAnnualIncome(income: number | null | undefined): {
+  isValid: boolean;
+  sanitized: number | null;
+  error?: string;
+} {
+  // null/undefined is valid (prefer not to say)
+  if (income === null || income === undefined) {
+    return { isValid: true, sanitized: null };
+  }
+
+  if (typeof income !== 'number' || isNaN(income) || !isFinite(income)) {
+    return { isValid: false, sanitized: null, error: 'Please enter a valid income amount' };
+  }
+
+  if (income < 0) {
+    return { isValid: false, sanitized: null, error: 'Income cannot be negative' };
+  }
+
+  if (income > 10_000_000_000) {
+    return { isValid: false, sanitized: null, error: 'Income value exceeds maximum supported ($10 billion)' };
+  }
+
+  // Round to cents
+  return { isValid: true, sanitized: Math.round(income * 100) / 100 };
+}
+
+/**
+ * Validate net worth (optional field, can be negative for debt)
+ * Supports values from -$10 billion to $1 trillion
+ */
+export function validateNetWorth(netWorth: number | null | undefined): {
+  isValid: boolean;
+  sanitized: number | null;
+  error?: string;
+} {
+  // null/undefined is valid (prefer not to say)
+  if (netWorth === null || netWorth === undefined) {
+    return { isValid: true, sanitized: null };
+  }
+
+  if (typeof netWorth !== 'number' || isNaN(netWorth) || !isFinite(netWorth)) {
+    return { isValid: false, sanitized: null, error: 'Please enter a valid net worth amount' };
+  }
+
+  if (netWorth < -10_000_000_000) {
+    return { isValid: false, sanitized: null, error: 'Net worth value is below minimum supported (-$10 billion)' };
+  }
+
+  if (netWorth > 1_000_000_000_000) {
+    return { isValid: false, sanitized: null, error: 'Net worth value exceeds maximum supported ($1 trillion)' };
+  }
+
+  // Round to cents
+  return { isValid: true, sanitized: Math.round(netWorth * 100) / 100 };
+}
+
+/**
+ * Parse currency input string to number
+ * Supports formats: 75000, 75,000, $75,000, 75k, 1.5M, 1.5m, 2B, 2b
+ */
+export function parseCurrencyInput(input: string): number | null {
+  if (!input || input.trim() === '') {
+    return null;
+  }
+
+  // Strip $ and commas, trim whitespace
+  const cleaned = input.replace(/[$,\s]/g, '').toLowerCase();
+
+  if (cleaned === '') {
+    return null;
+  }
+
+  // Handle shorthand: b/B for billions, m/M for millions, k/K for thousands
+  let multiplier = 1;
+  let numStr = cleaned;
+
+  if (cleaned.endsWith('b')) {
+    multiplier = 1_000_000_000;
+    numStr = cleaned.slice(0, -1);
+  } else if (cleaned.endsWith('m')) {
+    multiplier = 1_000_000;
+    numStr = cleaned.slice(0, -1);
+  } else if (cleaned.endsWith('k')) {
+    multiplier = 1_000;
+    numStr = cleaned.slice(0, -1);
+  }
+
+  const num = parseFloat(numStr);
+  if (isNaN(num) || !isFinite(num)) {
+    return null;
+  }
+
+  return num * multiplier;
+}
+
+/**
+ * Format number as currency string for display
+ * Under $1M: $75,000 (with commas)
+ * $1M+: $1.5M
+ * $1B+: $1.5B
+ */
+export function formatCurrencyDisplay(value: number | null): string {
+  if (value === null) {
+    return '';
+  }
+
+  const absValue = Math.abs(value);
+  const sign = value < 0 ? '-' : '';
+
+  if (absValue >= 1_000_000_000) {
+    const billions = absValue / 1_000_000_000;
+    return `${sign}$${billions.toFixed(billions % 1 === 0 ? 0 : 1)}B`;
+  }
+
+  if (absValue >= 1_000_000) {
+    const millions = absValue / 1_000_000;
+    return `${sign}$${millions.toFixed(millions % 1 === 0 ? 0 : 1)}M`;
+  }
+
+  return `${sign}$${absValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }

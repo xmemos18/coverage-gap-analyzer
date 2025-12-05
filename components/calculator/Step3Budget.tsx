@@ -1,13 +1,16 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { FormErrors, UpdateFieldFunction } from '@/types';
 import ErrorMessage from '@/components/ErrorMessage';
 import InfoTooltip from '@/components/InfoTooltip';
 import { ScaleButton } from '@/components/animations';
+import { parseCurrencyInput, formatCurrencyDisplay } from '@/lib/validation';
 
 interface Step3Props {
   budget: string;
-  incomeRange: string;
+  annualIncome: number | null;
+  netWorth: number | null;
   errors: FormErrors;
   onUpdate: UpdateFieldFunction;
   onSubmit: () => void;
@@ -23,24 +26,77 @@ const BUDGET_OPTIONS = [
   { value: 'not-sure', label: 'Not sure / show all options' },
 ];
 
-const INCOME_RANGE_OPTIONS = [
-  { value: 'under-30k', label: 'Under $30,000' },
-  { value: '30k-50k', label: '$30,000 - $50,000' },
-  { value: '50k-75k', label: '$50,000 - $75,000' },
-  { value: '75k-100k', label: '$75,000 - $100,000' },
-  { value: '100k-150k', label: '$100,000 - $150,000' },
-  { value: '150k-plus', label: 'Over $150,000' },
-  { value: 'prefer-not-say', label: 'Prefer not to say' },
-];
-
 export default function Step3Budget({
   budget,
-  incomeRange,
+  annualIncome,
+  netWorth,
   errors,
   onUpdate,
   onSubmit,
   onBack,
 }: Step3Props) {
+  // Local state for input fields (allows user to type freely)
+  const [incomeInput, setIncomeInput] = useState(formatCurrencyDisplay(annualIncome));
+  const [netWorthInput, setNetWorthInput] = useState(formatCurrencyDisplay(netWorth));
+  const [preferNotSayIncome, setPreferNotSayIncome] = useState(annualIncome === null);
+  const [preferNotSayNetWorth, setPreferNotSayNetWorth] = useState(netWorth === null);
+
+  // Sync local input when prop changes (e.g., from localStorage restore)
+  useEffect(() => {
+    if (annualIncome !== null) {
+      setIncomeInput(formatCurrencyDisplay(annualIncome));
+      setPreferNotSayIncome(false);
+    }
+  }, [annualIncome]);
+
+  useEffect(() => {
+    if (netWorth !== null) {
+      setNetWorthInput(formatCurrencyDisplay(netWorth));
+      setPreferNotSayNetWorth(false);
+    }
+  }, [netWorth]);
+
+  const handleIncomeChange = (value: string) => {
+    setIncomeInput(value);
+    const parsed = parseCurrencyInput(value);
+    onUpdate('annualIncome', parsed);
+  };
+
+  const handleIncomeBlur = () => {
+    // Format on blur for better display
+    if (annualIncome !== null) {
+      setIncomeInput(formatCurrencyDisplay(annualIncome));
+    }
+  };
+
+  const handleNetWorthChange = (value: string) => {
+    setNetWorthInput(value);
+    const parsed = parseCurrencyInput(value);
+    onUpdate('netWorth', parsed);
+  };
+
+  const handleNetWorthBlur = () => {
+    // Format on blur for better display
+    if (netWorth !== null) {
+      setNetWorthInput(formatCurrencyDisplay(netWorth));
+    }
+  };
+
+  const handlePreferNotSayIncome = (checked: boolean) => {
+    setPreferNotSayIncome(checked);
+    if (checked) {
+      setIncomeInput('');
+      onUpdate('annualIncome', null);
+    }
+  };
+
+  const handlePreferNotSayNetWorth = (checked: boolean) => {
+    setPreferNotSayNetWorth(checked);
+    if (checked) {
+      setNetWorthInput('');
+      onUpdate('netWorth', null);
+    }
+  };
   return (
     <div role="form" aria-labelledby="budget-heading">
       <div className="mb-8">
@@ -97,46 +153,93 @@ export default function Step3Budget({
 
       <div className="mb-8">
         <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-          Household Income
-          <InfoTooltip content="Income determines eligibility for premium tax credits (subsidies) and Medicaid. Those earning 100-400% of federal poverty level may qualify for substantial savings. This information is private and never shared." />
+          Annual Household Income
+          <InfoTooltip content="Your exact income allows us to calculate precise subsidy eligibility. Those earning 100-400% of federal poverty level may qualify for substantial savings. This information is private and never shared." />
         </h3>
         <p className="text-gray-600 text-sm mb-4">
           This helps us determine if you qualify for financial assistance through subsidies or Medicaid.
         </p>
-        <div className="space-y-3" role="radiogroup" aria-labelledby="budget-heading" aria-required="false">
-          {INCOME_RANGE_OPTIONS.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => onUpdate('incomeRange', option.value)}
-              className={`w-full px-6 py-4 rounded-lg font-semibold border-2 text-left transition-all ${
-                incomeRange === option.value
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600'
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="annual-income" className="sr-only">Annual household income</label>
+            <input
+              id="annual-income"
+              type="text"
+              inputMode="decimal"
+              value={incomeInput}
+              onChange={(e) => handleIncomeChange(e.target.value)}
+              onBlur={handleIncomeBlur}
+              disabled={preferNotSayIncome}
+              placeholder="e.g., $75,000 or $1.5M"
+              className={`w-full px-6 py-4 rounded-lg font-semibold border-2 text-left transition-all text-lg ${
+                preferNotSayIncome
+                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600 focus:border-blue-600 focus:ring-2 focus:ring-blue-200'
               }`}
-              role="radio"
-              aria-checked={incomeRange === option.value}
-              aria-label={`Annual household income: ${option.label}`}
-            >
-              <div className="flex items-center">
-                <div
-                  className={`w-5 h-5 rounded-full border-2 mr-4 flex items-center justify-center ${
-                    incomeRange === option.value
-                      ? 'border-white'
-                      : 'border-gray-400'
-                  }`}
-                  aria-hidden="true"
-                >
-                  {incomeRange === option.value && (
-                    <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                  )}
-                </div>
-                <span className="text-lg">{option.label}</span>
-              </div>
-            </button>
-          ))}
+              aria-describedby="income-hint"
+            />
+            <p id="income-hint" className="text-gray-500 text-sm mt-2">
+              Enter your total household income before taxes. Supports formats: $75,000, 75k, 1.5M, 2B
+            </p>
+          </div>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={preferNotSayIncome}
+              onChange={(e) => handlePreferNotSayIncome(e.target.checked)}
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-gray-600">Prefer not to say</span>
+          </label>
         </div>
-        {errors.incomeRange && (
-          <ErrorMessage message={errors.incomeRange} />
+        {errors.annualIncome && (
+          <ErrorMessage message={errors.annualIncome} />
+        )}
+      </div>
+
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          Total Net Worth
+          <InfoTooltip content="Your net worth helps us recommend appropriate deductible levels. Higher net worth may support higher-deductible plans (like HDHPs with HSAs) that offer lower premiums and tax advantages." />
+        </h3>
+        <p className="text-gray-600 text-sm mb-4">
+          This helps us recommend plans with appropriate out-of-pocket costs for your financial situation.
+        </p>
+        <div className="space-y-3">
+          <div>
+            <label htmlFor="net-worth" className="sr-only">Total net worth</label>
+            <input
+              id="net-worth"
+              type="text"
+              inputMode="decimal"
+              value={netWorthInput}
+              onChange={(e) => handleNetWorthChange(e.target.value)}
+              onBlur={handleNetWorthBlur}
+              disabled={preferNotSayNetWorth}
+              placeholder="e.g., $500,000 or $2.5M"
+              className={`w-full px-6 py-4 rounded-lg font-semibold border-2 text-left transition-all text-lg ${
+                preferNotSayNetWorth
+                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
+                  : 'bg-white text-gray-700 border-gray-300 hover:border-blue-600 focus:border-blue-600 focus:ring-2 focus:ring-blue-200'
+              }`}
+              aria-describedby="net-worth-hint"
+            />
+            <p id="net-worth-hint" className="text-gray-500 text-sm mt-2">
+              Assets minus debts. Can be negative if in debt. Supports: $500k, 2.5M, 1B
+            </p>
+          </div>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={preferNotSayNetWorth}
+              onChange={(e) => handlePreferNotSayNetWorth(e.target.checked)}
+              className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <span className="text-gray-600">Prefer not to say</span>
+          </label>
+        </div>
+        {errors.netWorth && (
+          <ErrorMessage message={errors.netWorth} />
         )}
       </div>
 

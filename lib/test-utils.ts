@@ -53,6 +53,8 @@ export function createTestFormData(
     preferredPlanTypes: [],
     budget: '400-600',
     incomeRange: '60k-80k',
+    annualIncome: null,
+    netWorth: null,
     currentStep: 4,
     simpleMode: false,
     hasCurrentInsurance: false,
