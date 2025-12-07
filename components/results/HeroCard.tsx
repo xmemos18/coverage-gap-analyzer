@@ -81,38 +81,33 @@ export default function HeroCard({
   const enrollmentInfo = getEnrollmentInfo();
 
   return (
-    <div className="relative overflow-hidden bg-white dark:bg-dark-800 rounded-2xl border-2 border-gray-200 dark:border-dark-700 shadow-xl p-6 md:p-8 mb-6 md:mb-8">
+    <div className="relative overflow-hidden bg-white dark:bg-dark-800 rounded-3xl border-2 border-gray-200 dark:border-dark-700 shadow-xl p-8 md:p-10 mb-8 md:mb-10">
       {/* Subtle background pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]"
-        style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)`,
-          backgroundSize: '30px 30px'
-        }}
-      ></div>
-      <div className="relative flex flex-col md:flex-row md:items-center md:gap-8">
+      <div className="results-pattern-dots text-gray-500 dark:text-gray-400"></div>
+      <div className="relative flex flex-col md:flex-row md:items-center md:gap-10">
         {/* Score Badge */}
-        <div className="flex flex-col items-center mb-6 md:mb-0 md:flex-shrink-0">
+        <div className="flex flex-col items-center mb-8 md:mb-0 md:flex-shrink-0">
           {/* Score Circle */}
           <div className="relative">
             <div
               className={`
-                w-20 h-20 md:w-[120px] md:h-[120px]
+                w-24 h-24 md:w-32 md:h-32
                 rounded-full
                 flex items-center justify-center
                 ${getScoreColor(score)}
-                shadow-xl
+                shadow-2xl
                 relative
+                ring-4 ring-white/30
               `}
             >
               {/* Score Number */}
-              <span className="text-4xl md:text-5xl font-bold text-white">
+              <span className="text-4xl md:text-6xl font-bold text-white drop-shadow-lg">
                 {score}
               </span>
 
               {/* Check Icon (top-right) */}
               <svg
-                className="absolute -top-1 -right-1 w-6 h-6 md:w-8 md:h-8 text-white bg-green-500 rounded-full p-1 shadow-md"
+                className="absolute -top-1 -right-1 w-7 h-7 md:w-9 md:h-9 text-white bg-green-500 rounded-full p-1.5 shadow-lg ring-2 ring-white"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -128,7 +123,7 @@ export default function HeroCard({
           </div>
 
           {/* Score Label */}
-          <p className="text-sm md:text-base font-semibold text-gray-600 dark:text-gray-400 mt-3 text-center">
+          <p className="text-sm md:text-base font-bold text-gray-600 dark:text-gray-400 mt-4 text-center uppercase tracking-wide">
             Coverage Score
           </p>
         </div>
@@ -144,7 +139,7 @@ export default function HeroCard({
           </span>
 
           {/* Plan Name */}
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 leading-tight">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
             {planType}
           </h1>
 
@@ -161,12 +156,12 @@ export default function HeroCard({
           )}
 
           {/* Price */}
-          <p className="text-3xl md:text-4xl font-bold text-blue-600 dark:text-blue-400 mb-3">
+          <p className="text-4xl md:text-5xl font-bold text-blue-600 dark:text-blue-400 mb-4">
             {formatPrice(priceRange)}
           </p>
 
           {/* Eligibility Description */}
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 mb-8">
             {eligibilityDescription}
           </p>
 

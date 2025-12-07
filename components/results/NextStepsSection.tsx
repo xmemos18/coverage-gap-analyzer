@@ -134,26 +134,20 @@ function NextStepsSection({ actionItems }: NextStepsSectionProps) {
 
   return (
     <section
-      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white to-gray-50 dark:from-dark-800 dark:to-dark-700 border-2 border-gray-200 dark:border-dark-600 shadow-2xl p-6 md:p-8 mb-12 md:mb-16 print:shadow-none print:border-2"
+      className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white to-gray-50 dark:from-dark-800 dark:to-dark-700 border-2 border-gray-200 dark:border-dark-600 shadow-xl p-8 md:p-10 mb-10 md:mb-14 print:shadow-none print:border-2"
       aria-labelledby="next-steps-heading"
     >
       {/* Subtle background pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]"
-        style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)`,
-          backgroundSize: '30px 30px'
-        }}
-      ></div>
+      <div className="results-pattern-dots text-gray-500 dark:text-gray-400"></div>
 
       {/* Premium Header */}
-      <div className="relative flex items-center gap-4 mb-8">
-        <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50 text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+      <div className="relative results-section-header">
+        <div className="results-icon-lg bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/50 dark:to-emerald-900/50">
           <span aria-hidden="true">✅</span>
         </div>
         <h3
           id="next-steps-heading"
-          className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white"
+          className="results-section-title"
         >
           Your Next Steps
         </h3>
@@ -164,12 +158,12 @@ function NextStepsSection({ actionItems }: NextStepsSectionProps) {
           <li
             key={index}
             role="listitem"
-            className="print:break-inside-avoid bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-blue-900/30 rounded-xl p-6 border-2 border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+            className="print:break-inside-avoid results-card-gradient bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-blue-900/30 border-blue-200 dark:border-blue-800 hover:border-blue-400 dark:hover:border-blue-600"
           >
             {/* Premium Step header */}
             <div className="flex items-start gap-4 md:gap-5 mb-5">
               <div
-                className="flex-shrink-0 w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-2xl flex items-center justify-center font-bold text-xl md:text-2xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300"
+                className="results-icon-md bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold text-xl md:text-2xl"
                 aria-label={`Step ${index + 1}`}
               >
                 {index + 1}
@@ -181,7 +175,7 @@ function NextStepsSection({ actionItems }: NextStepsSectionProps) {
                       {step.emoji}
                     </span>
                   )}
-                  <h4 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                  <h4 className="results-card-title leading-tight">
                     {step.title}
                   </h4>
                 </div>
@@ -227,15 +221,15 @@ function NextStepsSection({ actionItems }: NextStepsSectionProps) {
 
       {/* Premium Helpful tip at the bottom */}
       <div
-        className="relative mt-8 overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-blue-900/30 border-2 border-blue-200 dark:border-blue-800 p-6 shadow-md"
+        className="relative mt-10 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-blue-900/30 border-2 border-blue-200 dark:border-blue-800 p-6 md:p-8 shadow-lg"
         role="note"
         aria-label="Helpful tip"
       >
         <div className="flex items-start gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-2xl shadow-md rotate-3 flex-shrink-0">
+          <div className="results-icon-sm bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex-shrink-0">
             💡
           </div>
-          <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 leading-relaxed font-medium">
+          <p className="text-base md:text-lg text-gray-800 dark:text-gray-200 leading-relaxed font-medium">
             <strong className="text-blue-900 dark:text-blue-300 font-bold">Pro Tip:</strong> Complete these steps in order for the smoothest experience.
             Most people can complete steps 1-3 in under 2 hours.
           </p>

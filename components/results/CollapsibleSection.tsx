@@ -50,26 +50,20 @@ export default function CollapsibleSection({
   const colors = colorClasses[colorScheme];
 
   return (
-    <div className="mb-12 md:mb-16 animate-fadeIn">
+    <div className="mb-10 md:mb-14 animate-fadeIn">
       {/* Premium Header with Icon */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className={`flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br ${colors.iconBg} text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300`}>
+      <div className="results-section-header mb-6">
+        <div className={`results-icon-lg bg-gradient-to-br ${colors.iconBg}`}>
           {icon}
         </div>
-        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 flex-1">
+        <h3 className="results-section-title flex-1">
           {title}
         </h3>
       </div>
 
       {/* Premium Summary Card */}
-      <div className={`relative overflow-hidden rounded-xl bg-gradient-to-br ${colors.summaryGradient} border-2 ${colors.summaryBorder} p-5 md:p-6 mb-6 shadow-md`}>
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)`,
-            backgroundSize: '20px 20px'
-          }}
-        ></div>
+      <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${colors.summaryGradient} dark:${colors.summaryGradient.replace('50', '900/30')} border-2 ${colors.summaryBorder} p-6 md:p-8 mb-6 shadow-lg`}>
+        <div className="results-pattern-dots text-gray-500"></div>
         <div className="relative">
           {summary}
         </div>
@@ -100,14 +94,8 @@ export default function CollapsibleSection({
       {/* Premium Expandable Content */}
       {isExpanded && (
         <div className="animate-fadeIn">
-          <div className="relative overflow-hidden rounded-xl bg-white border-2 border-gray-200 p-5 md:p-6 shadow-lg">
-            <div
-              className="absolute inset-0 opacity-[0.01]"
-              style={{
-                backgroundImage: `radial-gradient(circle at 1px 1px, #64748b 1px, transparent 0)`,
-                backgroundSize: '30px 30px'
-              }}
-            ></div>
+          <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-dark-800 border-2 border-gray-200 dark:border-dark-600 p-6 md:p-8 shadow-lg">
+            <div className="results-pattern-dots text-gray-500 dark:text-gray-400"></div>
             <div className="relative">
               {children}
             </div>

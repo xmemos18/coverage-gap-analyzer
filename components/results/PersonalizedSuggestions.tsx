@@ -15,21 +15,18 @@ export default function PersonalizedSuggestions({ suggestions }: PersonalizedSug
   // If no suggestions, show beautiful "all set" state
   if (suggestions.length === 0) {
     return (
-      <section className="mb-12 md:mb-16 animate-fadeIn">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 px-6 py-16 md:px-12 md:py-20 shadow-xl">
+      <section className="mb-10 md:mb-14 animate-fadeIn">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 px-8 py-16 md:px-12 md:py-20 shadow-xl">
           {/* Decorative Background Pattern */}
-          <div className="absolute inset-0 opacity-[0.05]" style={{
-            backgroundImage: `radial-gradient(circle at 2px 2px, rgb(255, 255, 255) 1px, transparent 0)`,
-            backgroundSize: '40px 40px'
-          }}></div>
+          <div className="results-pattern-dots-light"></div>
 
           <div className="relative z-10 text-center">
-            <div className="flex justify-center mb-6">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm text-6xl shadow-xl">
+            <div className="flex justify-center mb-8">
+              <div className="flex h-24 w-24 md:h-28 md:w-28 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm text-6xl md:text-7xl shadow-xl ring-4 ring-white/30">
                 ✓
               </div>
             </div>
-            <h3 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            <h3 className="results-section-title text-white mb-4">
               You&apos;re All Set!
             </h3>
             <p className="text-lg md:text-xl text-green-50 max-w-2xl mx-auto leading-relaxed">
@@ -50,26 +47,23 @@ export default function PersonalizedSuggestions({ suggestions }: PersonalizedSug
   const totalSavings = suggestions.reduce((sum, s) => sum + (s.potentialSavings || 0), 0);
 
   return (
-    <section className="mb-12 md:mb-16 animate-fadeIn">
+    <section className="mb-10 md:mb-14 animate-fadeIn">
       {/* Premium Gradient Header */}
-      <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 px-6 py-12 md:px-12 md:py-16">
+      <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 px-8 py-12 md:px-12 md:py-16">
         {/* Decorative Background Pattern */}
-        <div className="absolute inset-0 opacity-[0.05]" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgb(255, 255, 255) 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }}></div>
+        <div className="results-pattern-dots-light"></div>
 
         <div className="relative z-10">
           {/* Section Title */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm text-4xl shadow-xl rotate-3 hover:rotate-6 transition-transform duration-300 cursor-pointer">
+          <div className="results-section-header mb-6">
+            <div className="results-icon-lg bg-white/20 backdrop-blur-sm cursor-pointer">
               💡
             </div>
             <div className="flex-1">
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              <h3 className="results-section-title text-white mb-2">
                 Personalized Suggestions
               </h3>
-              <p className="text-green-100 text-sm md:text-base">
+              <p className="text-green-100 text-base md:text-lg">
                 Tailored recommendations to optimize your coverage
               </p>
             </div>
@@ -98,22 +92,22 @@ export default function PersonalizedSuggestions({ suggestions }: PersonalizedSug
       </div>
 
       {/* Main Content Area */}
-      <div className="rounded-b-3xl bg-white px-6 py-8 md:px-12 md:py-12 shadow-xl">
+      <div className="rounded-b-3xl bg-white dark:bg-dark-800 px-8 py-10 md:px-12 md:py-14 shadow-xl">
 
         {/* Summary Statistics Bar */}
         <div className="mb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* High Priority Count */}
-            <div className="group relative overflow-hidden rounded-2xl border-2 border-red-300 bg-gradient-to-br from-red-50 to-orange-50 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+            <div className="group results-stat-card border-red-300 dark:border-red-700 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30">
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-red-500 to-orange-600 text-3xl shadow-md rotate-3 group-hover:rotate-6 transition-transform duration-300">
+                <div className="results-icon-md bg-gradient-to-br from-red-500 to-orange-600 text-white">
                   ⚠️
                 </div>
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+                  <div className="results-stat-label">
                     High Priority
                   </div>
-                  <div className="text-3xl font-bold text-red-600">
+                  <div className="text-3xl font-bold text-red-600 dark:text-red-400">
                     {highPriority.length}
                   </div>
                 </div>
@@ -121,16 +115,16 @@ export default function PersonalizedSuggestions({ suggestions }: PersonalizedSug
             </div>
 
             {/* Total Suggestions */}
-            <div className="group relative overflow-hidden rounded-2xl border-2 border-green-300 bg-gradient-to-br from-green-50 to-emerald-50 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+            <div className="group results-stat-card border-green-300 dark:border-green-700 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30">
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-3xl shadow-md rotate-3 group-hover:rotate-6 transition-transform duration-300">
+                <div className="results-icon-md bg-gradient-to-br from-green-500 to-emerald-600 text-white">
                   💡
                 </div>
                 <div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+                  <div className="results-stat-label">
                     Total Items
                   </div>
-                  <div className="text-3xl font-bold text-green-600">
+                  <div className="text-3xl font-bold text-green-600 dark:text-green-400">
                     {suggestions.length}
                   </div>
                 </div>
@@ -139,33 +133,33 @@ export default function PersonalizedSuggestions({ suggestions }: PersonalizedSug
 
             {/* Potential Savings */}
             {totalSavings > 0 ? (
-              <div className="group relative overflow-hidden rounded-2xl border-2 border-blue-300 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <div className="group results-stat-card border-blue-300 dark:border-blue-700 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-3xl shadow-md rotate-3 group-hover:rotate-6 transition-transform duration-300">
+                  <div className="results-icon-md bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
                     💰
                   </div>
                   <div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+                    <div className="results-stat-label">
                       Potential Savings
                     </div>
-                    <div className="text-3xl font-bold text-blue-600">
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                       ${Math.round(totalSavings)}
-                      <span className="text-sm font-normal text-gray-600">/mo</span>
+                      <span className="text-sm font-normal text-gray-600 dark:text-gray-400">/mo</span>
                     </div>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="group relative overflow-hidden rounded-2xl border-2 border-purple-300 bg-gradient-to-br from-purple-50 to-indigo-50 p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <div className="group results-stat-card border-purple-300 dark:border-purple-700 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/30 dark:to-indigo-900/30">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-3xl shadow-md rotate-3 group-hover:rotate-6 transition-transform duration-300">
+                  <div className="results-icon-md bg-gradient-to-br from-purple-500 to-indigo-600 text-white">
                     🎯
                   </div>
                   <div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-gray-600 mb-1">
+                    <div className="results-stat-label">
                       Focus Area
                     </div>
-                    <div className="text-lg font-bold text-purple-900">
+                    <div className="text-lg font-bold text-purple-900 dark:text-purple-300">
                       Coverage Quality
                     </div>
                   </div>
@@ -202,12 +196,12 @@ export default function PersonalizedSuggestions({ suggestions }: PersonalizedSug
           <div className="mb-12">
             <div className="flex items-center gap-3 mb-8">
               <div className="h-1 w-16 bg-gradient-to-r from-red-500 to-orange-600 rounded-full"></div>
-              <h4 className="text-2xl md:text-3xl font-bold text-gray-900">High Priority</h4>
-              <div className="flex items-center gap-2 bg-red-100 border-2 border-red-300 rounded-full px-4 py-1.5 shadow-sm">
-                <svg className="h-4 w-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+              <h4 className="results-subsection-title">High Priority</h4>
+              <div className="flex items-center gap-2 bg-red-100 dark:bg-red-900/50 border-2 border-red-300 dark:border-red-700 rounded-full px-4 py-1.5 shadow-sm">
+                <svg className="h-4 w-4 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
-                <span className="text-xs font-bold text-red-900">
+                <span className="text-xs font-bold text-red-900 dark:text-red-200">
                   {highPriority.length} {highPriority.length === 1 ? 'Item' : 'Items'}
                 </span>
               </div>
@@ -230,15 +224,15 @@ export default function PersonalizedSuggestions({ suggestions }: PersonalizedSug
             >
               <div className="flex items-center gap-3">
                 <div className="h-1 w-16 bg-gradient-to-r from-yellow-500 to-amber-600 rounded-full"></div>
-                <h4 className="text-2xl md:text-3xl font-bold text-gray-900">Medium Priority</h4>
-                <div className="flex items-center gap-2 bg-yellow-100 border-2 border-yellow-300 rounded-full px-4 py-1.5 shadow-sm">
-                  <span className="text-xs font-bold text-yellow-900">
+                <h4 className="results-subsection-title">Medium Priority</h4>
+                <div className="flex items-center gap-2 bg-yellow-100 dark:bg-yellow-900/50 border-2 border-yellow-300 dark:border-yellow-700 rounded-full px-4 py-1.5 shadow-sm">
+                  <span className="text-xs font-bold text-yellow-900 dark:text-yellow-200">
                     {mediumPriority.length} {mediumPriority.length === 1 ? 'Item' : 'Items'}
                   </span>
                 </div>
               </div>
               <svg
-                className={`h-6 w-6 text-gray-600 transition-transform duration-300 ${expandedMedium ? 'rotate-180' : ''}`}
+                className={`h-6 w-6 text-gray-600 dark:text-gray-400 transition-transform duration-300 ${expandedMedium ? 'rotate-180' : ''}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -266,15 +260,15 @@ export default function PersonalizedSuggestions({ suggestions }: PersonalizedSug
             >
               <div className="flex items-center gap-3">
                 <div className="h-1 w-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"></div>
-                <h4 className="text-2xl md:text-3xl font-bold text-gray-900">Low Priority</h4>
-                <div className="flex items-center gap-2 bg-blue-100 border-2 border-blue-300 rounded-full px-4 py-1.5 shadow-sm">
-                  <span className="text-xs font-bold text-blue-900">
+                <h4 className="results-subsection-title">Low Priority</h4>
+                <div className="flex items-center gap-2 bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-700 rounded-full px-4 py-1.5 shadow-sm">
+                  <span className="text-xs font-bold text-blue-900 dark:text-blue-200">
                     {lowPriority.length} {lowPriority.length === 1 ? 'Item' : 'Items'}
                   </span>
                 </div>
               </div>
               <svg
-                className={`h-6 w-6 text-gray-600 transition-transform duration-300 ${expandedLow ? 'rotate-180' : ''}`}
+                className={`h-6 w-6 text-gray-600 dark:text-gray-400 transition-transform duration-300 ${expandedLow ? 'rotate-180' : ''}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"

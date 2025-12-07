@@ -38,16 +38,17 @@ export default function EnhancedWhyRecommendation({
   const topAlternative = recommendation.alternativeOptions?.[0];
 
   return (
-    <section className="mt-6 md:mt-8">
+    <section className="mt-8 md:mt-10">
       {/* Premium Gradient Header with Score Visualization */}
-      <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 px-6 py-12 md:px-12 md:py-16">
+      <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-blue-600 via-blue-500 to-indigo-600 px-8 py-12 md:px-12 md:py-16">
+        <div className="results-pattern-dots-light"></div>
         <div className="relative z-10 grid gap-8 md:grid-cols-2 md:gap-12">
           {/* Left: Title and Tagline */}
           <div className="flex flex-col justify-center">
-            <h2 className="text-3xl font-bold text-white md:text-4xl">
+            <h2 className="results-section-title text-white">
               Why This Recommendation?
             </h2>
-            <p className="mt-3 text-lg text-blue-100 md:text-xl">
+            <p className="mt-4 text-lg text-blue-100 md:text-xl">
               Personalized analysis based on your household situation and coverage needs
             </p>
 

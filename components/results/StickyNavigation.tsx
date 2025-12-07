@@ -62,9 +62,9 @@ export default function StickyNavigation({ sections }: StickyNavigationProps) {
     <>
       {/* Premium Desktop: Sidebar Navigation */}
       <nav className="hidden lg:block fixed left-4 top-24 z-40 print:hidden">
-        <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-2xl border-2 border-gray-200 dark:border-dark-600 p-5 max-w-[220px]">
-          <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <span className="text-blue-600 dark:text-blue-400">🗂️</span>
+        <div className="bg-white dark:bg-dark-800 rounded-3xl shadow-xl border-2 border-gray-200 dark:border-dark-600 p-6 max-w-[220px]">
+          <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-5 flex items-center gap-2">
+            <span className="results-icon-sm bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-sm">🗂️</span>
             Jump to
           </h3>
           <ul className="space-y-2">
@@ -102,10 +102,10 @@ export default function StickyNavigation({ sections }: StickyNavigationProps) {
             />
 
             {/* Premium Menu */}
-            <div className="fixed bottom-24 right-4 bg-gradient-to-br from-white to-gray-50 dark:from-dark-800 dark:to-dark-700 rounded-2xl shadow-2xl border-2 border-gray-200 dark:border-dark-600 p-4 w-72 max-h-[60vh] overflow-y-auto animate-fadeIn">
-              <div className="flex items-center justify-between mb-4 pb-4 border-b-2 border-gray-200 dark:border-dark-600">
+            <div className="fixed bottom-24 right-4 bg-gradient-to-br from-white to-gray-50 dark:from-dark-800 dark:to-dark-700 rounded-3xl shadow-xl border-2 border-gray-200 dark:border-dark-600 p-5 w-72 max-h-[60vh] overflow-y-auto animate-fadeIn">
+              <div className="flex items-center justify-between mb-5 pb-4 border-b-2 border-gray-200 dark:border-dark-600">
                 <h3 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-2">
-                  <span className="text-blue-600 dark:text-blue-400">🗂️</span>
+                  <span className="results-icon-sm bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-sm">🗂️</span>
                   Jump to Section
                 </h3>
                 <button

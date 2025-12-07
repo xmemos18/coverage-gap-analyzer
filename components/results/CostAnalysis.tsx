@@ -135,26 +135,23 @@ function CostAnalysis({
   const budgetPercent = budgetRange ? (budgetRange.max / maxCost) * 100 : 0;
 
   return (
-    <section className="mb-12 md:mb-16 animate-fadeIn">
+    <section className="mb-10 md:mb-14 animate-fadeIn">
       {/* Premium Gradient Header */}
-      <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 px-6 py-12 md:px-12 md:py-16">
+      <div className="relative overflow-hidden rounded-t-3xl bg-gradient-to-br from-green-600 via-emerald-600 to-teal-600 px-8 py-12 md:px-12 md:py-16">
         {/* Decorative Background Pattern */}
-        <div className="absolute inset-0 opacity-[0.05]" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgb(255, 255, 255) 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }}></div>
+        <div className="results-pattern-dots-light"></div>
 
         <div className="relative z-10">
           {/* Section Title */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm text-4xl shadow-xl rotate-3 hover:rotate-6 transition-transform duration-300 cursor-pointer">
+          <div className="results-section-header mb-6">
+            <div className="results-icon-lg bg-white/20 backdrop-blur-sm cursor-pointer">
               💰
             </div>
             <div className="flex-1">
-              <h3 className="text-3xl md:text-4xl font-bold text-white mb-2">
+              <h3 className="results-section-title text-white mb-2">
                 Cost Analysis
               </h3>
-              <p className="text-green-100 text-sm md:text-base">
+              <p className="text-green-100 text-base md:text-lg">
                 Complete breakdown of your insurance costs
               </p>
             </div>
@@ -173,7 +170,7 @@ function CostAnalysis({
       </div>
 
       {/* Main Content Area */}
-      <div className="rounded-b-3xl bg-white px-6 py-8 md:px-12 md:py-12 shadow-xl">
+      <div className="rounded-b-3xl bg-white dark:bg-dark-800 px-8 py-10 md:px-12 md:py-14 shadow-xl">
         {/* Premium Tab Navigation */}
         <div className="mb-8">
           <div className="border-b-2 border-gray-200 overflow-x-auto">
@@ -239,49 +236,43 @@ function CostAnalysis({
             <div className="space-y-8 animate-fadeIn">
               {/* Key Costs Grid - Premium Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-                <div className="group relative overflow-hidden rounded-2xl border-2 border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50 p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+                <div className="group results-stat-card border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30">
                   {/* Background Pattern */}
-                  <div className="absolute inset-0 opacity-[0.02]" style={{
-                    backgroundImage: `radial-gradient(circle at 2px 2px, rgb(59, 130, 246) 1px, transparent 0)`,
-                    backgroundSize: '24px 24px'
-                  }}></div>
+                  <div className="results-pattern-dots text-blue-500"></div>
 
                   <div className="relative z-10">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-3xl shadow-md mb-4 rotate-3 group-hover:rotate-6 transition-transform duration-300">
+                    <div className="results-icon-md bg-gradient-to-br from-blue-500 to-indigo-600 text-white mb-4">
                       💳
                     </div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">
+                    <div className="results-stat-label">
                       Monthly <InsuranceTerm term="Premium">Cost</InsuranceTerm>
                     </div>
-                    <div className="text-4xl md:text-5xl font-bold text-blue-600 mb-2">
+                    <div className="results-stat-value text-blue-600 dark:text-blue-400 mb-2">
                       {formatCost(monthlyCost.low, monthlyCost.high)}
                     </div>
                     {subsidyAmount > 0 && (
-                      <div className="mt-4 text-sm text-gray-600 bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-blue-200">
+                      <div className="mt-4 text-sm text-gray-600 dark:text-gray-400 bg-white/60 dark:bg-dark-700/60 backdrop-blur-sm rounded-xl p-3 border border-blue-200 dark:border-blue-800">
                         <span className="font-medium">Before subsidy:</span> {formatCost(monthlyCost.low + subsidyAmount, monthlyCost.high + subsidyAmount)}
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="group relative overflow-hidden rounded-2xl border-2 border-green-400 bg-gradient-to-br from-green-50 to-emerald-50 p-6 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+                <div className="group results-stat-card border-green-400 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30">
                   {/* Background Pattern */}
-                  <div className="absolute inset-0 opacity-[0.02]" style={{
-                    backgroundImage: `radial-gradient(circle at 2px 2px, rgb(34, 197, 94) 1px, transparent 0)`,
-                    backgroundSize: '24px 24px'
-                  }}></div>
+                  <div className="results-pattern-dots text-green-500"></div>
 
                   <div className="relative z-10">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 text-3xl shadow-md mb-4 rotate-3 group-hover:rotate-6 transition-transform duration-300">
+                    <div className="results-icon-md bg-gradient-to-br from-green-500 to-emerald-600 text-white mb-4">
                       📅
                     </div>
-                    <div className="text-xs font-bold uppercase tracking-wider text-gray-600 mb-2">
+                    <div className="results-stat-label">
                       Annual Cost
                     </div>
-                    <div className="text-4xl md:text-5xl font-bold text-green-600 mb-2">
+                    <div className="results-stat-value text-green-600 dark:text-green-400 mb-2">
                       {formatCost(annualCost.low, annualCost.high)}
                     </div>
-                    <div className="text-sm text-gray-600 mt-2">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                       Per year for your household
                     </div>
                   </div>
@@ -290,32 +281,29 @@ function CostAnalysis({
 
               {/* Affordability Check - Premium Callout */}
               {budgetRange && (
-                <div className={`relative overflow-hidden rounded-2xl p-6 md:p-8 shadow-xl border-2 ${
-                  affordabilityStatus.level === 'good' ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300' :
-                  affordabilityStatus.level === 'warning' ? 'bg-gradient-to-br from-yellow-50 to-amber-50 border-yellow-300' :
-                  'bg-gradient-to-br from-red-50 to-orange-50 border-red-300'
+                <div className={`results-card-gradient ${
+                  affordabilityStatus.level === 'good' ? 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-green-300 dark:border-green-700' :
+                  affordabilityStatus.level === 'warning' ? 'bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/30 border-yellow-300 dark:border-yellow-700' :
+                  'bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/30 dark:to-orange-900/30 border-red-300 dark:border-red-700'
                 }`}>
                   {/* Background Pattern */}
-                  <div className="absolute inset-0 opacity-[0.02]" style={{
-                    backgroundImage: `radial-gradient(circle at 2px 2px, ${
-                      affordabilityStatus.level === 'good' ? 'rgb(34, 197, 94)' :
-                      affordabilityStatus.level === 'warning' ? 'rgb(234, 179, 8)' :
-                      'rgb(239, 68, 68)'
-                    } 1px, transparent 0)`,
-                    backgroundSize: '24px 24px'
-                  }}></div>
+                  <div className={`results-pattern-dots ${
+                    affordabilityStatus.level === 'good' ? 'text-green-500' :
+                    affordabilityStatus.level === 'warning' ? 'text-yellow-500' :
+                    'text-red-500'
+                  }`}></div>
 
                   <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-6">
-                      <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${
+                      <div className={`results-icon-lg ${
                         affordabilityStatus.level === 'good' ? 'bg-gradient-to-br from-green-500 to-emerald-600' :
                         affordabilityStatus.level === 'warning' ? 'bg-gradient-to-br from-yellow-500 to-amber-600' :
                         'bg-gradient-to-br from-red-500 to-orange-600'
-                      } text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300`}>
+                      } text-white`}>
                         {affordabilityStatus.icon}
                       </div>
                       <div>
-                        <h4 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">Affordability Check</h4>
+                        <h4 className="results-card-title mb-1">Affordability Check</h4>
                         <div className={`text-2xl md:text-3xl font-bold ${affordabilityStatus.color}`}>
                           {affordabilityStatus.label}
                         </div>
@@ -324,15 +312,15 @@ function CostAnalysis({
 
                     {/* Budget Usage Meter */}
                     <div className="mb-6">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="font-medium text-gray-700">Budget Usage</span>
-                        <span className="font-bold">
+                      <div className="flex justify-between text-sm mb-3">
+                        <span className="font-medium text-gray-700 dark:text-gray-300">Budget Usage</span>
+                        <span className="font-bold text-gray-900 dark:text-white">
                           {Math.round(((subsidyAmount > 0 ? avgCostAfterSubsidy : avgRecommendedCost) / budgetRange.max) * 100)}%
                         </span>
                       </div>
-                      <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="results-progress-bar">
                         <div
-                          className={`h-full rounded-full transition-all duration-500 ${
+                          className={`results-progress-fill ${
                             affordabilityStatus.level === 'good' ? 'bg-gradient-to-r from-green-400 to-emerald-500' :
                             affordabilityStatus.level === 'warning' ? 'bg-gradient-to-r from-yellow-400 to-amber-500' :
                             'bg-gradient-to-r from-red-400 to-orange-500'
@@ -360,20 +348,17 @@ function CostAnalysis({
 
               {/* Subsidy Impact - Enhanced Visualization */}
               {subsidyAmount > 0 && costAfterSubsidy && (
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6 md:p-8 border-2 border-blue-300 shadow-xl">
+                <div className="results-card-gradient bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/30 dark:via-indigo-900/30 dark:to-purple-900/30 border-blue-300 dark:border-blue-700">
                   {/* Background Pattern */}
-                  <div className="absolute inset-0 opacity-[0.02]" style={{
-                    backgroundImage: `radial-gradient(circle at 2px 2px, rgb(99, 102, 241) 1px, transparent 0)`,
-                    backgroundSize: '24px 24px'
-                  }}></div>
+                  <div className="results-pattern-dots text-indigo-500"></div>
 
                   <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-6">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+                      <div className="results-icon-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
                         🎁
                       </div>
                       <div className="flex-1">
-                        <h4 className="text-xl md:text-2xl font-bold text-gray-900">Subsidy Impact</h4>
+                        <h4 className="results-card-title">Subsidy Impact</h4>
                         {slcspSource && (
                           <div className="flex items-center gap-2 mt-2">
                             <DataSourceBadge source={slcspSource} />

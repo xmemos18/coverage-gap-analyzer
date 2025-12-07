@@ -72,14 +72,14 @@ export default function ComparisonSection({
   };
 
   return (
-    <section className="mb-12 md:mb-16 animate-fadeIn">
+    <section className="mb-10 md:mb-14 animate-fadeIn">
       {/* Premium Section Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <div className="flex h-14 w-14 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/50 dark:to-indigo-900/50 text-3xl md:text-4xl shadow-lg rotate-3 hover:rotate-6 transition-transform duration-300">
+      <div className="results-section-header">
+        <div className="results-icon-lg bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/50 dark:to-indigo-900/50">
           🔄
         </div>
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">{title}</h2>
+          <h2 className="results-section-title mb-1">{title}</h2>
           {subtitle && <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 font-medium">{subtitle}</p>}
         </div>
       </div>
@@ -181,10 +181,10 @@ function ComparisonCard({
   return (
     <div
       className={`
-        group relative bg-white dark:bg-dark-800 rounded-2xl overflow-hidden transition-all duration-300
+        group relative bg-white dark:bg-dark-800 rounded-3xl overflow-hidden transition-all duration-300
         ${option.isRecommended
           ? 'ring-4 ring-blue-500 ring-offset-4 dark:ring-offset-dark-900 shadow-2xl'
-          : 'border-2 border-gray-200 dark:border-dark-600 shadow-lg hover:shadow-2xl hover:-translate-y-1'
+          : 'border-2 border-gray-200 dark:border-dark-600 shadow-lg hover:shadow-xl hover:-translate-y-1'
         }
       `}
     >
@@ -222,8 +222,8 @@ function ComparisonCard({
 
           {/* Option Name */}
           <h3
-            className={`text-2xl md:text-3xl font-bold mb-3 ${
-              option.isRecommended ? 'text-white drop-shadow-md' : 'text-gray-900 dark:text-white'
+            className={`results-subsection-title mb-3 ${
+              option.isRecommended ? 'text-white drop-shadow-md' : ''
             }`}
           >
             {option.name}
